@@ -2,8 +2,8 @@
 
 require_once dirname(__FILE__) . '/wp.php';
 require_once dirname(__FILE__) . '/helper.php';
-require_once dirname(__FILE__) . '/../Plugin.php';
-require_once dirname(__FILE__) . '/../Config.php';
+require_once dirname(__FILE__) . '/src/Plugin.php';
+require_once dirname(__FILE__) . '/src/Config.php';
 
 if(defined('SETCOOKI_WP_AUTOLOAD') && (bool)constant('SETCOOKI_WP_AUTOLOAD'))
 {
