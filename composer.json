@@ -5,9 +5,16 @@
   "keywords": ["wordpress", "wp", "framework"],
   "homepage": "https://github.com/setcooki/wp",
   "license": "GPL",
+  "authors": [
+    {
+      "name": "setcooki",
+      "email": "set@cooki.me",
+      "homepage": "http://set.cooki.me"
+    }
+  ],
   "support":{
-    "issues": "http://agile.cooki.me",
-    "wiki": "https://github.com/setcooki/wp"
+    "issues": "https://github.com/setcooki/wp/issues",
+    "wiki": "https://github.com/setcooki/wp/wiki"
   },
   "config": {
     "vendor-dir": "lib/vendor"
