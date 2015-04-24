@@ -2,6 +2,10 @@
 
 namespace Setcooki\Wp;
 
+/**
+ * Class Error
+ * @package Setcooki\Wp
+ */
 class Error
 {
     /**
@@ -28,11 +32,14 @@ class Error
 
 
     /**
-     * @param $no
-     * @param $str
-     * @param null $file
-     * @param null $line
-     * @param null $context
+     * build in error handler that will redirect all error to build in error logger if error logger is loaded if not
+     * will restore previous set error handler
+     *
+     * @param int $no expects the error level number
+     * @param string $str expects the error string
+     * @param null|string $file expects the filename where the error was raised
+     * @param null|string $line expects the line number where the error was raised
+     * @param null|array $context expects the optional error context
      * @return bool
      */
     public static function handler($no, $str, $file = null, $line = null, $context = null)
@@ -47,8 +54,9 @@ class Error
             $err[] = "in: $file";
             $err[] = "on line: $line";
             Logger::l(implode(' ', $err), (array_key_exists($no, self::$map)) ? self::$map[$no] : LOG_ERR);
-        }else{
             return false;
+        }else{
+            restore_error_handler();
         }
     }
 }

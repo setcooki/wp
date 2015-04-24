@@ -4,15 +4,29 @@ namespace Setcooki\Wp;
 
 use Setcooki\Wp\Exception;
 
+/**
+ * Class Config
+ * @package Setcooki\Wp
+ */
 class Config
 {
+    /**
+     * @var array
+     */
     private $_config = array();
 
+
+    /**
+     * @var array
+     */
     protected static $_instances = array();
 
 
     /**
-     * @param $config
+     * load config files passed in first argument which can be a single config file location or an array of multiple config
+     * files which are merge to one config object
+     *
+     * @param string|mixed $config expects either a string file name or an array of config files
      * @throws Exception
      */
     public function __construct($config)
@@ -30,8 +44,12 @@ class Config
 
 
     /**
-     * @param $config
-     * @param $ns
+     * static class creator which is the expected way to use config class. pass config file or files in first argument and
+     * set namespace identifier in second argument. that way multiple config namespaces/instances can be maintained
+     *
+     * @see Cache::__construct
+     * @param string|mixed $config expects either a string file name or an array of config files
+     * @param string $ns expects config namespace identifier
      * @return mixed
      */
     public static function init($config, $ns)
@@ -45,8 +63,10 @@ class Config
 
 
     /**
-     * @param $file
-     * @param bool $throw
+     * load a config file into config store
+     *
+     * @param string $file expects a absolute path to config file
+     * @param bool $throw expects boolean value to throw exception on failure or return array
      * @return array
      * @throws Exception
      */
@@ -74,9 +94,11 @@ class Config
 
 
     /**
-     * @param $ns
-     * @param null $key
-     * @param null $value
+     * set key => value pair to config store by namespace
+     *
+     * @param string $ns expects the namespace of the config store
+     * @param null|string $key expects the config key
+     * @param null|mixed $value expects the config value
      */
     public static function set($ns, $key = null, $value = null)
     {
@@ -88,10 +110,12 @@ class Config
 
 
     /**
-     * @param $ns
-     * @param null $key
-     * @param null $default
-     * @return array|mixed
+     * get a value by key from config store by namespace
+     *
+     * @param string $ns expects the namespace of the config store
+     * @param null|string $key expects the config key
+     * @param null|mixed $default expects a default return value
+     * @return mixed
      * @throws \Exception
      */
     public static function get($ns, $key = null, $default = null)
@@ -105,8 +129,10 @@ class Config
 
 
     /**
-     * @param $ns
-     * @param $key
+     * checks if a config value by key is set in config store identified by namespace identifier in first argument
+     *
+     * @param string $ns expects the namespace of the config store
+     * @param null|string $key expects the config key
      * @return bool
      */
     public static function has($ns, $key)
@@ -116,7 +142,10 @@ class Config
 
 
     /**
-     * @param $ns
+     * unset config store for namespace identifier in first argument
+     *
+     * @param string $ns expects the namespace of the config store
+     * @return void
      */
     public static function reset($ns)
     {

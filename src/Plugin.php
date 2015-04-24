@@ -15,7 +15,9 @@ abstract class Plugin
 
 
     /**
-     * @param null $options
+     * init plugin and register activation and deactivation hooks
+     *
+     * @param null⁄mixed $options expects optional class options
      */
     protected function __construct($options = null)
     {
@@ -26,7 +28,9 @@ abstract class Plugin
 
 
     /**
-     * @param null $options
+     * static class instance setter/getter
+     *
+     * @param null⁄mixed $options expects optional class options
      * @return null|Plugin
      */
     public static function instance($options = null)
@@ -42,7 +46,10 @@ abstract class Plugin
 
 
     /**
-     * @param $class
+     * build in autoloader will only load classes of actual plugin implementation that will extend the plugin skeleton
+     *
+     * @param string $class expects the class name to load
+     * @return void
      */
     public static function autoload($class)
     {

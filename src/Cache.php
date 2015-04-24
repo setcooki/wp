@@ -22,7 +22,9 @@ abstract class Cache
 
 
     /**
-     * @param null $options
+     * class constructor set options and init´s cache class
+     *
+     * @param null|array $options expects optional options
      */
     protected function __construct($options = null)
     {
@@ -32,10 +34,13 @@ abstract class Cache
 
 
     /**
-     * @param null $ns
-     * @param null $driver
-     * @param null $options
-     * @return null
+     * static instance getter/setter method to set or get cache class instances by namespace if first argument. if no
+     * arguments are present will return the last set or current class cache instance
+     *
+     * @param null|string $ns expects the namespace identifier
+     * @param null|string $driver the cache driver/class name
+     * @param null|array $options optional class instance options
+     * @return null|Cache
      * @throws Exception
      */
     public static function instance($ns = null, $driver = null, $options = null)
@@ -72,9 +77,12 @@ abstract class Cache
 
 
     /**
-     * @param $driver
-     * @param null $options
-     * @param null $ns
+     * cache factory method creates a cache instance by driver/class name. in case multiple cache instances are needed
+     * you need to specify a third argument as cache instance identifier namespace
+     *
+     * @param string $driver expects the driver/class name
+     * @param null|array $options optional class instance options
+     * @param null|string $ns expects an optional namespace identifier
      * @return mixed
      * @throws Exception
      */
@@ -96,6 +104,8 @@ abstract class Cache
 
 
     /**
+     * check if any cache instance is set already
+     *
      * @return bool
      */
     public static function hasInstance()
@@ -105,8 +115,10 @@ abstract class Cache
 
 
     /**
-     * @param $string
-     * @param string $algo
+     * hash as string to make a cache key
+     *
+     * @param string $string expects a string as cache key basis
+     * @param string $algo expects the hashing algo
      * @return string
      */
     public static function hash($string, $algo = 'sha1')
@@ -116,7 +128,9 @@ abstract class Cache
 
 
     /**
-     * @param null $seconds
+     * make a cache timestamp by now + seconds passed in first argument which can be null defaulting in now only
+     *
+     * @param null|int $seconds expects seconds to add to time
      * @return int
      */
     protected function timestamp($seconds = null)
@@ -169,10 +183,9 @@ abstract class Cache
 
 
     /**
+     * prevent cloning of cache class
      *
+     * @return void
      */
-    protected function __clone()
-    {
-
-    }
+    protected function __clone(){}
 }
