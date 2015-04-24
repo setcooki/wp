@@ -1,10 +1,12 @@
 <?php
 
 /**
- * @param $object
- * @param null $key
- * @param null $default
- * @return array|mixed|object
+ * get values from objects/array by key/path
+ *
+ * @param object|array $object expects object to get value from
+ * @param null|string $key expects a key to look up in object or null to return the object
+ * @param null|mixed $default expects default return value
+ * @return mixed
  * @throws Exception
  */
 function setcooki_object_get($object, $key = null, $default = null)
@@ -35,11 +37,14 @@ function setcooki_object_get($object, $key = null, $default = null)
     return ($o) ? setcooki_array_to_object($object) : $object;
 }
 
+
 /**
- * @param $object
- * @param null $key
- * @param null $value
- * @return null
+ * set values in object/array by key/path
+ *
+ * @param object|array $object expects object to set
+ * @param null|string $key expects a key/path to set value too or null to init object with value in third argument
+ * @param null|mixed $value expects the value to set ath key in object
+ * @return null|mixed
  */
 function setcooki_object_set(&$object, $key = null, $value = null)
 {
@@ -87,9 +92,13 @@ function setcooki_object_set(&$object, $key = null, $value = null)
     return null;
 }
 
+
 /**
- * @param $object
- * @param null $key
+ * unset values of object/array at key/path in second argument or unset the whole object if no key is supplied in second
+ * argument
+ *
+ * @param object|array $object expects object
+ * @param null|string $key expects key/path target
  */
 function setcooki_object_unset(&$object, $key = null)
 {
@@ -128,10 +137,14 @@ function setcooki_object_unset(&$object, $key = null)
     }
 }
 
+
 /**
- * @param array $array
- * @param null $key
- * @param bool $strict
+ * check if a a value at key/path or key/path exists/isset in first argument object/array. the third arguments tell to
+ * also check for a real value at key/path which is not php "empty"
+ *
+ * @param object|array $object expects object to check
+ * @param null|mixed $key expects key/path to check for
+ * @param bool $strict expects boolean value for strict mode
  * @return bool
  */
 function setcooki_object_isset($object, $key = null, $strict = false)
@@ -177,72 +190,84 @@ function setcooki_object_isset($object, $key = null, $strict = false)
     }
 }
 
+
 /**
- * @param $value
- * @return array|object
+ * convert array to std object
+ *
+ * @param array|mixed $array the array to convert
+ * @return object|mixed
  */
-function setcooki_array_to_object($value)
+function setcooki_array_to_object($array)
 {
-    if(is_array($value))
+    if(is_array($array))
     {
-        if(array_keys($value) === range(0, count($value) - 1))
+        if(array_keys($array) === range(0, count($array) - 1))
         {
-            return (array)array_map(__FUNCTION__, $value);
+            return (array)array_map(__FUNCTION__, $array);
         }else{
-            return (object)array_map(__FUNCTION__, $value);
+            return (object)array_map(__FUNCTION__, $array);
         }
     }else{
-        return $value;
+        return $array;
     }
 }
 
 
 /**
- * @param $value
- * @return array
+ * convert std object to array
+ *
+ * @param object|mixed $object expects object to convert
+ * @return array|mixed
  */
-function setcooki_object_to_array($value)
+function setcooki_object_to_array($object)
 {
-    if(is_object($value))
+    if(is_object($object))
     {
-        $value = get_object_vars($value);
+        $value = get_object_vars($object);
     }
-    if(is_array($value))
+    if(is_array($object))
     {
-   	    return array_map(__FUNCTION__, $value);
+   	    return array_map(__FUNCTION__, $object);
     }else{
-   		return $value;
+   		return $object;
    	}
 }
 
 
 /**
- * @param null $mixed
+ * check a value for being a not empty/null/false or string '' value identifying only value which are considered to be
+ * valid values
+ *
+ * @param null|mixed $value
  * @return bool
  */
-function setcooki_is_value($mixed = null)
+function setcooki_is_value($value = null)
 {
-    if(is_null($mixed))
+    if(is_null($value))
     {
         return false;
     }
-    if(is_bool($mixed) && $mixed === false)
+    if(is_bool($value) && $value === false)
     {
         return false;
     }
-    if(is_array($mixed) && empty($mixed))
+    if(is_array($value) && empty($value))
     {
         return false;
     }
-    if(is_string($mixed) && $mixed === '')
+    if(is_string($value) && $value === '')
     {
         return false;
     }
     return true;
 }
 
+
 /**
- * @param $value
+ * default value function that will take a mixed value as argument and executes it according to values data type which
+ * can be a php callback, exception, exit command or default return string
+ *
+ * @param mixed $value expects the value to execute
  * @return mixed
  * @throws Exception
  */
@@ -261,8 +286,12 @@ function setcooki_default($value)
 
 
 /**
- * @param $options
- * @param $object
+ * pass name => value pairs of array passed in first argument to class instance that implements public $options property
+ * in second argument
+ *
+ * @param array $options expects option array
+ * @param object $object expects object that implements public $option property
+ * @return void
  */
 function setcooki_init_options($options, $object)
 {
@@ -275,10 +304,15 @@ function setcooki_init_options($options, $object)
     }
 }
 
+
 /**
- * @param $name
- * @param $value
- * @param $object
+ * set an option by name => value to object passed in third argument which is a class instance which implements public
+ * $option property
+ *
+ * @param string $name expects the option name
+ * @param mixed $value expects the option value
+ * @param object $object expects object that implements public $option property
+ * @return void
  */
 function setcooki_set_option($name, $value, $object)
 {
@@ -288,11 +322,15 @@ function setcooki_set_option($name, $value, $object)
     }
 }
 
+
 /**
- * @param $name
- * @param $object
- * @param null $default
- * @return null
+ * get an option by option name from object passed in second argument which is a class instance which implements public
+ * $option property
+ *
+ * @param string $name expects the option name
+ * @param object $object expects object that implements public $option property
+ * @param null|mixed $default expects default return value
+ * @return mixed
  */
 function setcooki_get_option($name, $object, $default = null)
 {
@@ -303,10 +341,13 @@ function setcooki_get_option($name, $object, $default = null)
     return $default;
 }
 
+
 /**
- * @param $object
- * @param null $default
- * @return null
+ * get all options from object passed in first argument which is a class instance which implements public $option property
+ *
+ * @param object $object expects object that implements public $option property
+ * @param null|mixed $default expects default return value
+ * @return mixed
  */
 function setcooki_get_options($object, $default = null)
 {
@@ -317,10 +358,14 @@ function setcooki_get_options($object, $default = null)
     return $default;
 }
 
+
 /**
- * @param $name
- * @param $object
- * @param bool $strict
+ * check if an object, class instance which has a public $option property, has a array key under the name passed in first
+ * argument. the third argument will check if the value for name is a valid with setcooki_is_value() function
+ *
+ * @param string $name expects the option name
+ * @param object $object expects the object to check
+ * @param bool $strict expects boolean value for strict mode or not
  * @return bool
  */
 function setcooki_has_option($name, $object, $strict = false)
@@ -331,7 +376,7 @@ function setcooki_has_option($name, $object, $strict = false)
         {
             if((bool)$strict)
             {
-                return (!empty($object->options[$name])) ? true : false;
+                return (setcooki_is_value($object->options[$name])) ? true : false;
             }else{
                 return true;
             }
@@ -340,19 +385,25 @@ function setcooki_has_option($name, $object, $strict = false)
     return false;
 }
 
+
 /**
- * @param $object
+ * check if object in first argument is a class that implements public property $options which must be an array
+ *
+ * @param object $object expects the object to test
  * @return bool
  */
 function setcooki_can_options($object)
 {
-    return (is_object($object) && property_exists($object, 'options')) ? true : false;
+    return (is_object($object) && property_exists($object, 'options') && is_array(@$object->options)) ? true : false;
 }
 
+
 /**
- * @param $needle
- * @param $haystack
- * @param bool $strict
+ * multi needle implementation of php´s in_array function
+ *
+ * @param string|array $needle expects the needle to lookup in haystack
+ * @param array $haystack expects array with values
+ * @param bool $strict expects boolean value for strict mode
  * @return bool
  */
 function setcooki_in_array($needle, $haystack, $strict = false)
@@ -365,8 +416,11 @@ function setcooki_in_array($needle, $haystack, $strict = false)
     }
 }
 
+
 /**
- * @param $value
+ * typify or cast a string value back to native data type
+ *
+ * @param mixed $value expects the value to typify
  * @return bool|float|int|null|string
  */
 function setcooki_typify($value)
@@ -397,7 +451,10 @@ function setcooki_typify($value)
 
 
 /**
- * @param array $array
+ * array implementation of setcooki_typify()
+ *
+ * @see setcooki_typify()
+ * @param array $array expects array to typify values
  * @return array
  */
 function setcooki_typify_array(Array &$array)
@@ -414,9 +471,13 @@ function setcooki_typify_array(Array &$array)
     return $array;
 }
 
+
 /**
- * @param $string
- * @param null $params
+ * dynamic implementation of php´s sprintf function which excepts an array or multiple arguments as string replacements
+ * for string in first argument
+ *
+ * @param string $string expects the string to replace
+ * @param null|mixed $params expects placeholder values
  * @return string
  */
 function setcooki_sprintf($string, $params = null)
@@ -434,9 +495,12 @@ function setcooki_sprintf($string, $params = null)
     }
 }
 
+
 /**
- * @param $string
- * @param null $target
+ * detect links in plain text input in first argument and replace them with html representation ergo clickable links
+ *
+ * @param string $string expects text to linkify
+ * @param null $target expects option link window target value
  * @return mixed
  */
 function setcooki_linkify($string, $target = null)

@@ -25,6 +25,7 @@ function setcooki_dropdown($options, $selected = null, $exclude = null)
    	echo implode("\n", $html);
 }
 
+
 /**
  * @param null $selected
  * @param null $exclude

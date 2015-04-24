@@ -1,24 +1,26 @@
 <?php
 
-require_once dirname(__FILE__) . '/wp.php';
-require_once dirname(__FILE__) . '/helper.php';
-require_once dirname(__FILE__) . '/src/Plugin.php';
-require_once dirname(__FILE__) . '/src/Config.php';
+/**
+ * set start init timestamp
+ */
+define('SETCOOKI_WP_START', microtime(true));
 
-if(defined('SETCOOKI_WP_AUTOLOAD') && (bool)constant('SETCOOKI_WP_AUTOLOAD'))
-{
-    @spl_autoload_register(array('\Setcooki\Wp\Plugin', 'autoload'), false);
-}
+/**
+ * define global config constants
+ */
 if(!defined('SETCOOKI_NS'))
 {
     define('SETCOOKI_NS', 'SETCOOKI_WP');
 }
+define('SETCOOKI_WP_PHP_VERSION', '5.3.3');
 define('SETCOOKI_WP_CONFIG', 'CONFIG');
 define('SETCOOKI_WP_CHARSET', 'CHARSET');
 define('SETCOOKI_WP_ERROR_HANDLER', 'ERROR_HANDLER');
 define('SETCOOKI_WP_EXCEPTION_HANDLER', 'EXCEPTION_HANDLER');
 
-//global var init
+/**
+ * set global constants
+ */
 if(!defined('DIRECTORY_SEPARATOR'))
 {
     define('DIRECTORY_SEPARATOR', ((isset($_ENV['OS']) && strpos('win', $_ENV["OS"]) !== false) ? '\\' : '/'));
@@ -33,7 +35,49 @@ if(!defined('PATH_SEPARATOR'))
 }
 
 /**
- * @param null $conf
+ * test php version
+ */
+if(version_compare(PHP_VERSION, SETCOOKI_WP_PHP_VERSION, '<'))
+{
+    die("setcooki/wp needs php version > ".SETCOOKI_WP_PHP_VERSION." to run - your version is: " .PHP_VERSION . PHP_EOL);
+}
+
+/**
+ * stripslashes on input variables
+ */
+if(get_magic_quotes_gpc() === 1)
+{
+    if(function_exists('json_encode'))
+    {
+        $_GET       = json_decode(stripslashes(json_encode($_GET, JSON_HEX_APOS)), true);
+        $_POST      = json_decode(stripslashes(json_encode($_POST, JSON_HEX_APOS)), true);
+        $_COOKIE    = json_decode(stripslashes(json_encode($_COOKIE, JSON_HEX_APOS)), true);
+        $_REQUEST   = json_decode(stripslashes(json_encode($_REQUEST, JSON_HEX_APOS)), true);
+    }else{
+        die("setcooki/wp needs php function: json_encode to run");
+    }
+}
+
+/**
+ * load core files
+ */
+require_once dirname(__FILE__) . '/wp.php';
+require_once dirname(__FILE__) . '/helper.php';
+require_once dirname(__FILE__) . '/src/Plugin.php';
+require_once dirname(__FILE__) . '/src/Config.php';
+
+/**
+ * register autoloader
+ */
+if(defined('SETCOOKI_WP_AUTOLOAD') && (bool)constant('SETCOOKI_WP_AUTOLOAD'))
+{
+    @spl_autoload_register(array('\Setcooki\Wp\Plugin', 'autoload'), false);
+}
+
+/**
+ * set inital config values and register error and/or exception handler
+ *
+ * @param null $conf expects options config file
  * @return array
  */
 function setcooki_init($conf = null)
@@ -81,10 +125,12 @@ function setcooki_init($conf = null)
 
 
 /**
- * @param $key
- * @param string $value
- * @param null $default
- * @return mixed|string
+ * setter/getter for global configs. setter if second argument is not _NIL_
+ *
+ * @param string $key expects the config value key
+ * @param string|mixed $value expects the config value
+ * @param null|mixed $default expects optional default return value
+ * @return mixed
  * @throws Exception
  */
 function setcooki_conf($key, $value = '_NIL_', $default = null)
@@ -107,22 +153,38 @@ function setcooki_conf($key, $value = '_NIL_', $default = null)
     }
 }
 
+
 /**
- * @param $class
+ * imports a class be class name using a build in autoloader
+ *
+ * @param string $class expects the class name with ns or without
+ * @return void
  */
 function setcooki_import($class)
 {
-    Setcooki\Wp\Plugin::autoload($class);
+    if(class_exists('Setcooki\Wp\Plugin'))
+    {
+        Setcooki\Wp\Plugin::autoload($class);
+    }
 }
 
+
 /**
- * @param $type
- * @param bool $relative
- * @param bool $url
- * @return string
+ * get the current path or uri by type which can be "root", "theme", "plugin". the path can be returned as absolute, relative
+ * path or even as uri with site url prepended
+ *
+ * @param string|null $type expects the path to get which defaults to "root"
+ * @param bool $relative expects boolean true|false to either get path absolute or relative
+ * @param bool $url expects boolean true|false to either get the path as uri or path
+ * @return mixed|null|string
  */
-function setcooki_path($type, $relative = false, $url =false)
+function setcooki_path($type = null, $relative = false, $url = false)
 {
+    if($type === null)
+    {
+        $type = 'root';
+    }
+
     $path = null;
 
     if(defined('ABSPATH'))
@@ -140,7 +202,7 @@ function setcooki_path($type, $relative = false, $url =false)
             $path = $root;
             break;
         case 'theme':
-            $path = get_theme_root();
+            $path = (function_exists('get_theme_root')) ? get_theme_root() : '';
             break;
         case 'plugin':
             $path = preg_replace('/(.*)\/(plugins)\/([^\/]{1,}).*/i', '$1/$2/$3', dirname(__FILE__));
@@ -172,10 +234,14 @@ function setcooki_path($type, $relative = false, $url =false)
     }
 }
 
+
 /**
- * @param $ns
- * @param null $key
- * @param null $default
+ * getter for configs registered with Setcooki\Wp\Config class
+ *
+ * @see Setcooki\Wp\Config
+ * @param string $ns expects the namespace prior set with config class
+ * @param null|string $key expects a config key or path
+ * @param null|mixed $default expects optional return value
  * @return mixed
  * @throws Exception
  */
@@ -189,11 +255,18 @@ function setcooki_config($ns, $key = null, $default = null)
     }
 }
 
+
 /**
- * @param $key
- * @param string $value
- * @param null $lifetime
- * @param null $ns
+ * cache setter/getter function. depending on the arguments passed will either get or set from cache. if all arguments are
+ * null will purge = clear cache entirely. if the first argument, the cache key, is set and the second argument is _NIL_
+ * will act as cache getter. if the cache key = first argument is set and the second argument is not _NIL_ will act as
+ * cache setter setting value to cache for x seconds as passed in third argument lifetime. if more then one cache instances
+ * are globally set use the namespace identifier in fourth argument
+ *
+ * @param null|string $key expects optional cache key value
+ * @param mixed $value expects optional cache value in setter mode
+ * @param null|int $lifetime expects optional cache lifetime in seconds in setter mode
+ * @param null|string $ns expects optional cache instance namespace string
  * @return bool|null|string
  */
 function setcooki_cache($key = null, $value = '_NIL_', $lifetime = null, $ns = null)
@@ -224,9 +297,14 @@ function setcooki_cache($key = null, $value = '_NIL_', $lifetime = null, $ns = n
     return ((func_num_args() === 1) ? false : null);
 }
 
+
 /**
- * @param $message
- * @param int $type
+ * logger shortcut function. will send logging message to logger class if class is instantiated. if not will use php´s
+ * default trigger error function to redirect logging message. the first argument can be either a string, array or instance
+ * of Exception
+ *
+ * @param mixed $message expects log message
+ * @param int $type expects the log type
  * @return bool
  */
 function setcooki_log($message, $type = LOG_ERR)
