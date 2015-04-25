@@ -28,11 +28,11 @@ either by composer install with:
 }
 ```
 
-or download manual zip and use framwork without composer support.
+or download manual zip and use framework without composer support.
 
 ### Bootstrap
 
-to initialize framwork you need to include the /core.php file. if you use composer the most likely way of bootstrapping
+to initialize framework you need to include the /core.php file. if you use composer the most likely way of bootstrapping
 and loading the framework would be like:
 
 ```php
@@ -48,5 +48,53 @@ define('SETCOOKI_WP_AUTOLOAD', 1);
 require_once dirname(__FILE__) . '/lib/setcooki/wp/core.php';
 ```
 
-... tbd
+### Usage
+
+The most likely szenario developing wordpress plugins with this framework is to extend from the `Setcooki\Wp\Plugin` class
+and init the plugin from your plugin file that gets bootstrapped/loaded from wordpress once plugin is activated. The base
+plugin class comes with minimum needed plugin functionality to get you kick-started. Extend from that class and implement
+your basic plugin functionality
+
+```php
+class MyPlugin extends \Setcooki\Wp\Plugin
+{
+    public $options = array();
+
+    public function __construct($options = null)
+    {
+        setcooki_init_options($options);
+    }
+    
+    public function init()
+    {
+        //init your plugin logic
+    }
+
+    public function activate()
+    {
+        //your plugin activation logic
+    }
+    
+    public function deactivate()
+    {
+        //your plugin deactivation logic
+    }
+}
+```
+
+Bootstrap your plugin in your `/wp-content/plugins/my-plugin/my-plugin.php` plugin file like:
+
+```php
+if(function_exists('add_action'))
+{
+    $options = array
+    (
+        //your plugin options
+    );
+    add_action('init', array(new MyPlugin($options), 'init'));
+}
+```
+
+
+
 
