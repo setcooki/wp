@@ -21,10 +21,37 @@ abstract class Plugin
      */
     protected function __construct($options = null)
     {
+        $self =& $this;
+
         setcooki_init_options($options, $this);
-        register_activation_hook(__FILE__, array($this, 'activate'));
-        register_deactivation_hook(__FILE__, array($this, 'deactivate'));
-        register_uninstall_hook(__FILE__, array($this, 'uninstall'));
+        register_activation_hook(__FILE__, function() use(&$self)
+        {
+            if(!current_user_can('activate_plugins'))
+            {
+                return;
+            }
+            $self->activate();
+        });
+        register_deactivation_hook(__FILE__, function() use(&$self)
+        {
+            if(!current_user_can('activate_plugins'))
+            {
+                return;
+            }
+            $self->deactivate();
+        });
+        register_uninstall_hook(__FILE__, function() use(&$self)
+        {
+            if(!current_user_can('activate_plugins'))
+            {
+                return;
+            }
+            if(!defined('WP_UNINSTALL_PLUGIN') &&  __FILE__ !== WP_UNINSTALL_PLUGIN)
+            {
+                return;
+            }
+            $self->uninstall();
+        });
     }
 
 
@@ -44,6 +71,7 @@ abstract class Plugin
         }
         return self::$_instance;
     }
+
 
 
     /**
