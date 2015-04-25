@@ -131,11 +131,12 @@ class Config
      *
      * @param string $ns expects the namespace of the config store
      * @param null|string $key expects the config key
+     * @param bool $strict expects boolean flag for checking config value validity
      * @return bool
      */
-    public static function has($ns, $key)
+    public static function has($ns, $key, $strict = false)
     {
-        return (isset(self::$_instances[$ns]) && setcooki_object_isset(self::$_instances[$ns]->_config, $key)) ? true : false;
+        return (isset(self::$_instances[$ns]) && setcooki_object_isset(self::$_instances[$ns]->_config, $key, $strict)) ? true : false;
     }
 
 
