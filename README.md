@@ -1,4 +1,6 @@
-### Wordpress RAD Framework (Dev/Beta Mode)
+### Wordpress RAD Framework (DEV/Beta Mode)
+
+**PLEASE NOTE: THIS FRAMEWORK IS PUBLIC BETA**
 
 Rapid Developing Framework for Wordpress Plugins includes basis functionality for:
 
