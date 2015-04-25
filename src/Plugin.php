@@ -22,8 +22,9 @@ abstract class Plugin
     protected function __construct($options = null)
     {
         setcooki_init_options($options, $this);
-        register_activation_hook(__FILE__, array($this, 'activation'));
-        register_deactivation_hook(__FILE__, array($this, 'deactivation'));
+        register_activation_hook(__FILE__, array($this, 'activate'));
+        register_deactivation_hook(__FILE__, array($this, 'deactivate'));
+        register_uninstall_hook(__FILE__, array($this, 'uninstall'));
     }
 
 
@@ -71,11 +72,17 @@ abstract class Plugin
     /**
      * @return mixed
      */
-    abstract public function activation();
+    abstract public function activate();
 
 
     /**
      * @return mixed
      */
-    abstract public function deactivation();
+    abstract public function deactivate();
+
+
+    /**
+     * @return mixed
+     */
+    abstract public function uninstall();
 }
