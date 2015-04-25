@@ -2,8 +2,6 @@
 
 namespace Setcooki\Wp;
 
-use Setcooki\Wp\Exception;
-
 /**
  * Class Logger
  * @package Setcooki\Wp
@@ -83,18 +81,20 @@ class Logger
 
 
     /**
-     * @param $dir
-     * @param null $options
+     * class constructor expects a log dir and optional class options
+     *
+     * @param string $dir expects a log directory path
+     * @param null|array $options optional options
      * @throws Exception
      */
     protected function __construct($dir, $options = null)
     {
         setcooki_init_options($options, $this);
-        if(!file_exists($dir))
-        {
-            mkdir($dir, setcooki_get_option(self::PERMISSION, $this), true);
-        }
         $this->_dir = rtrim($dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+        if(!file_exists($this->_dir))
+        {
+            mkdir($this->_dir, setcooki_get_option(self::PERMISSION, $this), true);
+        }
         if(is_writable($this->_dir))
         {
             if(setcooki_has_option(self::FILE_NAME, $this, true))
@@ -111,8 +111,11 @@ class Logger
 
 
     /**
-     * @param $dir
-     * @param null $options
+     * shortcut function for Setcooki\Wp\Logger::instance
+     *
+     * @see Setcooki\Wp\Logger::instance
+     * @param string $dir expects a log directory path
+     * @param null|array $options optional options
      * @return null|Logger
      */
     public static function create($dir = null, $options = null)
@@ -122,8 +125,11 @@ class Logger
 
 
     /**
-     * @param $dir
-     * @param null $options
+     * static singleton setter/getter function
+     *
+     * @see Setcooki\Wp\Logger::__construct
+     * @param string $dir expects a log directory path
+     * @param null|array $options optional options
      * @return null|Logger
      */
     public static function instance($dir = null, $options = null)
@@ -137,6 +143,8 @@ class Logger
 
 
     /**
+     * check if a logger instance is set
+     *
      * @return bool
      */
     public static function hasInstance()
@@ -146,8 +154,12 @@ class Logger
 
 
     /**
-     * @param $message
-     * @param null $args
+     * method to log emergency messages
+     *
+     * @see Setcooki\Wp\Logger::log
+     * @param mixed $message expects a valid logger message object
+     * @param null|array $args expects optional additional arguments
+     * @return void
      */
     public function emergency($message, $args = null)
     {
@@ -156,8 +168,12 @@ class Logger
 
 
     /**
-     * @param $message
-     * @param null $args
+     * method to log alert messages
+     *
+     * @see Setcooki\Wp\Logger::log
+     * @param mixed $message expects a valid logger message object
+     * @param null|array $args expects optional additional arguments
+     * @return void
      */
     public function alert($message, $args = null)
     {
@@ -166,8 +182,12 @@ class Logger
 
 
     /**
-     * @param $message
-     * @param null $args
+     * method to log critical messages
+     *
+     * @see Setcooki\Wp\Logger::log
+     * @param mixed $message expects a valid logger message object
+     * @param null|array $args expects optional additional arguments
+     * @return void
      */
     public function critical($message, $args = null)
     {
@@ -176,8 +196,12 @@ class Logger
 
 
     /**
-     * @param $message
-     * @param null $args
+     * method to log error messages
+     *
+     * @see Setcooki\Wp\Logger::log
+     * @param mixed $message expects a valid logger message object
+     * @param null|array $args expects optional additional arguments
+     * @return void
      */
     public function error($message, $args = null)
     {
@@ -186,8 +210,12 @@ class Logger
 
 
     /**
-     * @param $message
-     * @param null $args
+     * method to log warning messages
+     *
+     * @see Setcooki\Wp\Logger::log
+     * @param mixed $message expects a valid logger message object
+     * @param null|array $args expects optional additional arguments
+     * @return void
      */
     public function warning($message, $args = null)
     {
@@ -196,8 +224,12 @@ class Logger
 
 
     /**
-     * @param $message
-     * @param null $args
+     * method to log notice messages
+     *
+     * @see Setcooki\Wp\Logger::log
+     * @param mixed $message expects a valid logger message object
+     * @param null|array $args expects optional additional arguments
+     * @return void
      */
     public function notice($message, $args = null)
     {
@@ -206,8 +238,12 @@ class Logger
 
 
     /**
-     * @param $message
-     * @param null $args
+     * method to log info messages
+     *
+     * @see Setcooki\Wp\Logger::log
+     * @param mixed $message expects a valid logger message object
+     * @param null|array $args expects optional additional arguments
+     * @return void
      */
     public function info($message, $args = null)
     {
@@ -216,8 +252,12 @@ class Logger
 
 
     /**
-     * @param $message
-     * @param null $args
+     * method to log debug messages
+     *
+     * @see Setcooki\Wp\Logger::log
+     * @param mixed $message expects a valid logger message object
+     * @param null|array $args expects optional additional arguments
+     * @return void
      */
     public function debug($message, $args = null)
     {
@@ -226,24 +266,14 @@ class Logger
 
 
     /**
-     * @param $object
-     * @param null $level
-     * @param null $args
-     * @throws Exception
-     */
-    public static function l($object, $level = null, $args = null)
-    {
-        if(self::hasInstance())
-        {
-            self::instance()->log($object, $level, $args);
-        }
-    }
-
-
-    /**
-     * @param $object
-     * @param null $level
-     * @param null $args
+     * log method expecting a log message object which can be instance of Exception, array with message with placeholders
+     * to be replaces with php´s sprintf function or a simple string message. the second argument expects a php recognizable
+     * log level as defined by php´s LOG_ constants. the third argument can be an optional array with key => value pairs
+     * for extra logging
+     *
+     * @param string|mixed|Exception $object expects a log object
+     * @param null|int $level expects the log level
+     * @param null|array $args expects a optional argument array
      * @return null
      * @throws Exception
      */
@@ -346,7 +376,29 @@ class Logger
 
 
     /**
-     * @param $message
+     * static logger method assuming logger class has been initialized before and class instance is registered
+     *
+     * @see Setcooki\Wp\Logger::log
+     * @param string|mixed|Exception $object expects a log object
+     * @param null|int $level expects the log level
+     * @param null|array $args expects a optional argument array
+     * @return null
+     * @throws Exception
+     */
+    public static function l($object, $level = null, $args = null)
+    {
+        if(self::hasInstance())
+        {
+            self::instance()->log($object, $level, $args);
+        }
+    }
+
+
+    /**
+     * write a log message to log file
+     *
+     * @param string $message write log message to file
+     * @return void
      * @throws Exception
      */
     public function write($message)
@@ -364,7 +416,25 @@ class Logger
 
 
     /**
+     * reset logger
      *
+     * @return void
+     */
+    public function reset()
+    {
+        if($this->handle)
+        {
+            @fclose($this->handle);
+        }
+        unset($this->_logs);
+        $this->_logs = array();
+    }
+
+
+    /**
+     * reset logger and flush logs to php output stream
+     *
+     * @return void
      */
     public function __destruct()
     {

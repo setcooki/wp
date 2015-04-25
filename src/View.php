@@ -2,9 +2,10 @@
 
 namespace Setcooki\Wp;
 
-use Setcooki\Wp\Controller;
-use Setcooki\Wp\Template;
-
+/**
+ * Class View
+ * @package Setcooki\Wp
+ */
 abstract class View
 {
     /**
@@ -19,14 +20,9 @@ abstract class View
 
 
     /**
-     * @param Template $template
-     * @return mixed
-     */
-    abstract public function render(Template $template);
-
-
-    /**
-     * @param Controller $controller
+     * class constructor sets controller and optional class options
+     *
+     * @param Controller $controller expects optional options
      * @param null $options
      */
     public function __construct(Controller $controller, $options = null)
@@ -34,4 +30,11 @@ abstract class View
         setcooki_init_options($options, $this);
         $this->controller = $controller;
     }
+
+
+    /**
+     * @param Template $template
+     * @return mixed
+     */
+    abstract public function render(Template $template);
 }

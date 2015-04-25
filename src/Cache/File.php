@@ -5,14 +5,24 @@ namespace Setcooki\Wp\Cache;
 use Setcooki\Wp\Cache;
 use Setcooki\Wp\Exception;
 
+/**
+ * Class File
+ * @package Setcooki\Wp\Cache
+ */
 class File extends Cache
 {
     const PATH                      = 'PATH';
     const EXTENSION                 = 'EXTENSION';
     const EXPIRATION                = 'EXPIRATION';
 
+    /**
+     * @var null
+     */
     protected static $_instance = null;
 
+    /**
+     * @var array
+     */
     public $options = array
     (
         self::EXTENSION             => '',
@@ -22,7 +32,7 @@ class File extends Cache
 
     /**
      * @param null $options
-     * @return null|Apc
+     * @return null|File
      */
     public static function instance($options = null)
     {
@@ -121,7 +131,7 @@ class File extends Cache
 
     /**
      * @param bool $expired
-     * @return void
+     * @return bool
      */
     public function purge($expired = true)
     {
@@ -147,6 +157,7 @@ class File extends Cache
             }
         }
         @clearstatcache();
+        return true;
     }
 
 

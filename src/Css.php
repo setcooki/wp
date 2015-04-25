@@ -2,8 +2,6 @@
 
 namespace Setcooki\Wp;
 
-use Setcooki\Wp\Exception;
-
 /**
  * Class Css
  * @package Setcooki\Wp
@@ -17,7 +15,9 @@ class Css
 
 
     /**
-     * @param null $options
+     * class constructor sets class options
+     *
+     * @param null|array $options expects optional class options
      */
     public function __construct($options = null)
     {
@@ -26,7 +26,9 @@ class Css
 
 
     /**
-     * @param null $options
+     * static shortcut method to create a class instance
+     *
+     * @param null|array $options expects optional class options
      * @return Css
      */
     public static function create($options = null)
@@ -36,8 +38,12 @@ class Css
 
 
     /**
-     * @param $css
-     * @param null $target
+     * join and minify css files to a single compressed css string which can be either returned by method, send to output
+     * stream or saved to file depending on value of third parameter. the first parameter must can be a css string, a
+     * relative path to a css file or a absolute path to a css file
+     *
+     * @param string $css expects a single or array of css files/strings
+     * @param null|string $target expects a target value as explained in method signature
      * @return string
      */
     public function minify($css, $target = null)
@@ -79,8 +85,11 @@ class Css
 
 
     /**
-     * @param $string
-     * @return mixed
+     * compile a css string by optimize, removing comments and obsolete/emtpy identifiers, and compressing the css file
+     * by removing all whitespace characters and co
+     *
+     * @param string $string expects the css string
+     * @return string
      */
     public function compile($string)
     {
@@ -92,8 +101,10 @@ class Css
 
 
     /**
-     * @param $string
-     * @return mixed|string
+     * compress/minify css string
+     *
+     * @param string $string expects the css string
+     * @return string
      */
     protected function compress(&$string)
     {
@@ -113,8 +124,10 @@ class Css
 
 
     /**
-     * @param $string
-     * @return mixed
+     * optimize a css string by replacing empty decorations and elements
+     *
+     * @param string $string expects the css string
+     * @return string
      */
     protected function optimize(&$string)
     {

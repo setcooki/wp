@@ -2,9 +2,10 @@
 
 namespace Setcooki\Wp;
 
-use Setcooki\Wp\Exception;
-use Setcooki\Wp\View;
-
+/**
+ * Class Template
+ * @package Setcooki\Wp
+ */
 class Template
 {
     /**
@@ -29,20 +30,25 @@ class Template
 
 
     /**
-     * @param $template
-     * @param View $view
+     * class constructor expects a template file as first argument and optional view instance as second
+     *
+     * @param string $template expects absolute template file location
+     * @param View $view expects option view instance
      */
     public function __construct($template, View $view = null)
     {
         $this->_vars = new \stdClass();
         $this->_view = $view;
-        $this->_template = $template;
+        $this->_template = DIRECTORY_SEPARATOR . ltrim(trim($template), DIRECTORY_SEPARATOR);
     }
 
 
     /**
-     * @param $template
-     * @param View $view
+     * shortcut function to create a template see Setcooki\Wp\Template::__construct
+     *
+     * @see Setcooki\Wp\Template::__construct
+     * @param string $template expects absolute template file location
+     * @param View $view expects option view instance
      * @return Template
      */
     public static function create($template, View $view = null)
@@ -52,8 +58,27 @@ class Template
 
 
     /**
-     * @param $key
-     * @param $value
+     * setter/getter for view instance
+     *
+     * @param View $view expects optional view instance
+     * @return null|View
+     */
+    public function view(View $view = null)
+    {
+        if($view !== null)
+        {
+            $this->_view = $view;
+        }
+        return $this->_view;
+    }
+
+
+    /**
+     * add a single variable to var storage or pass array of key => value variable pairs to var storage
+     *
+     * @param string|array $key expects variable name or array of key => value variable pairs
+     * @param string|mixed $value expects the variable value in case first argument is not an array
+     * @return null|\stdClass;
      */
     public function add($key, $value = '_NIL_')
     {
@@ -69,13 +94,16 @@ class Template
         }else{
             $this->_vars->{$key} = (is_array($value)) ? setcooki_array_to_object($value) : $value;
         }
+        return $this->_vars;
     }
 
 
     /**
-     * @param null $key
-     * @param string $default
-     * @return array|mixed|null|object|\stdClass
+     * get a variable value from var storage by variable name or value from variable by path which is by "." syntax
+     *
+     * @param null|string $key expects the variable key/path
+     * @param string|mixed $default expects optional default return value
+     * @return mixed
      * @throws \Exception
      */
     public function get($key = null, $default = "")
@@ -95,17 +123,24 @@ class Template
 
 
     /**
-     * @param $key
+     * check the existence of a variable in strict or non-strict mode testing the variable value for validity
+     *
+     * @param null|string $key expects the variable key/path
+     * @param bool $strict expects boolean value for strict mode
      * @return bool
      */
-    public function has($key)
+    public function has($key, $strict = false)
     {
-        return setcooki_object_isset($this->_vars, $key);
+        return setcooki_object_isset($this->_vars, $key, $strict);
     }
 
 
     /**
-     * @param $vars
+     * initially set or init the variable storage with an std object or array with key => value pairs
+     *
+     * @param array|object $vars expects the variables to set
+     * @return void
+     * @throws Exception
      */
     public function set($vars)
     {
@@ -115,13 +150,16 @@ class Template
         }else if(is_object($vars)){
             $this->vars = $vars;
         }else{
-            //do nothing
+            throw new Exception("first argument is not valid variable");
         }
     }
 
 
     /**
-     * @param $key
+     * remove a variable from var storage
+     *
+     * @param string $key expects the variable name
+     * @return void
      */
     public function remove($key)
     {
@@ -133,24 +171,33 @@ class Template
 
 
     /**
+     * reset the variable storage removing all variables
      *
+     * @return void
      */
     public function reset()
     {
         $this->_vars = new \stdClass();
+        $this->_buffer = '';
     }
 
 
     /**
-     * @param null $template
-     * @param null $vars
-     * @return mixed|string
+     * render the template by loading template file and parsing template placeholders filling them with variable values
+     * if variables can be matched. the second argument can receive more runtime variables which are only use for the
+     * current to render template
+     *
+     * @param null|string $template expects optional overwrite template file location
+     * @param null|mixed $vars expects optional variables to apply
+     * @return mixed
      * @throws Exception
      */
     public function render($template = null, $vars = null)
     {
-        if($template === null)
+        if($template !== null)
         {
+            $template = DIRECTORY_SEPARATOR . ltrim(trim($template), DIRECTORY_SEPARATOR);
+        }else{
             $template = $this->_template;
         }
         if(is_file($template))
@@ -173,8 +220,13 @@ class Template
 
 
     /**
-     * @param $template
-     * @param null $vars
+     * shortcut function to render and echo output a template in a include sort of way - see Setcooki\Wp\Template::render
+     * for more
+     *
+     * @see Setcooki\Wp\Template::render
+     * @param null|string $template expects optional overwrite template file location
+     * @param null|mixed $vars expects optional variables to apply
+     * @throws Exception
      */
     public function inc($template, $vars = null)
     {
@@ -183,7 +235,10 @@ class Template
 
 
     /**
-     * @param $matches
+     * template buffer placeholder parser that will replace all placeholders "{$.}" with variables values in variable
+     * storage
+     *
+     * @param array $matches regex matches
      * @return mixed|string
      */
     protected function parse($matches)
@@ -226,7 +281,9 @@ class Template
 
 
     /**
-     * @param bool $echo
+     * flush template buffer to php output stream or return it only
+     *
+     * @param bool $echo expects boolean value to either echo the buffer or return it only
      * @return string
      */
     public function flush($echo = false)
@@ -243,7 +300,10 @@ class Template
 
 
     /**
-     * @param $name
+     * magic function to intercept overloading class properties which will result in looking with property name in variable
+     * storage
+     *
+     * @param string $name expects property name
      * @return mixed
      */
     public function __get($name)
@@ -253,7 +313,10 @@ class Template
 
 
     /**
-     * @param $name
+     * magic function to intercept overloading class properties which will set the property name as new variable in variable
+     * storage setting the value in second argument
+     *
+     * @param string $name expects property name
      * @param $value
      */
     public function __set($name, $value)
@@ -263,7 +326,9 @@ class Template
 
 
     /**
-     * @param $name
+     * magic function to intercept overloading class properties which will check for property name in variable storage
+     *
+     * @param string $name expects property name
      * @return bool
      */
     public function __isset($name)
@@ -273,10 +338,35 @@ class Template
 
 
     /**
-     * @param $name
+     * magic function to intercept overloading class properties which will unset the property name in variable storage
+     *
+     * @param string $name expects property name
+     * @return void
      */
     public function __unset($name)
     {
         $this->remove($name);
+    }
+
+
+    /**
+     * reset template on destruct
+     *
+     * @return void
+     */
+    public function __destruct()
+    {
+        $this->reset();
+    }
+
+
+    /**
+     * reset template on clone
+     *
+     * @return void
+     */
+    public function __clone()
+    {
+        $this->reset();
     }
 }

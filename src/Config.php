@@ -2,8 +2,6 @@
 
 namespace Setcooki\Wp;
 
-use Setcooki\Wp\Exception;
-
 /**
  * Class Config
  * @package Setcooki\Wp

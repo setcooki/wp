@@ -5,13 +5,23 @@ namespace Setcooki\Wp\Cache;
 use Setcooki\Wp\Cache;
 use Setcooki\Wp\Exception;
 
+/**
+ * Class Apc
+ * @package Setcooki\Wp\Cache
+ */
 class Apc extends Cache
 {
     const KEY_PREFIX                = 'KEY_PREFIX';
     const EXPIRATION                = 'EXPIRATION';
 
+    /**
+     * @var null
+     */
     protected static $_instance = null;
 
+    /**
+     * @var array
+     */
     public $options = array
     (
         self::KEY_PREFIX            => 0,
