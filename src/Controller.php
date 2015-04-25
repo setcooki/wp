@@ -41,12 +41,20 @@ abstract class Controller
      *
      * @param string $action
      * @return void
+     * @throws Exception
      */
     public function execute($action = 'action')
     {
-        $this->init();
-        $this->$action();
-        $this->teardown();
+        $action = trim((string)$action);
+
+        if(method_exists($this, $action))
+        {
+            $this->init();
+            $this->$action();
+            $this->teardown();
+        }else{
+            throw new Exception(setcooki_sprintf("controller action: %s not found", $action));
+        }
     }
 
 
