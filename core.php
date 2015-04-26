@@ -13,6 +13,7 @@ if(!defined('SETCOOKI_NS'))
     define('SETCOOKI_NS', 'SETCOOKI_WP');
 }
 define('SETCOOKI_WP_PHP_VERSION', '5.3.3');
+define('SETCOOKI_WP_DEBUG', 'DEBUG');
 define('SETCOOKI_WP_CONFIG', 'CONFIG');
 define('SETCOOKI_WP_CHARSET', 'CHARSET');
 define('SETCOOKI_WP_ERROR_HANDLER', 'ERROR_HANDLER');
@@ -84,6 +85,7 @@ function setcooki_init($conf = null)
 {
     $default = array
     (
+        SETCOOKI_WP_DEBUG               => false,
         SETCOOKI_WP_CONFIG              => null,
         SETCOOKI_WP_CHARSET             => 'utf-8',
         SETCOOKI_WP_ERROR_HANDLER       => false,
@@ -103,6 +105,10 @@ function setcooki_init($conf = null)
                 $GLOBALS[SETCOOKI_NS][$k] = $v;
             }
         }
+    }
+    if(defined('WP_DEBUG') && (bool)WP_DEBUG)
+    {
+        $GLOBALS[SETCOOKI_NS][SETCOOKI_WP_DEBUG] = true;
     }
     if(!empty($GLOBALS[SETCOOKI_NS][SETCOOKI_WP_CONFIG]) && is_array($GLOBALS[SETCOOKI_NS][SETCOOKI_WP_CONFIG]))
     {
@@ -295,6 +301,26 @@ function setcooki_cache($key = null, $value = '_NIL_', $lifetime = null, $ns = n
         }
     }
     return ((func_num_args() === 1) ? false : null);
+}
+
+
+/**
+ * wordpress option handling shortcut function to set/get option with option name with or without path "." syntax
+ *
+ * @see Setcooki\Wp\Option
+ * @param string $name expects option name
+ * @param mixed $value expects option value
+ * @param bool $default expects optional default return value for get
+ * @return bool|mixed
+ */
+function setcooki_option($name, $value = '_NIL_', $default = false)
+{
+    if($value !== '_NIL_')
+    {
+        return Setcooki\Wp\Option::save($name, $value);
+    }else{
+        return Setcooki\Wp\Option::get($name, $default);
+    }
 }
 
 
