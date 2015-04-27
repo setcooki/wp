@@ -14,13 +14,10 @@ class Exception extends \ErrorException
      * @param string $message the exception message
      * @param int $code the exception code
      * @param int $severity the exception severity
-     * @param string $filename expects the file name
-     * @param int $lineno expects the line number
-     * @param null|Exception $previous exception if set
      */
-    public function __construct($message = "", $code = 0, $severity = 3, $filename = __FILE__, $lineno = __LINE__, $previous = null)
+    public function __construct($message = "", $code = 0, $severity = 3)
     {
-        parent::__construct($message, $code, $severity, $filename, $lineno, $previous);
+        parent::__construct($message, $code, $severity);
     }
 
 

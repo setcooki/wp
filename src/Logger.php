@@ -283,10 +283,10 @@ class Logger
 
         if($object instanceof \ErrorException)
         {
-            $message = trim($object->getMessage());
+            $message = $object->getMessage() . ' in ' . $object->getFile() . ':' . $object->getLine();
             $level = (int)$object->getSeverity();
         }else if($object instanceof \Exception){
-            $message = trim($object->getMessage());
+            $message = $object->getMessage() . ' in ' . $object->getFile() . ':' . $object->getLine();
             $level = self::ERROR;
         }else if(is_array($object) && array_key_exists(0, $object)){
             $message = setcooki_sprintf((string)$object[0], ((sizeof($object) > 1) ? array_slice($object, 1, sizeof($object)) : null));
@@ -365,13 +365,19 @@ class Logger
             $this->_logs[trim(md5($data))] = $data;
         }
 
-        $this->write($data);
+        //if in wp log mode log message to log file
+        if(isset($GLOBALS[SETCOOKI_NS][SETCOOKI_WP_LOG]) && $GLOBALS[SETCOOKI_NS][SETCOOKI_WP_LOG])
+        {
+            $this->write($data);
+        }
 
-        unset($tmp);
-        unset($data);
-        unset($date);
-
-        return null;
+        //if in wp debug mode return log message to be send to output stream
+        if(isset($GLOBALS[SETCOOKI_NS][SETCOOKI_WP_DEBUG]) && $GLOBALS[SETCOOKI_NS][SETCOOKI_WP_DEBUG])
+        {
+            return $data;
+        }else{
+            return;
+        }
     }
 
 
@@ -389,8 +395,9 @@ class Logger
     {
         if(self::hasInstance())
         {
-            self::instance()->log($object, $level, $args);
+            return self::instance()->log($object, $level, $args);
         }
+        return '';
     }
 
 

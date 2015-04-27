@@ -81,6 +81,11 @@ class MyPlugin extends \Setcooki\Wp\Plugin
     {
         //your plugin deactivation logic
     }
+    
+    public function uninstall()
+    {
+        //your plugin uninstall logic
+    }
 }
 ```
 

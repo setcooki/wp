@@ -49,22 +49,33 @@ class File extends Cache
      */
     protected function init()
     {
+        $path = rtrim(setcooki_get_option(self::PATH, $this), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+
         try
         {
-            $dir = new \SplFileInfo(setcooki_get_option(self::PATH, $this));
-            if(!$dir->isReadable())
+            if(!is_dir($path))
+            {
+                if(mkdir($path))
+                {
+                    chmod($path, 0775);
+                }else{
+                    throw new Exception("unable to create cache directory");
+                }
+            }
+            $path = new \SplFileInfo($path);
+            if(!$path->isReadable())
             {
                 throw new Exception("cache directory is not readable");
             }
-            if(!$dir->isWritable())
+            if(!$path->isWritable())
             {
                 throw new Exception("cache directory is not writable");
             }
-            setcooki_set_option(self::PATH, rtrim($dir->getRealPath(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR, $this);
+            setcooki_set_option(self::PATH, rtrim($path->getRealPath(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR, $this);
       	}
         catch(Exception $e)
         {
-            throw new Exception(setcooki_sprintf("cache directory file info error: %d, %s", $e->getCode(), $e->getMessage()));
+            throw new Exception(setcooki_sprintf("file cache directory error: %s for: %s", $e->getMessage(), $path));
         }
     }
 

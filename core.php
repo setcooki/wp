@@ -13,6 +13,7 @@ if(!defined('SETCOOKI_NS'))
     define('SETCOOKI_NS', 'SETCOOKI_WP');
 }
 define('SETCOOKI_WP_PHP_VERSION', '5.3.3');
+define('SETCOOKI_WP_LOG', 'LOG');
 define('SETCOOKI_WP_DEBUG', 'DEBUG');
 define('SETCOOKI_WP_CONFIG', 'CONFIG');
 define('SETCOOKI_WP_CHARSET', 'CHARSET');
@@ -85,11 +86,12 @@ function setcooki_init($conf = null)
 {
     $default = array
     (
+        SETCOOKI_WP_LOG                 => false,
         SETCOOKI_WP_DEBUG               => false,
         SETCOOKI_WP_CONFIG              => null,
         SETCOOKI_WP_CHARSET             => 'utf-8',
-        SETCOOKI_WP_ERROR_HANDLER       => false,
-        SETCOOKI_WP_EXCEPTION_HANDLER   => false,
+        SETCOOKI_WP_ERROR_HANDLER       => true,
+        SETCOOKI_WP_EXCEPTION_HANDLER   => true,
     );
     if(!isset($GLOBALS[SETCOOKI_NS]))
     {
@@ -110,6 +112,10 @@ function setcooki_init($conf = null)
     {
         $GLOBALS[SETCOOKI_NS][SETCOOKI_WP_DEBUG] = true;
     }
+    if(defined('WP_DEBUG_LOG') && (bool)WP_DEBUG_LOG)
+    {
+        $GLOBALS[SETCOOKI_NS][SETCOOKI_WP_LOG] = true;
+    }
     if(!empty($GLOBALS[SETCOOKI_NS][SETCOOKI_WP_CONFIG]) && is_array($GLOBALS[SETCOOKI_NS][SETCOOKI_WP_CONFIG]))
     {
         \Setcooki\Wp\Config::init
@@ -124,7 +130,7 @@ function setcooki_init($conf = null)
     }
     if(!empty($GLOBALS[SETCOOKI_NS][SETCOOKI_WP_EXCEPTION_HANDLER]) && (bool)$GLOBALS[SETCOOKI_NS][SETCOOKI_WP_EXCEPTION_HANDLER])
     {
-        set_error_handler(array('\Setcooki\Wp\Exception', 'handler'));
+        set_exception_handler(array('\Setcooki\Wp\Exception', 'handler'));
     }
     return $GLOBALS[SETCOOKI_NS];
 }
@@ -339,20 +345,21 @@ function setcooki_log($message, $type = LOG_ERR)
     {
         if(Setcooki\Wp\Logger::hasInstance())
         {
-            call_user_func_array(array('Setcooki\\Wp\\Logger', 'l'), func_get_args());
-            return true;
+            return call_user_func_array(array('Setcooki\\Wp\\Logger', 'l'), func_get_args());
         }
     }
     if($message instanceof \Exception)
     {
-        $message = $message->getMessage() . ", " . $message->getCode();
+        $message = $message->getMessage() . ' in ' . $message->getFile() . ':' . $message->getLine();
     }else if(is_array($message)){
         $message = setcooki_sprintf((string)$message[0], ((sizeof($message) > 1) ? array_slice($message, 1, sizeof($message)) : null));
     }else{
         $message = trim((string)$message);
     }
+
     ob_start();
     trigger_error($message);
     ob_end_clean();
-    return true;
+
+    return $message;
 }
