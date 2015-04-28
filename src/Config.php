@@ -13,6 +13,10 @@ class Config
      */
     private $_config = array();
 
+    /**
+     * @var null
+     */
+    protected static $_instance = null;
 
     /**
      * @var array
@@ -54,9 +58,59 @@ class Config
     {
         if(!array_key_exists($ns, self::$_instances))
         {
-            self::$_instances[$ns] = new self($config);
+            self::$_instances[$ns] = self::$_instance = new self($config);
         }
         return self::$_instances[$ns];
+    }
+
+
+    /**
+     * get a config instance with namespace identifier or get last set instance if no namespace identifier is supplied
+     *
+     * @param string|null $ns expect the optional namespace identifier
+     * @return Config
+     * @throws Exception
+     */
+    public static function instance($ns = null)
+    {
+        if($ns !== null && array_key_exists($ns, self::$_instances))
+        {
+            return self::$_instances[$ns];
+        }else if(self::$_instance !== null){
+            return self::$_instance;
+        }else{
+            throw new Exception(setcooki_sprintf('config instance under: %s not set', $ns));
+        }
+    }
+
+
+    /**
+     * get or set/change instance with or without namespace. if all arguments are null will get the current active instance
+     * see Setcooki\Wp\Config::instance. if the first argument is not null and the second is null will try to get instance
+     * for that namespace. if all arguments are not null will change the namespace name of an instance
+     *
+     * @param null|string $ns expects optional existing namespace identifier
+     * @param null|string $new expects optional namespace identifier for replacement
+     * @return Config
+     * @throws Exception
+     */
+    public static function ns($ns = null, $new = null)
+    {
+        if($ns !== null && $new !== null)
+        {
+            if(array_key_exists($ns, self::$_instances))
+            {
+                self::$_instances[$new] = self::$_instances[$ns];
+                unset(self::$_instances[$ns]);
+                return self::$_instances[$new];
+            }else{
+                throw new Exception(setcooki_sprintf('no register config ns found with: %s', $ns));
+            }
+        }else if($ns !== null && $new === null){
+            return self::instance($ns);
+        }else{
+            return self::instance();
+        }
     }
 
 
@@ -92,35 +146,66 @@ class Config
 
 
     /**
-     * set key => value pair to config store by namespace
+     * static shortcut function for Setcooki\Wp\Config::set
      *
-     * @param string $ns expects the namespace of the config store
+     * @see Setcooki\Wp\Config::set
      * @param null|string $key expects the config key
      * @param null|mixed $value expects the config value
+     * @param null|string $ns expects the optional namespace of the config store
+     * @return void
      */
-    public static function set($ns, $key = null, $value = null)
+    public static function s($key = null, $value = null, $ns = null)
     {
-        if(isset(self::$_instances[$ns]))
-        {
-            setcooki_object_set(self::$_instances[$ns]->_config, $key, $value);
-        }
+        self::instance($ns)->set($key, $value);
     }
 
 
     /**
-     * get a value by key from config store by namespace
+     * set key => value pair to config store by passing optional namespace identifier. if the ns identifier is empty will
+     * lookup current set storage instance
      *
-     * @param string $ns expects the namespace of the config store
+     * @param null|string $key expects the config key
+     * @param null|mixed $value expects the config value
+     * @param null|string $ns expects the optional namespace of the config store
+     * @return void
+     */
+    public function set($key = null, $value = null, $ns = null)
+    {
+        setcooki_object_set(self::instance($ns)->_config, $key, $value);
+    }
+
+
+    /**
+     * static shortcut function for Setcooki\Wp\Config::get
+     *
+     * @see Setcooki\Wp\Config::get
      * @param null|string $key expects the config key
      * @param null|mixed $default expects a default return value
+     * @param null|string $ns expects the optional namespace of the config store
      * @return mixed
      * @throws \Exception
      */
-    public static function get($ns, $key = null, $default = null)
+    public static function g($key = null, $default = null, $ns = null)
     {
-        if(isset(self::$_instances[$ns]) && setcooki_object_isset(self::$_instances[$ns]->_config, $key))
+        return self::instance($ns)->get($key, $default, $ns);
+    }
+
+
+    /**
+     * get a value by key from config store by optional namespace. if the ns identifier is empty will lookup current
+     * set storage instance
+     *
+     * @param null|string $key expects the config key
+     * @param null|mixed $default expects a default return value
+     * @param null|string $ns expects the optional namespace of the config store
+     * @return mixed
+     * @throws \Exception
+     */
+    public function get($key = null, $default = null, $ns = null)
+    {
+        if(setcooki_object_isset(self::instance($ns)->_config, $key))
         {
-            return setcooki_object_get(self::$_instances[$ns]->_config, $key, setcooki_default($default));
+            return setcooki_object_get(self::instance($ns)->_config, $key, setcooki_default($default));
         }
         return setcooki_default($default);
     }
@@ -134,7 +219,7 @@ class Config
      * @param bool $strict expects boolean flag for checking config value validity
      * @return bool
      */
-    public static function has($ns, $key, $strict = false)
+    public function has($ns, $key, $strict = false)
     {
         return (isset(self::$_instances[$ns]) && setcooki_object_isset(self::$_instances[$ns]->_config, $key, $strict)) ? true : false;
     }
