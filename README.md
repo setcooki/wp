@@ -64,7 +64,7 @@ class MyPlugin extends \Setcooki\Wp\Plugin
 
     public function __construct($options = null)
     {
-        setcooki_init_options($options);
+        parent::__construct($options)
     }
     
     public function init()
@@ -89,7 +89,9 @@ class MyPlugin extends \Setcooki\Wp\Plugin
 }
 ```
 
-Bootstrap your plugin in your `/wp-content/plugins/my-plugin/my-plugin.php` plugin file like:
+Bootstrap your plugin in your `/wp-content/plugins/my-plugin/my-plugin.php` plugin file forwarding wp´s 'init' hook to your
+plugin class which needs to extend from `\Setcooki\Wp\Plugin` and which needs to call `parent::__construct($options)` in
+class constructor. Your plugin logic starts when wp calls your plugins 'init' method.  
 
 ```php
 if(function_exists('add_action'))
@@ -99,6 +101,20 @@ if(function_exists('add_action'))
         //your plugin options
     );
     add_action('init', array(new MyPlugin($options), 'init'));
+}
+```
+
+to bootstrap multiple instances of same plugin in a multi-site wp environment modify bootstrapping to:
+
+```php
+if(function_exists('add_action'))
+{
+    $blog_id = get_current_blog_id(); //or whatever id you want the instance to be created under
+    $options = array
+    (
+        //plugin options (which can be different for each instance) 
+    );
+    add_action('init', array(MyNamespace\MyPlugin::instance($blog_id, $options), 'init'));
 }
 ```
 
