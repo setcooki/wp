@@ -77,14 +77,17 @@ if(defined('SETCOOKI_WP_AUTOLOAD') && (bool)constant('SETCOOKI_WP_AUTOLOAD'))
 }
 
 /**
- * set inital config values and register error and/or exception handler
+ * init wp framework with config which can be one or multiple config files as array. the init function will registered
+ * the config values and set global values in $GLOBALS namespace
  *
- * @param null $conf expects options config file
+ * @param string|array $config expects options config file(s) absolute path as single value or array
+ * @param string $ns expects the namespace identifier
  * @return array
  */
-function setcooki_init($conf = null)
+function setcooki_boot($config, $ns)
 {
-    $default = array
+    $ns = trim((string)$ns);
+    $wp = array
     (
         SETCOOKI_WP_LOG                 => false,
         SETCOOKI_WP_DEBUG               => false,
@@ -93,36 +96,23 @@ function setcooki_init($conf = null)
         SETCOOKI_WP_ERROR_HANDLER       => true,
         SETCOOKI_WP_EXCEPTION_HANDLER   => true,
     );
-    if(!isset($GLOBALS[SETCOOKI_NS]))
+    $config = \Setcooki\Wp\Config::init($config, $ns);
+    if(($w = $config->get('wp', false)) !== false)
     {
-        $GLOBALS[SETCOOKI_NS] = $default;
-    }
-    if(is_array($conf))
-    {
-        foreach($conf as $k => $v)
-        {
-            $k = strtoupper(trim($k));
-            if(array_key_exists($k, $conf))
-            {
-                $GLOBALS[SETCOOKI_NS][$k] = $v;
-            }
-        }
+        $wp = (array)$w + $wp;
     }
     if(defined('WP_DEBUG') && (bool)WP_DEBUG)
     {
-        $GLOBALS[SETCOOKI_NS][SETCOOKI_WP_DEBUG] = true;
+        $wp[SETCOOKI_WP_DEBUG] = true;
     }
     if(defined('WP_DEBUG_LOG') && (bool)WP_DEBUG_LOG)
     {
-        $GLOBALS[SETCOOKI_NS][SETCOOKI_WP_LOG] = true;
+        $wp[SETCOOKI_WP_LOG] = true;
     }
-    if(!empty($GLOBALS[SETCOOKI_NS][SETCOOKI_WP_CONFIG]) && is_array($GLOBALS[SETCOOKI_NS][SETCOOKI_WP_CONFIG]))
+    $config->set('wp', $wp);
+    foreach($wp as $k => $v)
     {
-        \Setcooki\Wp\Config::init
-        (
-            $GLOBALS[SETCOOKI_NS][SETCOOKI_WP_CONFIG][0],
-            $GLOBALS[SETCOOKI_NS][SETCOOKI_WP_CONFIG][1]
-        );
+        $GLOBALS[SETCOOKI_NS][strtoupper(trim($k))] = $v;
     }
     if(!empty($GLOBALS[SETCOOKI_NS][SETCOOKI_WP_ERROR_HANDLER]) && (bool)$GLOBALS[SETCOOKI_NS][SETCOOKI_WP_ERROR_HANDLER])
     {
@@ -248,20 +238,20 @@ function setcooki_path($type = null, $relative = false, $url = false)
 
 
 /**
- * getter for configs registered with Setcooki\Wp\Config class
+ * getter for configs registered with Setcooki\Wp\Config class. see Setcooki\Wp\Config::get for more
  *
- * @see Setcooki\Wp\Config
- * @param string $ns expects the namespace prior set with config class
+ * @see Setcooki\Wp\Config::get
  * @param null|string $key expects a config key or path
  * @param null|mixed $default expects optional return value
+ * @param null|string $ns expects the optional namespace prior set with config class
  * @return mixed
  * @throws Exception
  */
-function setcooki_config($ns, $key = null, $default = null)
+function setcooki_config($key = null, $default = null, $ns = null)
 {
     if(class_exists('Setcooki\Wp\Config'))
     {
-        return Setcooki\Wp\Config::get($ns, $key, $default);
+        return Setcooki\Wp\Config::g($key, $default, $ns);
     }else{
         return setcooki_default($default);
     }
