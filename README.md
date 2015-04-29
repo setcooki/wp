@@ -5,13 +5,14 @@
 Rapid Developing Framework for Wordpress Plugins includes basis functionality for:
 
 * Easy plugin boot-strapping
+* Multi-site plugin support
 * Loose coupling of components
 * Plugin configuration handling with custom user overwriting possibilities
 * Plugin MVC architecture with controller, view and template classes
 * Wordpress class wrapper for wp option handling
-* Cache Library with different drivers
+* Cache Library with apc/memcache/file drivers
 * Shortcut function for fast access
-* Error and exception handling and logging
+* Error/exception handling and logging
 * ... and more
 
 ### Install
@@ -34,21 +35,64 @@ or download manual zip and use framework without composer support.
 
 ### Bootstrap
 
-to initialize framework you need to include the /core.php file. if you use composer the most likely way of bootstrapping
+To initialize framework you need to include the /core.php file. if you use composer the most likely way of bootstrapping
 and loading the framework would be like:
 
 ```php
-define('SETCOOKI_WP_AUTOLOAD', 0);
+define('SETCOOKI_WP_AUTOLOAD', 0); //optional
 require_once dirname(__FILE__) . '/lib/vendor/autoload.php';
 require_once dirname(__FILE__) . '/lib/vendor/setcooki/wp/core.php';
 ```
 
-if you dont use composer install and composer autoloader it probably would look like:
+If you dont use composer install and composer autoloader it probably would look like:
 
 ```php
-define('SETCOOKI_WP_AUTOLOAD', 1);
+define('SETCOOKI_WP_AUTOLOAD', 1); //optional
 require_once dirname(__FILE__) . '/lib/setcooki/wp/core.php';
 ```
+
+Once you have included composer autoloader or `core.php` from wp package your ready to boot the the wp rad framework by 
+calling:
+
+```
+setcooki_boot();
+```
+which will initialize the framework and set default global variables like log/debug, charset etc. to start the wp framework
+with custom config options/values call:
+
+```
+setcooki_boot('/path/you/your/config.php', 'your_plugin_name');
+```
+This will initialize the wp framework with your config values in `/path/you/your/config.php` under your plugin name
+or namespace in second argument. you can also pass an array of config files to first argument which results in the key =>
+values being merged to one config store available throughout the framework with `Setcooki\Wp\Config` class or `setcooki_config`
+shortcut function. passing an array of configs allows to define a global config for values that will not change per environment
+and should not be overwritten by plugin user, and allows to define a user customizable custom config file location. the
+config file is a php file which is expected to return an array. e.g. the following example show global wp framework options
+defined in config file:
+
+```
+<?php
+
+if(!defined('ABSPATH')) die();
+
+return array
+(
+    'wp' => array
+    (
+        'LOG' => true,
+        'DEBUG => true,
+        'HANDLE_ERROR => true,
+        'HANDLE_EXCEPTION => true,
+        ...
+    )
+);
+
+?>
+```
+
+PLEASE refer to `core.php` file for all configurable wp framework options
+
 
 ### Usage
 
@@ -109,12 +153,12 @@ to bootstrap multiple instances of same plugin in a multi-site wp environment mo
 ```php
 if(function_exists('add_action'))
 {
-    $blog_id = get_current_blog_id(); //or whatever id you want the instance to be created under
+    $id = get_current_blog_id(); //or whatever id you want the instance to be created under
     $options = array
     (
         //plugin options (which can be different for each instance) 
     );
-    add_action('init', array(MyNamespace\MyPlugin::instance($blog_id, $options), 'init'));
+    add_action('init', array(MyNamespace\MyPlugin::instance($id, $options), 'init'));
 }
 ```
 
