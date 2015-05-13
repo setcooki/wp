@@ -15,7 +15,6 @@ if(!defined('SETCOOKI_NS'))
 define('SETCOOKI_WP_PHP_VERSION', '5.3.3');
 define('SETCOOKI_WP_LOG', 'LOG');
 define('SETCOOKI_WP_DEBUG', 'DEBUG');
-define('SETCOOKI_WP_CONFIG', 'CONFIG');
 define('SETCOOKI_WP_CHARSET', 'CHARSET');
 define('SETCOOKI_WP_ERROR_HANDLER', 'ERROR_HANDLER');
 define('SETCOOKI_WP_EXCEPTION_HANDLER', 'EXCEPTION_HANDLER');
@@ -91,7 +90,6 @@ function setcooki_boot($config, $ns)
     (
         SETCOOKI_WP_LOG                 => false,
         SETCOOKI_WP_DEBUG               => false,
-        SETCOOKI_WP_CONFIG              => null,
         SETCOOKI_WP_CHARSET             => 'utf-8',
         SETCOOKI_WP_ERROR_HANDLER       => true,
         SETCOOKI_WP_EXCEPTION_HANDLER   => true,

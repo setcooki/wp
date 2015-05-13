@@ -54,13 +54,13 @@ require_once dirname(__FILE__) . '/lib/setcooki/wp/core.php';
 Once you have included composer autoloader or `core.php` from wp package your ready to boot the the wp rad framework by 
 calling:
 
-```
+```php
 setcooki_boot();
 ```
 which will initialize the framework and set default global variables like log/debug, charset etc. to start the wp framework
 with custom config options/values call:
 
-```
+```php
 setcooki_boot('/path/you/your/config.php', 'your_plugin_name');
 ```
 This will initialize the wp framework with your config values in `/path/you/your/config.php` under your plugin name
@@ -71,7 +71,7 @@ and should not be overwritten by plugin user, and allows to define a user custom
 config file is a php file which is expected to return an array. e.g. the following example show global wp framework options
 defined in config file:
 
-```
+```php
 <?php
 
 if(!defined('ABSPATH')) die();
