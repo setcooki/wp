@@ -114,11 +114,11 @@ function setcooki_boot($config, $ns)
     }
     if(!empty($GLOBALS[SETCOOKI_NS][SETCOOKI_WP_ERROR_HANDLER]) && (bool)$GLOBALS[SETCOOKI_NS][SETCOOKI_WP_ERROR_HANDLER])
     {
-        set_error_handler(array('\Setcooki\Wp\Error', 'handler'));
+        set_error_handler('\Setcooki\Wp\Error::handler');
     }
     if(!empty($GLOBALS[SETCOOKI_NS][SETCOOKI_WP_EXCEPTION_HANDLER]) && (bool)$GLOBALS[SETCOOKI_NS][SETCOOKI_WP_EXCEPTION_HANDLER])
     {
-        set_exception_handler(array('\Setcooki\Wp\Exception', 'handler'));
+        set_exception_handler('\Setcooki\Wp\Exception::handler');
     }
     return $GLOBALS[SETCOOKI_NS];
 }
