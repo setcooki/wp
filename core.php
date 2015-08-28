@@ -48,15 +48,10 @@ if(version_compare(PHP_VERSION, SETCOOKI_WP_PHP_VERSION, '<'))
  */
 if(get_magic_quotes_gpc() === 1)
 {
-    if(function_exists('json_encode'))
-    {
-        $_GET       = json_decode(stripslashes(json_encode($_GET, JSON_HEX_APOS)), true);
-        $_POST      = json_decode(stripslashes(json_encode($_POST, JSON_HEX_APOS)), true);
-        $_COOKIE    = json_decode(stripslashes(json_encode($_COOKIE, JSON_HEX_APOS)), true);
-        $_REQUEST   = json_decode(stripslashes(json_encode($_REQUEST, JSON_HEX_APOS)), true);
-    }else{
-        die("setcooki/wp needs php function: json_encode to run");
-    }
+    $_GET = stripslashes_deep($_GET);
+    $_POST = stripslashes_deep($_POST);
+    $_COOKIE = stripslashes_deep($_COOKIE);
+    $_REQUEST = stripslashes_deep($_REQUEST);
 }
 
 /**
