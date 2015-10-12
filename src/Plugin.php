@@ -104,23 +104,6 @@ abstract class Plugin extends Wp
 
 
     /**
-     * build in autoloader will only load classes of actual plugin implementation that will extend the plugin skeleton
-     *
-     * @param string $class expects the class name to load
-     * @return void
-     */
-    public static function autoload($class)
-    {
-        $ns = substr(__NAMESPACE__, 0, strpos(__NAMESPACE__, '\\'));
-        $src = rtrim(realpath(dirname(__FILE__) . '/../../'), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-        if(stripos(trim($class, ' \\/'), $ns) !== false)
-        {
-            require_once $src . str_replace(array('\\'), DIRECTORY_SEPARATOR, $class) . '.php';
-        }
-    }
-
-
-    /**
      * internal plugin activation hook
      *
      * @return void

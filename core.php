@@ -18,6 +18,7 @@ define('SETCOOKI_WP_DEBUG',                                 'DEBUG');
 define('SETCOOKI_WP_CHARSET',                               'CHARSET');
 define('SETCOOKI_WP_ERROR_HANDLER',                         'ERROR_HANDLER');
 define('SETCOOKI_WP_EXCEPTION_HANDLER',                     'EXCEPTION_HANDLER');
+define('SETCOOKI_WP_AUTOLOAD_DIRS',                         'AUTOLOAD_DIRS');
 
 /**
  * set global constants
@@ -59,7 +60,7 @@ if(function_exists('get_magic_quotes_gpc') && call_user_func('get_magic_quotes_g
  */
 require_once dirname(__FILE__) . '/wp.php';
 require_once dirname(__FILE__) . '/helper.php';
-require_once dirname(__FILE__) . '/src/Plugin.php';
+require_once dirname(__FILE__) . '/src/Wp.php';
 require_once dirname(__FILE__) . '/src/Config.php';
 
 /**
@@ -67,7 +68,7 @@ require_once dirname(__FILE__) . '/src/Config.php';
  */
 if(defined('SETCOOKI_WP_AUTOLOAD') && (bool)constant('SETCOOKI_WP_AUTOLOAD'))
 {
-    @spl_autoload_register(array('\Setcooki\Wp\Plugin', 'autoload'), false);
+    @spl_autoload_register(array('\Setcooki\Wp\Wp', 'autoload'), false);
 }
 
 /**
@@ -88,6 +89,7 @@ function setcooki_boot($config, $ns)
         SETCOOKI_WP_CHARSET             => 'utf-8',
         SETCOOKI_WP_ERROR_HANDLER       => true,
         SETCOOKI_WP_EXCEPTION_HANDLER   => true,
+        SETCOOKI_WP_AUTOLOAD_DIRS       => null
     );
     $config = \Setcooki\Wp\Config::init($config, $ns);
     if(($w = $config->get('wp', false)) !== false)

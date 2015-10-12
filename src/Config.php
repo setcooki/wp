@@ -124,7 +124,7 @@ class Config
      */
     public static function load($file, $throw = true)
     {
-        if(preg_match('/\.phtml|\.php([0-9]{1,})?|\.inc$/i', $file))
+        if(preg_match('/\.phtml|\.php([0-9]{1,})?|\.inc$/i', (string)$file))
         {
             if(is_file($file))
             {

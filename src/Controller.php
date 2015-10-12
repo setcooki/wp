@@ -9,9 +9,9 @@ namespace Setcooki\Wp;
 abstract class Controller
 {
     /**
-     * @var null|Plugin
+     * @var null|Wp
      */
-    public $plugin = null;
+    public $wp = null;
 
     /**
      * @var null|Request
@@ -20,14 +20,14 @@ abstract class Controller
 
 
     /**
-     * class constructor set plugin and request instance
+     * class constructor set wp and request instance
      *
-     * @param Plugin $plugin
+     * @param Wp $wp
      * @param Request $request
      */
-    public function __construct(Plugin &$plugin, Request $request = null)
+    public function __construct(Wp &$wp, Request $request = null)
     {
-        $this->plugin = $plugin;
+        $this->wp = $wp;
         if($request === null)
         {
             $request = new Request();
