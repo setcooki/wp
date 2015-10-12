@@ -6,7 +6,7 @@ namespace Setcooki\Wp;
  * Class Plugin
  * @package Setcooki\Wp
  */
-abstract class Plugin
+abstract class Plugin extends Wp
 {
     /**
      * @var null
@@ -170,12 +170,6 @@ abstract class Plugin
         }
         self::instance()->uninstall();
     }
-
-
-    /**
-     * @return mixed
-     */
-    abstract public function init();
 
 
     /**

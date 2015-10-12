@@ -6,7 +6,7 @@ namespace Setcooki\Wp;
  * Class Theme
  * @package Setcooki\Wp
  */
-abstract class Theme
+abstract class Theme extends Wp
 {
     /**
      * @var null
@@ -56,12 +56,6 @@ abstract class Theme
     {
         $this->init();
     }
-
-
-    /**
-     * @return void
-     */
-    abstract public function init();
 
 
     /**
