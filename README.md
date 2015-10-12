@@ -44,12 +44,16 @@ require_once dirname(__FILE__) . '/lib/vendor/autoload.php';
 require_once dirname(__FILE__) . '/lib/vendor/setcooki/wp/core.php';
 ```
 
-If you dont use composer install and composer autoloader it probably would look like:
+If you dont use composer install and composer autoloader it looks like:
 
 ```php
 define('SETCOOKI_WP_AUTOLOAD', 1); //optional
 require_once dirname(__FILE__) . '/lib/setcooki/wp/core.php';
 ```
+
+setting `SETCOOKI_WP_AUTOLOAD` will take care that everything in `setcooki/wp` ns will be loaded. to use the autoloader
+for external class loading pass an array of absolute include dirs with `SETCOOKI_WP_AUTOLOAD_DIRS` option. each dir can be
+passed as string path or array where at index 0 the dir path is stored and in index 1 optional ns value for psr-0 loading
 
 Once you have included composer autoloader or `core.php` from wp package your ready to boot the the wp rad framework by 
 calling:
