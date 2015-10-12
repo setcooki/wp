@@ -12,12 +12,12 @@ if(!defined('SETCOOKI_NS'))
 {
     define('SETCOOKI_NS', 'SETCOOKI_WP');
 }
-define('SETCOOKI_WP_PHP_VERSION', '5.3.3');
-define('SETCOOKI_WP_LOG', 'LOG');
-define('SETCOOKI_WP_DEBUG', 'DEBUG');
-define('SETCOOKI_WP_CHARSET', 'CHARSET');
-define('SETCOOKI_WP_ERROR_HANDLER', 'ERROR_HANDLER');
-define('SETCOOKI_WP_EXCEPTION_HANDLER', 'EXCEPTION_HANDLER');
+define('SETCOOKI_WP_PHP_VERSION',                           '5.3.3');
+define('SETCOOKI_WP_LOG',                                   'LOG');
+define('SETCOOKI_WP_DEBUG',                                 'DEBUG');
+define('SETCOOKI_WP_CHARSET',                               'CHARSET');
+define('SETCOOKI_WP_ERROR_HANDLER',                         'ERROR_HANDLER');
+define('SETCOOKI_WP_EXCEPTION_HANDLER',                     'EXCEPTION_HANDLER');
 
 /**
  * set global constants
@@ -46,7 +46,7 @@ if(version_compare(PHP_VERSION, SETCOOKI_WP_PHP_VERSION, '<'))
 /**
  * stripslashes on input variables
  */
-if(get_magic_quotes_gpc() === 1)
+if(function_exists('get_magic_quotes_gpc') && call_user_func('get_magic_quotes_gpc') === 1)
 {
     $_GET = stripslashes_deep($_GET);
     $_POST = stripslashes_deep($_POST);
@@ -252,48 +252,6 @@ function setcooki_config($key = null, $default = null, $ns = null)
 
 
 /**
- * cache setter/getter function. depending on the arguments passed will either get or set from cache. if all arguments are
- * null will purge = clear cache entirely. if the first argument, the cache key, is set and the second argument is _NIL_
- * will act as cache getter. if the cache key = first argument is set and the second argument is not _NIL_ will act as
- * cache setter setting value to cache for x seconds as passed in third argument lifetime. if more then one cache instances
- * are globally set use the namespace identifier in fourth argument
- *
- * @param null|string $key expects optional cache key value
- * @param mixed $value expects optional cache value in setter mode
- * @param null|int $lifetime expects optional cache lifetime in seconds in setter mode
- * @param null|string $ns expects optional cache instance namespace string
- * @return bool|null|string
- */
-function setcooki_cache($key = null, $value = '_NIL_', $lifetime = null, $ns = null)
-{
-    if(class_exists('Setcooki\\Wp\\Cache', true))
-    {
-        if(Setcooki\Wp\Cache::hasInstance())
-        {
-            try
-            {
-                $class = Setcooki\Wp\Cache::instance($ns);
-                if(func_num_args() > 0)
-                {
-                    if(func_num_args() >= 2 && $value !== '_NIL_')
-                    {
-                        $class->set($key, $value, $lifetime);
-                        return $value;
-                    }else{
-                        return $class->get($key, ((func_num_args() === 1) ? false : null));
-                    }
-                }else{
-                    return $class->purge(false);
-                }
-            }
-            catch(\Exception $e){};
-        }
-    }
-    return ((func_num_args() === 1) ? false : null);
-}
-
-
-/**
  * wordpress option handling shortcut function to set/get option with option name with or without path "." syntax
  *
  * @see Setcooki\Wp\Option
@@ -313,36 +271,150 @@ function setcooki_option($name, $value = '_NIL_', $default = false)
 }
 
 
-/**
- * logger shortcut function. will send logging message to logger class if class is instantiated. if not will use php´s
- * default trigger error function to redirect logging message. the first argument can be either a string, array or instance
- * of Exception
- *
- * @param mixed $message expects log message
- * @param int $type expects the log type
- * @return bool
- */
-function setcooki_log($message, $type = LOG_ERR)
+if(!function_exists('setcooki_cache'))
 {
-    if(class_exists('Setcooki\\Wp\\Logger', true))
+    /**
+     * cache setter/getter function. depending on the arguments passed will either get or set from cache. if all arguments are
+     * null will purge = clear cache entirely. if the first argument, the cache key, is set and the second argument is _NIL_
+     * will act as cache getter. if the cache key = first argument is set and the second argument is not _NIL_ will act as
+     * cache setter setting value to cache for x seconds as passed in third argument lifetime. if more then one cache instances
+     * are globally set use the namespace identifier in fourth argument
+     *
+     * @param null|string $key expects optional cache key value
+     * @param mixed $value expects optional cache value in setter mode
+     * @param null|int $lifetime expects optional cache lifetime in seconds in setter mode
+     * @param null|string $ns expects optional cache instance namespace string
+     * @return bool|null|string
+     */
+    function setcooki_cache($key = null, $value = '_NIL_', $lifetime = null, $ns = null)
     {
-        if(Setcooki\Wp\Logger::hasInstance())
+        if(class_exists('Setcooki\\Wp\\Cache', true))
         {
-            return call_user_func_array(array('Setcooki\\Wp\\Logger', 'l'), func_get_args());
+            if(Setcooki\Wp\Cache::hasInstance())
+            {
+                try
+                {
+                    $class = Setcooki\Wp\Cache::instance($ns);
+                    if(func_num_args() > 0)
+                    {
+                        if(func_num_args() >= 2 && $value !== '_NIL_')
+                        {
+                            $class->set($key, $value, $lifetime);
+                            return $value;
+                        }else{
+                            return $class->get($key, ((func_num_args() === 1) ? false : null));
+                        }
+                    }else{
+                        return $class->purge(false);
+                    }
+                }
+                catch(\Exception $e){};
+            }
+        }
+        return ((func_num_args() === 1) ? false : null);
+    }
+}
+
+
+if(!function_exists('setcooki_log'))
+{
+    /**
+     * logger shortcut function. will send logging message to logger class if class is instantiated. if not will use php´s
+     * default trigger error function to redirect logging message. the first argument can be either a string, array or instance
+     * of Exception
+     *
+     * @param mixed $message expects log message
+     * @param int $type expects the log type
+     * @return bool
+     */
+    function setcooki_log($message, $type = LOG_ERR)
+    {
+        if(class_exists('Setcooki\\Wp\\Logger', true))
+        {
+            if(Setcooki\Wp\Logger::hasInstance())
+            {
+                return call_user_func_array(array('Setcooki\\Wp\\Logger', 'l'), func_get_args());
+            }
+        }
+        if($message instanceof \Exception)
+        {
+            $message = $message->getMessage() . ' in ' . $message->getFile() . ':' . $message->getLine();
+        }else if(is_array($message)){
+            $message = setcooki_sprintf((string)$message[0], ((sizeof($message) > 1) ? array_slice($message, 1, sizeof($message)) : null));
+        }else{
+            $message = trim((string)$message);
+        }
+
+        ob_start();
+        trigger_error($message);
+        ob_end_clean();
+
+        return $message;
+    }
+}
+
+
+if(!function_exists('setcooki_include'))
+{
+    /**
+     * include partials, template snippets, etc. from theme location with this function. works with child/parent theme
+     * setups where function will search for file first in child theme then in parent theme. the first argument expects
+     * a file name/path from active theme root with or without file extension that if not set will default to .php. the second
+     * argument allows for passing variables to be available in included file. the third argument when boolean true will
+     * also make vars available in global namespace. use the fourth argument when included file output should be buffered
+     * and buffer returned
+     *
+     * @param string $file expects the file name/path relative to theme root with or without extension
+     * @param null|mixed $vars expects array with vars (key => value) pairs to make available for included file
+     * @param bool $global expects optional boolean flag for whether making vars also available in global namespace
+     * @param null|string|true $buffer expects a string or boolean true to return include buffer
+     * @return null|string
+     */
+    function setcooki_include($file, $vars = null, $global = false, &$buffer = null)
+    {
+        $file = DIRECTORY_SEPARATOR . trim(str_replace(array('\\', '/'), DIRECTORY_SEPARATOR, (string)$file), ' \\/.');
+        if(stripos($file, '.') === false)
+        {
+            $file = $file . '.php';
+        }
+
+        if(!empty($vars) && is_array($vars))
+        {
+            extract((array)$vars);
+            if((bool)$global)
+            {
+                while(list($key , $val) = each($vars))
+                {
+                    $GLOBALS[$key] = $val;
+                }
+            }
+        }
+
+        if($buffer === true || !empty($buffer))
+        {
+            ob_start();
+        }
+
+        if(file_exists(get_stylesheet_directory() . $file))
+        {
+            require get_stylesheet_directory() . $file;
+        }else if(get_template_directory() . $file){
+            require get_template_directory() . $file;
+        }
+
+        if(!empty($vars) && is_array($vars))
+        {
+            foreach($vars as $key => $var)
+            {
+                unset(${$key});
+            }
+        }
+
+        if($buffer === true || !empty($buffer))
+        {
+            return (string)$buffer .= trim(ob_get_clean());
+        }else{
+            return null;
         }
     }
-    if($message instanceof \Exception)
-    {
-        $message = $message->getMessage() . ' in ' . $message->getFile() . ':' . $message->getLine();
-    }else if(is_array($message)){
-        $message = setcooki_sprintf((string)$message[0], ((sizeof($message) > 1) ? array_slice($message, 1, sizeof($message)) : null));
-    }else{
-        $message = trim((string)$message);
-    }
-
-    ob_start();
-    trigger_error($message);
-    ob_end_clean();
-
-    return $message;
 }
