@@ -2,7 +2,7 @@
 
 **PLEASE NOTE: THIS FRAMEWORK IS PUBLIC BETA**
 
-Rapid Developing Framework for Wordpress Plugins includes basis functionality for:
+Rapid Developing Framework for Wordpress Plugins\Themes includes basis functionality for:
 
 * Easy plugin boot-strapping
 * Multi-site plugin support
@@ -65,13 +65,13 @@ which will initialize the framework and set default global variables like log/de
 with custom config options/values call:
 
 ```php
-setcooki_boot('/path/you/your/config.php', 'your_plugin_name');
+setcooki_boot('/path/you/your/config.php', 'your_ns_name');
 ```
-This will initialize the wp framework with your config values in `/path/you/your/config.php` under your plugin name
+This will initialize the wp framework with your config values in `/path/you/your/config.php` under your plugin/theme name
 or namespace in second argument. you can also pass an array of config files to first argument which results in the key =>
 values being merged to one config store available throughout the framework with `Setcooki\Wp\Config` class or `setcooki_config`
 shortcut function. passing an array of configs allows to define a global config for values that will not change per environment
-and should not be overwritten by plugin user, and allows to define a user customizable custom config file location. the
+and should not be overwritten by plugin/theme user, and allows to define a user customizable custom config file location. the
 config file is a php file which is expected to return an array. e.g. the following example show global wp framework options
 defined in config file:
 
@@ -100,10 +100,12 @@ PLEASE refer to `core.php` file for all configurable wp framework options
 
 ### Usage
 
-The most likely szenario developing wordpress plugins with this framework is to extend from the `Setcooki\Wp\Plugin` class
-and init the plugin from your plugin file that gets bootstrapped/loaded from wordpress once plugin is activated. The base
-plugin class comes with minimum needed plugin functionality to get you kick-started. Extend from that class and implement
-your basic plugin functionality
+#### Plugins
+
+The most likely scenario developing wordpress plugins/themes with this framework is to extend from the `Setcooki\Wp\Wp` class
+and init the plugin/theme from your plugin/theme class that gets bootstrapped/loaded from wordpress once plugin is activated. 
+The base plugin/theme class comes with minimum needed functionality to get you kick-started. Extend from that class and
+implement your basic plugin/theme functionality
 
 ```php
 class MyPlugin extends \Setcooki\Wp\Plugin
@@ -166,6 +168,38 @@ if(function_exists('add_action'))
 }
 ```
 
+#### Themes
 
+The same applies for themes. extend from:
 
+```php
+class MyTheme extends \Setcooki\Wp\Theme
+{
+    public $options = array();
 
+    public function __construct($options = null)
+    {
+        parent::__construct($options)
+    }
+    
+    public function init()
+    {
+        //init your theme logic
+    }
+
+    public function switchTheme()
+    {
+        //switch theme hook
+    }
+
+    public function afterSetup()
+    {
+        //after setup hook
+    }
+    
+    public function afterSwitch()
+    {
+        //after switch hook
+    }
+}
+```
