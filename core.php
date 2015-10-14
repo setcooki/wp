@@ -244,7 +244,7 @@ function setcooki_path($type = null, $relative = false, $url = false)
  */
 function setcooki_config($key = null, $default = null, $ns = null)
 {
-    if(class_exists('Setcooki\Wp\Config'))
+    if(class_exists('Setcooki\Wp\Config') && Setcooki\Wp\Config::hasInstance($ns))
     {
         return Setcooki\Wp\Config::g($key, $default, $ns);
     }else{

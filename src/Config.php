@@ -85,6 +85,23 @@ class Config
 
 
     /**
+     * check if an instance is set or instance under namespace is set
+     *
+     * @param null|string $ns expect the optional namespace identifier
+     * @return bool
+     */
+    public static function hasInstance($ns = null)
+    {
+        if($ns !== null)
+        {
+            return (array_key_exists($ns, self::$_instances)) ? true : false;
+        }else{
+            return (self::$_instance !== null) ? true : false;
+        }
+    }
+
+
+    /**
      * get or set/change instance with or without namespace. if all arguments are null will get the current active instance
      * see Setcooki\Wp\Config::instance. if the first argument is not null and the second is null will try to get instance
      * for that namespace. if all arguments are not null will change the namespace name of an instance
