@@ -425,3 +425,34 @@ if(!function_exists('setcooki_include'))
         }
     }
 }
+
+
+if(!function_exists('setcooki_component'))
+{
+    /**
+     * shortcut function to render component by passing component instance in first argument or id previously registered
+     * with component register functions. pass options params in second argument. if third argument is null will echo
+     * rendered component. if return is boolean true will return the rendered component output. if string will concat
+     * the component output to string
+     *
+     * @param $component
+     * @param null $params
+     * @param null $return
+     * @return null|string
+     */
+    function setcooki_component($component, $params = null, &$return = null)
+    {
+        if(!is_object($component) && !\Setcooki\Wp\Component::isRegistered($component))
+        {
+            return null;
+        }else{
+            if($return === true){
+                return \Setcooki\Wp\Component::execute($component, $params);
+            }else if(is_string($return)){
+                $return .= \Setcooki\Wp\Component::execute($component, $params);
+            }else{
+                echo \Setcooki\Wp\Component::execute($component, $params);
+            }
+        }
+    }
+}
