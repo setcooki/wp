@@ -10,8 +10,6 @@ interface Renderable
 {
     /**
      * render something and return/echo rendered content
-     *
-     * @return mixed
      */
     public function render();
 }

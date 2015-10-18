@@ -34,10 +34,11 @@ abstract class Theme extends Wp
      */
     protected function __construct($options = null)
     {
+        $class = get_called_class();
         setcooki_init_options($options, $this);
-        add_action('after_setup_theme', array(__CLASS__, '_afterSetup'));
-        add_action('after_switch_theme', array(__CLASS__, '_afterSwitch'));
-        add_action('switch_theme', array(__CLASS__, '_switchTheme'));
+        add_action('after_setup_theme', array($class, '_afterSetup'));
+        add_action('after_switch_theme', array($class, '_afterSwitch'));
+        add_action('switch_theme', array($class, '_switchTheme'));
     }
 
 

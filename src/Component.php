@@ -3,6 +3,7 @@
 namespace Setcooki\Wp;
 
 use Setcooki\Wp\Interfaces\Renderable;
+use Setcooki\Wp\Util\Params;
 
 /**
  * Class Component
@@ -139,6 +140,10 @@ abstract class Component implements Renderable
         {
             $components = array_keys(self::$_components);
         }
+        if($params !== null && !($params instanceof Params))
+        {
+            $params = Params::create($params);
+        }
         foreach((array)$components as $c)
         {
             if(!is_object($c))
@@ -149,7 +154,6 @@ abstract class Component implements Renderable
                     continue;
                 }
             }
-
             ob_start();
             $key = md5(get_class($c) .  serialize($params));
             if(array_key_exists($key, self::$_cache))
@@ -180,8 +184,7 @@ abstract class Component implements Renderable
     /**
      * render the component
      *
-     * @param null|mixed $params expects optional params
-     * @return mixed
+     * @param null|Params $params expects optional params object
      */
-    abstract public function render($params = null);
+    abstract public function render(Params $params = null);
 }
