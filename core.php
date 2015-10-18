@@ -122,16 +122,21 @@ function setcooki_boot($config, $ns)
 
 
 /**
- * setter/getter for global configs. setter if second argument is not _NIL_
+ * setter/getter for global configs. setter if second argument is not _NIL_. if no argument is set will return complete
+ * config object
  *
- * @param string $key expects the config value key
+ * @param null|string $key expects the config value key
  * @param string|mixed $value expects the config value
  * @param null|mixed $default expects optional default return value
  * @return mixed
  * @throws Exception
  */
-function setcooki_conf($key, $value = '_NIL_', $default = null)
+function setcooki_conf($key = null, $value = '_NIL_', $default = null)
 {
+    if(is_null($key) && $value === '_NIL_')
+    {
+        return (isset($GLOBALS[SETCOOKI_NS])) ? $GLOBALS[SETCOOKI_NS] : array();
+    }
     $key = strtoupper(trim($key));
     if($value !== '_NIL_')
     {
