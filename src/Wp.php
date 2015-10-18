@@ -38,11 +38,11 @@ abstract class Wp
             {
                 if(is_array($dir))
                 {
-                    $dir = (array_key_exists(0, $dir)) ? $dir[0] : '';
                     if(array_key_exists(1, $dir))
                     {
                         $class = trim(str_ireplace(trim($dir[1], ' \//'), '', $class), ' \\');
                     }
+                    $dir = (array_key_exists(0, $dir)) ? $dir[0] : '';
                 }
                 $class = str_replace(array('\\'), DIRECTORY_SEPARATOR, $class);
                 $file = DIRECTORY_SEPARATOR . trim((string)$dir, ' \\/') . DIRECTORY_SEPARATOR . $class . $ext;
