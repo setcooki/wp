@@ -63,11 +63,12 @@ abstract class Component implements Renderable
      *
      * @param string|int $id expects the id as string or int
      * @param Component $component expects the component instance
-     * @return void
+     * @return bool
      */
     public static function register($id, Component $component)
     {
         self::$_components[$id] = $component;
+        return true;
     }
 
 

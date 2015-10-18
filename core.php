@@ -433,25 +433,30 @@ if(!function_exists('setcooki_component'))
      * shortcut function to render component by passing component instance in first argument or id previously registered
      * with component register functions. pass options params in second argument. if third argument is null will echo
      * rendered component. if return is boolean true will return the rendered component output. if string will concat
-     * the component output to string
+     * the component output to string. the function can also be used to register components when first argument is a component
+     * id and second is an instance of component
      *
-     * @param $component
-     * @param null $params
+     * @param string|mixed $component expects component instance or id
+     * @param null|mixed $mixed expects optional params to pass or instance of component when using function to register components
      * @param null $return
      * @return null|string
      */
-    function setcooki_component($component, $params = null, &$return = null)
+    function setcooki_component($component, $mixed = null, &$return = null)
     {
+        if((is_int($component) || is_string($component)) && (is_object($mixed) && is_subclass_of($mixed, 'Setcooki\Wp\Component')))
+        {
+            return \Setcooki\Wp\Component::register($component, $mixed);
+        }
         if(!is_object($component) && !\Setcooki\Wp\Component::isRegistered($component))
         {
             return null;
         }else{
             if($return === true){
-                return \Setcooki\Wp\Component::execute($component, $params);
+                return \Setcooki\Wp\Component::execute($component, $mixed);
             }else if(is_string($return)){
-                $return .= \Setcooki\Wp\Component::execute($component, $params);
+                $return .= \Setcooki\Wp\Component::execute($component, $mixed);
             }else{
-                echo \Setcooki\Wp\Component::execute($component, $params);
+                echo \Setcooki\Wp\Component::execute($component, $mixed);
             }
         }
     }
