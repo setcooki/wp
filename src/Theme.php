@@ -35,20 +35,9 @@ abstract class Theme extends Wp
     protected function __construct($options = null)
     {
         setcooki_init_options($options, $this);
-        add_action('after_setup_theme', array($this, 'afterSetup'));
-        add_action('after_switch_theme', array($this, 'afterSwitch'));
-        add_action('switch_theme', array($this, 'switchTheme'));
-
-        if(setcooki_has_option(self::THEME_SUPPORT, $this))
-        {
-            foreach((array)setcooki_get_option(self::THEME_SUPPORT, $this) as $option)
-            {
-                if(add_theme_support((string)$option) === false)
-                {
-                    throw new Exception(setcooki_sprintf("unable to set theme support value: %s in theme init", $option));
-                }
-            }
-        }
+        add_action('after_setup_theme', array(__CLASS__, '_afterSetup'));
+        add_action('after_switch_theme', array(__CLASS__, '_afterSwitch'));
+        add_action('switch_theme', array(__CLASS__, '_switchTheme'));
     }
 
 
@@ -79,6 +68,46 @@ abstract class Theme extends Wp
     public function setup()
     {
         $this->init();
+    }
+
+
+    /**
+     * @return void
+     */
+    public static function _switchTheme()
+    {
+        self::instance()->switchTheme();
+    }
+
+
+    /**
+     * @return void
+     * @throws Exception
+     */
+    public static function _afterSetup()
+    {
+        $self = self::instance();
+
+        if(setcooki_has_option(self::THEME_SUPPORT, $self))
+        {
+            foreach((array)setcooki_get_option(self::THEME_SUPPORT, $self) as $option)
+            {
+                if(add_theme_support((string)$option) === false)
+                {
+                    throw new Exception(setcooki_sprintf("unable to set theme support value: %s in theme init", $option));
+                }
+            }
+        }
+        self::instance()->afterSetup();
+    }
+
+
+    /**
+     * @return void
+     */
+    public static function _afterSwitch()
+    {
+        self::instance()->afterSwitch();
     }
 
 
