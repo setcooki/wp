@@ -14,7 +14,6 @@ interface Initiable
      * init a class with wp instance
      *
      * @param Wp $wp
-     * @return mixed
      */
     public static function init(Wp $wp);
 }
