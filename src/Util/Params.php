@@ -82,6 +82,24 @@ class Params
 
 
     /**
+     * remove a parameter
+     *
+     * @param string $name expects the parameter name
+     * @return $this
+     */
+    public function remove($name)
+    {
+        $name = trim((string)$name);
+
+        if($this->is($name))
+        {
+            unset($this->$name);
+        }
+        return $this;
+    }
+
+
+    /**
      * check if parameter exists
      *
      * @param string $name expects the parameter name

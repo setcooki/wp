@@ -461,3 +461,42 @@ if(!function_exists('setcooki_component'))
         }
     }
 }
+
+
+if(!function_exists('setcooki_filter'))
+{
+    /**
+     * shortcut function for wp´s add_filter function to use with setcooki/wp filter classes. the function works much like
+     * the default add_filter function except that instead of expecting a callable will also except instances of \Setcooki\Wp\Filter
+     * and strings that define registered filter chains. also passing a third argument $params allows for passing any type
+     * of parameter to the filter action so that its no longer necessary storing needed variables in global namespace. see
+     * wp´s add_filter for more
+     *
+     * @see add_filter
+     * @param string $tag expects the filter tag name
+     * @param mixed $filter expects filter/chain object, callable or filter chain name
+     * @param null|mixed $params expects optional params to pass
+     * @param int $priority expects filter priority
+     * @return mixed
+     */
+    function setcooki_filter($tag, $filter, $params = null, $priority = 10)
+    {
+        add_filter((string)$tag, function($value) use ($filter, $params)
+        {
+            //filter chain or bundle
+            if(($filter instanceof \Setcooki\Wp\Filter\Chain) || ($filter instanceof \Setcooki\Wp\Filter))
+            {
+                return $filter->execute(func_get_args(), $params);
+            //filter is a callable
+            }else if(is_callable($filter)){
+                return call_user_func_array($filter, array(func_get_args(), $params));
+            //else try filter chain by name
+            }else if(is_string($filter) || is_numeric($filter)){
+                return \Setcooki\Wp\Filter\Chain::e($filter, func_get_args(), $params);
+            //else return value unaltered
+            }else{
+                return $value;
+            }
+        }, (int)$priority);
+    }
+}
