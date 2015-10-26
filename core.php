@@ -204,10 +204,17 @@ function setcooki_path($type = null, $relative = false, $url = false)
             $path = $root;
             break;
         case 'theme':
-            $path = (function_exists('get_theme_root')) ? get_theme_root() : '';
+            $path = get_stylesheet_directory();
+            break;
+        case 'themes':
+            $path = (function_exists('get_theme_root')) ? get_theme_root() : ABSPATH . 'wp-content/themes';
             break;
         case 'plugin':
+            //TODO: better to use plugins_url()
             $path = preg_replace('/(.*)\/(plugins)\/([^\/]{1,}).*/i', '$1/$2/$3', dirname(__FILE__));
+            break;
+        case 'plugins':
+            $path = (defined('WP_PLUGIN_DIR')) ? WP_PLUGIN_DIR : ABSPATH . 'wp-content/plugins';
             break;
         default;
             return '';
