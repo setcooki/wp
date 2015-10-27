@@ -203,3 +203,20 @@ class MyTheme extends \Setcooki\Wp\Theme
     }
 }
 ```
+
+#### Hints/Tipps
+
+If your are locally developing with symlinks to /wp-content folders like /plugins etc to separate content from wordpress core you
+may find that plugins fail to load correctly due to certain php functions/constants like __FILE__ returning the symlink
+dir value thus provoking loading errors. to fix issues related with symlinks try the following:
+
+1)
+in your /wp-config.php before /wp-settings.php is loaded set the following constants
+
+```php
+define('WP_PLUGIN_DIR', realpath(dirname(__FILE__) . '/../your_path_to_plugin_folder'));
+define('PLUGINDIR', realpath(dirname(__FILE__) . '/../your_path_to_plugin_folder'));
+```
+
+this will prevent wordpress setting the plugin path from WP_CONTENT_DIR which when having symlinked /plugins folder outside
+wordpress root will return a wrong value
