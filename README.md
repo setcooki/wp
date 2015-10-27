@@ -204,7 +204,7 @@ class MyTheme extends \Setcooki\Wp\Theme
 }
 ```
 
-#### Hints/Tipps
+#### Hints/Tips
 
 If your are locally developing with symlinks to /wp-content folders like /plugins etc to separate content from wordpress core you
 may find that plugins fail to load correctly due to certain php functions/constants like __FILE__ returning the symlink

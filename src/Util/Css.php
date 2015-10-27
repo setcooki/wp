@@ -1,6 +1,6 @@
 <?php
 
-namespace Setcooki\Wp;
+namespace Setcooki\Wp\Util;
 
 /**
  * Class Css
