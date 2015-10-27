@@ -164,9 +164,9 @@ function setcooki_conf($key = null, $value = '_NIL_', $default = null)
  */
 function setcooki_import($class)
 {
-    if(class_exists('Setcooki\Wp\Plugin'))
+    if(class_exists('Setcooki\Wp\Wp'))
     {
-        Setcooki\Wp\Plugin::autoload($class);
+        Setcooki\Wp\Wp::autoload($class);
     }
 }
 
