@@ -488,7 +488,7 @@ if(!function_exists('setcooki_filter'))
      */
     function setcooki_filter($tag, $filter, $params = null, $priority = 10)
     {
-        add_filter((string)$tag, function($value) use ($filter, $params)
+        return add_filter((string)$tag, function($value) use ($filter, $params)
         {
             //filter chain or bundle
             if(($filter instanceof \Setcooki\Wp\Filter\Chain) || ($filter instanceof \Setcooki\Wp\Filter))
@@ -505,5 +505,54 @@ if(!function_exists('setcooki_filter'))
                 return $value;
             }
         }, (int)$priority);
+    }
+}
+
+if(!function_exists('setcooki_action'))
+{
+    /**
+     * shortcut function for wp´s add_action function extended with the possibility to pass additional parameters to
+     * callback function so no need to globalize parameters anymore. also will accept instance of \Setcooki\Wp\Action as
+     * callback which will then execute instances execute method passing callback args in first arg and additional parameters
+     * in second argument
+     *
+     * @see add_action
+     * @param string $tag expects the action tag name
+     * @param callable|\Setcooki\Wp\Action $action expects callable or instance of \Setcooki\Wp\Action
+     * @param null|mixed $params expects optional additional parameters
+     * @param int $priority expects the action priority value
+     * @param int $args expects the argument count
+     * @return mixed
+     */
+    function setcooki_action($tag, $action, $params = null, $priority = 10, $args = 1)
+    {
+        return add_action($tag, function($arg) use($action, $params, $args)
+        {
+            if((int)$args === 1 && (is_array($arg) || is_object($arg)))
+            {
+                $arg = array($arg);
+            }else if((int)$args === 1){
+                $arg = (array)$arg;
+            }else{
+                $arg = func_get_args();
+            }
+            if(is_array($params) || is_object($params))
+            {
+                $params = array($params);
+            }else{
+                $params = (array)$params;
+            }
+            //action instance
+            if($action instanceof \Setcooki\Wp\Action)
+            {
+                return $action->execute(func_get_args(), $params);
+            //action is callable
+            }else if(is_callable($action)){
+                return call_user_func_array($action, array_merge($arg, $params));
+            //else return unaltered
+            }else{
+                return func_get_args();
+            }
+        }, $priority, $args);
     }
 }
