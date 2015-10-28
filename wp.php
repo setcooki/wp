@@ -88,3 +88,49 @@ function setcooki_excerpt($mixed, $length = null, $wrap = null, $html = false, &
         return $excerpt;
     }
 }
+
+
+/**
+ * automated generalized post loop function that will loop over posts in globals and use a partial/template in first
+ * argument for rendering. the first argument can also be a callback expecting to return html for outputting. optional
+ * parameters can be passed in second argument just like with setcooki_include function. the main query can be overriden
+ * with third argument which can be instance of WP_Query, array of query arguments or callable which expects a new Wp_Query
+ * object in return
+ *
+ * @param string|callable $partial expects a path to partial or callback
+ * @param null|mixed $params expects optional params
+ * @param null|WP_Query|array|callable $query expects optional query object
+ * @return void
+ */
+function setcooki_loop($partial, $params = null, $query = null)
+{
+    if($query instanceof \WP_Query)
+    {
+        $GLOBALS['wp_query'] = $query;
+    }else if(is_array($query)){
+        $GLOBALS['wp_query'] = new \WP_Query($query);
+    }else if(is_callable($query)){
+        $GLOBALS['wp_query'] = call_user_func_array($query, array($params));
+    }else{
+        //do nothing query is set already
+    }
+    if(have_posts())
+    {
+        while(have_posts())
+        {
+            the_post();
+            global $post;
+            if(is_callable($partial))
+            {
+                echo call_user_func_array($partial, array($post, $params));
+            }else if(!is_null($partial)){
+                setcooki_include($partial, $params);
+            }else{
+                //not defined yet could be controller
+            }
+        }
+    }
+    wp_reset_query();
+    wp_reset_postdata();
+    unset($post);
+}
