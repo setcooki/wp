@@ -29,7 +29,7 @@ abstract class Theme extends Wp
     /**
      * init theme and set action hooks
      *
-     * @param null⁄mixed $options expects optional class options
+     * @param null|mixed $options expects optional class options
      * @throws Exception
      */
     protected function __construct($options = null)

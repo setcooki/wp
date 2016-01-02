@@ -13,6 +13,7 @@ trait Singleton
      */
     private static $_instance = null;
 
+
     /**
      * create static single instance with class options
      *
