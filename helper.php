@@ -522,3 +522,15 @@ function setcooki_linkify($string, $target = null)
     }
     return $string;
 }
+
+
+/**
+ * checks if a variable can be stringified using data type casting to string
+ *
+ * @param mixed $mixed expects a variable value
+ * @return bool
+ */
+function setcooki_stringable($mixed)
+{
+    return (is_array($mixed) || is_object($mixed) || is_callable($mixed) || is_resource($mixed)) ? false : true;
+}
