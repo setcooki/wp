@@ -332,7 +332,7 @@ class Response
 	 * @throws Exception
 	 */
 	public function sendToString($data = null, $status = 200, $headers = array())
-    {
+	{
 	    $header = '';
 	    $buffer = '';
 	    $cache = array();

@@ -39,6 +39,8 @@ abstract class Theme extends Wp
         add_action('after_setup_theme', array($class, '_afterSetup'));
         add_action('after_switch_theme', array($class, '_afterSwitch'));
         add_action('switch_theme', array($class, '_switchTheme'));
+
+        parent::__construct();
     }
 
 
@@ -52,7 +54,6 @@ abstract class Theme extends Wp
     public static function instance($options = null)
     {
         $class = get_called_class();
-
         if(self::$_instance === null)
         {
             self::$_instance = new $class($options);

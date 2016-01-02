@@ -30,6 +30,8 @@ abstract class Plugin extends Wp
         register_activation_hook(__FILE__, array(__CLASS__, '_activate'));
         register_deactivation_hook(__FILE__, array(__CLASS__, '_deactivate'));
         register_uninstall_hook(__FILE__, array(__CLASS__, '_uninstall'));
+
+        parent::__construct();
     }
 
 

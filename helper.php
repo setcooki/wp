@@ -534,3 +534,22 @@ function setcooki_stringable($mixed)
 {
     return (is_array($mixed) || is_object($mixed) || is_callable($mixed) || is_resource($mixed)) ? false : true;
 }
+
+
+/**
+ * return wordpress version or compare wordpress version with version passed as second argument returning boolean value
+ * if version compare matches
+ *
+ * @param null|string $version expects optional version string
+ * @param string $operator expects optional compare operator
+ * @return mixed
+ */
+function setcooki_version($version = null, $operator = '>=')
+{
+    if(is_null($version))
+    {
+        return version_compare($GLOBALS['wp_version'], trim((string)$version), trim((string)$operator));
+    }else{
+        return $GLOBALS['wp_version'];
+    }
+}
