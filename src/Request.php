@@ -2,12 +2,16 @@
 
 namespace Setcooki\Wp;
 
+use Setcooki\Wp\Traits\Singleton;
+
 /**
  * Class Request
  * @package Setcooki\Wp
  */
 class Request
 {
+    use Singleton;
+
     /**
      * global variable constant for params
      *
@@ -88,38 +92,17 @@ class Request
     protected $_contentLength = null;
 
 
-    /**
-     * singleton class instance
-     *
-     * @var null
-     */
-    public static $_instance = null;
-
 
     /**
      * class constructor must be called from child class to initialize request setting
      * global rpc array and calling init function
+     *
+     * @param mixed $options expects optional options
      */
-    public function __construct()
+    public function __construct($options = null)
     {
         $this->init();
     }
-
-
-    /**
-     * singleton instance setter/getter
-     *
-     * @return null|Request
-     */
-    public static function instance()
-    {
-        if(self::$_instance === null)
-        {
-            self::$_instance = new self();
-        }
-        return self::$_instance;
-    }
-
 
 
     /**
