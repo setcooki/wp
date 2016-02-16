@@ -1,6 +1,8 @@
 <?php
 
-namespace Setcooki\Wp;
+namespace Setcooki\Wp\Cache;
+
+use Setcooki\Wp\Exception;
 
 /**
  * Class Cache
@@ -122,6 +124,34 @@ abstract class Cache
     public static function hash($string, $algo = 'sha1')
     {
         return hash(strtolower(trim((string)$algo)), trim((string)$string));
+    }
+
+
+    /**
+     * create a hash key from argument passed to this function
+     *
+     * @return null|string
+     */
+    public static function key()
+    {
+        if(func_num_args() > 0)
+        {
+            function __key($arg, &$tmp = [])
+            {
+                if(is_array($arg) || is_object($arg))
+                {
+                    foreach((array)$arg as $a)
+                    {
+                        __key($a, $tmp);
+                    }
+                }else{
+                    $tmp[] = strtolower((string)$arg);
+                }
+                return $tmp;
+            }
+            return self::hash(implode('', __key(func_get_args())));
+        }
+        return null;
     }
 
 

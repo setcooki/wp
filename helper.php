@@ -553,3 +553,20 @@ function setcooki_version($version = null, $operator = '>=')
         return $GLOBALS['wp_version'];
     }
 }
+
+
+/**
+ * removes regex pattern delimiters including modifiers from pattern so the passed pattern can be placed inside php
+ * regex function with already existing delimiters. the second argument will also allow for trimming of any chars and
+ * beginning and end of pattern usually meta characters like ^$
+ *
+ * @param string $pattern expects the pattern to remove delimiters from
+ * @param string $trim expects optional trim values
+ * @return string
+ */
+function setcooki_regex_delimit($pattern, $trim = '')
+{
+    $pattern = preg_replace('=^([^\s\w\\\]{1})([^\\1]*)\\1(?:[imsxeADSUXJu]*)?$=i', '\\2', trim((string)$pattern));
+    $pattern = trim($pattern, " " .trim($trim));
+    return $pattern;
+}

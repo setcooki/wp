@@ -2,7 +2,6 @@
 
 namespace Setcooki\Wp\Cache;
 
-use Setcooki\Wp\Cache;
 use Setcooki\Wp\Exception;
 
 /**

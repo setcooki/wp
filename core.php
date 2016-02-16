@@ -285,6 +285,28 @@ function setcooki_option($name, $value = '_NIL_', $default = false)
 }
 
 
+/**
+ * get the setcooki plugin/theme base class instance from any context by calling this function. as long as this function
+ * is called inside plugin or theme directory will return the correct instance governing the whole theme or plugin. if you
+ * pass a instance id in first argument will try to lookup existing instance initialized under the id value which is a
+ * combination of "($type):{$name} e.g. "plugin:foo" which is the id of a plugin named foo where foo is the folder name
+ * of the plugin/theme!
+ *
+ * @param null|string $id expects optional instance id hint
+ * @return \Setcooki\Wp\Wp
+ * @throws Exception
+ */
+function setcooki_me($id = null)
+{
+    if(($id = \Setcooki\Wp\Wp::me($id, false)) !== false)
+    {
+        return $id;
+    }else{
+        throw new \Exception("sorry! no clue who i am!");
+    }
+}
+
+
 if(!function_exists('setcooki_cache'))
 {
     /**
@@ -302,13 +324,13 @@ if(!function_exists('setcooki_cache'))
      */
     function setcooki_cache($key = null, $value = '_NIL_', $lifetime = null, $ns = null)
     {
-        if(class_exists('Setcooki\\Wp\\Cache', true))
+        if(class_exists('Setcooki\\Wp\\Cache\\Cache', true))
         {
-            if(Setcooki\Wp\Cache::hasInstance())
+            if(Setcooki\Wp\Cache\Cache::hasInstance())
             {
                 try
                 {
-                    $class = Setcooki\Wp\Cache::instance($ns);
+                    $class = Setcooki\Wp\Cache\Cache::instance($ns);
                     if(func_num_args() > 0)
                     {
                         if(func_num_args() >= 2 && $value !== '_NIL_')
@@ -508,6 +530,7 @@ if(!function_exists('setcooki_filter'))
     }
 }
 
+
 if(!function_exists('setcooki_action'))
 {
     /**
@@ -554,5 +577,54 @@ if(!function_exists('setcooki_action'))
                 return func_get_args();
             }
         }, $priority, $args);
+    }
+}
+
+
+if(!function_exists('setcooki_handle'))
+{
+    /**
+     * if theme/plugin uses a controllers and a controller resolver in theme/plugin init context calling/handling controller
+     * action can also be done from any location inside the plugin/theme architecture. suppose you want to handle a specific
+     * action inside a custom post template you can use this shortcode method to execute/handle the action.
+     *
+     * @see \Setcooki\Wp\Controller\Resolver::handle
+     * @param null|mixed $action expects optional allowed action
+   	 * @param null|object|array|\Setcooki\Wp\Util\Params $params expects optional params
+     * @param null|mixed $fallback expects optional fallback - see Router::fail
+     * @return string
+     * @throws Exception
+     */
+    function setcooki_handle($action, $params = null, $fallback = null)
+    {
+        $me = setcooki_me();
+        if($me->stored('resolver'))
+        {
+            return $me->store('resolver')->handle($action, $params, null, null, $fallback);
+        }
+        return false;
+    }
+}
+
+
+if(!function_exists('setcooki_router'))
+{
+    /**
+     * if theme/plugin uses a router in theme/plugin init context the router can be also executed/run from any other
+     * location within the theme/plugin architecture. e.g. if the router handles all page request it would be placed in
+     * a single line in the themes index.php file as the index file is the last template looked up by wordpress.
+     *
+     * @param null|mixed $fallback expects optional fallback - see Router::fail
+     * @return bool|mixed
+     * @throws Exception
+     */
+    function setcooki_router($fallback = null)
+    {
+        $me = setcooki_me();
+        if($me->stored('router'))
+        {
+            return $me->store('router')->run($fallback);
+        }
+        return false;
     }
 }

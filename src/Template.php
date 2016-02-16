@@ -2,21 +2,22 @@
 
 namespace Setcooki\Wp;
 
+use Setcooki\Wp\Traits\Cache;
+use Setcooki\Wp\Util\Params;
+
 /**
  * Class Template
  * @package Setcooki\Wp
  */
 class Template
 {
+    use Cache;
+
+
     /**
      * @var null|\stdClass
      */
     protected $_vars = null;
-
-    /**
-     * @var null
-     */
-    protected $_view = null;
 
     /**
      * @var null
@@ -32,14 +33,18 @@ class Template
     /**
      * class constructor expects a template file as first argument and optional view instance as second
      *
-     * @param string $template expects absolute template file location
-     * @param View $view expects option view instance
+     * @param string $template expects absolute or relative template file
+     * @param null|mixed expects optional vars to set
+     * @param null|array|Params
      */
-    public function __construct($template, View $view = null)
+    public function __construct($template, $vars = null)
     {
         $this->_vars = new \stdClass();
-        $this->_view = $view;
-        $this->_template = DIRECTORY_SEPARATOR . ltrim(trim($template), DIRECTORY_SEPARATOR);
+        $this->_template = $template;
+        if(!is_null($vars))
+        {
+            $this->set($vars);
+        }
     }
 
 
@@ -47,29 +52,29 @@ class Template
      * shortcut function to create a template see Setcooki\Wp\Template::__construct
      *
      * @see Setcooki\Wp\Template::__construct
-     * @param string $template expects absolute template file location
-     * @param View $view expects option view instance
+     * @param string $template expects absolute or relative template file
+     * @param null|mixed expects optional vars to set
      * @return Template
      */
-    public static function create($template, View $view = null)
+    public static function create($template, $vars = null)
     {
-        return new self($template, $view);
+        return new self($template, $vars);
     }
 
 
     /**
-     * setter/getter for view instance
+     * setter/getter method for absolute or relative template file
      *
-     * @param View $view expects optional view instance
-     * @return null|View
+     * @param null|string $template expects optional template file
+     * @return bool|null|string
      */
-    public function view(View $view = null)
+    public function template($template = null)
     {
-        if($view !== null)
+        if(!is_null($template))
         {
-            $this->_view = $view;
+            $this->_template = $template;
         }
-        return $this->_view;
+        return $this->_template;
     }
 
 
@@ -106,7 +111,7 @@ class Template
      * @return mixed
      * @throws \Exception
      */
-    public function get($key = null, $default = "")
+    public function &get($key = null, $default = "")
     {
         if($key !== null)
         {
@@ -144,13 +149,15 @@ class Template
      */
     public function set($vars)
     {
-        if(is_array($vars))
+        if($vars instanceof Params)
         {
+            $this->_vars = $vars->__toObject();
+        }else if(is_array($vars)){
             $this->_vars = setcooki_array_to_object($vars);
         }else if(is_object($vars)){
-            $this->vars = $vars;
+            $this->_vars = (object)$vars;
         }else{
-            throw new Exception("first argument is not valid variable");
+            throw new Exception("vars passed in first argument are not allowed in this context");
         }
     }
 
@@ -192,45 +199,118 @@ class Template
      * @return mixed
      * @throws Exception
      */
-    public function render($template = null, $vars = null)
+
+
+    /**
+     * render template file passed in constructor parsing template placeholders and filling them with variable values
+     * assign to the template instance. the buffer or returned string can be cached if first argument is a int
+     * value >= which represents the cache lifetime. cache instance must be set with View::cache prior to usage. the second
+     * optional argument can be a callable sending view return buffer to that function for further manipulation
+     *
+     * @param null|int $cache expects optional cache lifetime
+     * @param callable|null $callback expects optional buffer callback
+     * @return string
+     * @throws Exception
+     */
+    public function render($cache = null, callable $callback = null)
     {
-        if($template !== null)
+        if(($template = self::lookup($this->_template)) !== false)
         {
-            $template = DIRECTORY_SEPARATOR . ltrim(trim($template), DIRECTORY_SEPARATOR);
-        }else{
-            $template = $this->_template;
-        }
-        if(is_file($template))
-        {
-            if($vars !== null)
+            if(!is_null($cache) && ctype_digit($cache) && $this->cache())
             {
-                $this->add($vars);
+                $cache = (int)$cache;
+                $key = \Setcooki\Wp\Cache\Cache::key($template, $this->get());
+            }else{
+                $cache = -1;
+                $key = null;
             }
-            ob_start();
-            @extract((array)$this->get(), EXTR_SKIP);
-            include $template;
-            $buffer = ob_get_clean();
-            $buffer = preg_replace_callback('/\{(\()([^)}]{2,})\)\}/i', array($this, 'parse'), $buffer);
-            $buffer = preg_replace_callback('/\{(\$|\%)([^\}]{2,})\}/i', array($this, 'parse'), $buffer);
+
+            if($cache >= 0 && ($buffer = $this->cache($key, false)) !== false)
+            {
+                //do nothing
+            }else{
+                ob_start();
+                @extract((array)$this->get(), EXTR_SKIP);
+                require $template;
+                $buffer = ob_get_clean();
+                $buffer = preg_replace_callback('/\{(\()([^)}]{2,})\)\}/i', array($this, 'parse'), $buffer);
+                $buffer = preg_replace_callback('/\{(\$|\%)([^\}]{2,})\}/i', array($this, 'parse'), $buffer);
+                if($cache >= 0)
+                {
+                    $this->cache($key, $template, $cache);
+                }
+            }
+            @clearstatcache();
+            if(!is_null($callback))
+            {
+                $buffer = call_user_func($callback, array($buffer, $this));
+            }
             return $this->_buffer = $buffer;
         }else{
-            throw new Exception(sprintf("template: %s not found", $template));
+            throw new Exception(setcooki_sprintf("template file: %s not found or not readable", $template));
         }
     }
 
 
     /**
-     * shortcut function to render and echo output a template in a include sort of way - see Setcooki\Wp\Template::render
-     * for more
+     * static function to render a template file see Template::render
      *
-     * @see Setcooki\Wp\Template::render
-     * @param null|string $template expects optional overwrite template file location
-     * @param null|mixed $vars expects optional variables to apply
+     * @see Template::create
+     * @see Template::render
+     * @param string $template expects tempalte absolute or relative file
+     * @param null|mixed $vars expects variables to set
+     * @param callable|null $callback expects optional buffer callback
+     * @return string
      * @throws Exception
      */
-    public function inc($template, $vars = null)
+    public static function r($template, $vars = null, callable $callback = null)
     {
-        echo $this->render($template, $vars);
+        return self::create($template, $vars)->render(null, $callback);
+    }
+
+
+    /**
+     * include a file and pass array in second argument as local vars
+     *
+     * @param string $file expects a file path
+     * @param array $vars expects optional vars
+     * @return string
+     * @throws Exception
+     */
+    public function inc($file, Array $vars = [])
+    {
+        if(($file = self::lookup($file)) !== false)
+        {
+            extract($vars);
+            ob_start();
+            require $file;
+            return ob_get_clean();
+        }else{
+            throw new Exception(setcooki_sprintf("unable to include file: %s", $file));
+        }
+    }
+
+
+    /**
+     * lookup template file which can be either a absolute file path or a relative file path from plugin/theme base. if
+     * no template file was found throws exception. if template was not found returns boolean false
+     *
+     * @param string $template expects a template file path
+     * @return string|bool
+     */
+    public static function lookup($template)
+    {
+        $template = DIRECTORY_SEPARATOR . ltrim(trim($template), DIRECTORY_SEPARATOR);
+        if(is_file($template) && is_readable($template))
+        {
+            return $template;
+        }
+        $template = Wp::b($template);
+        if(is_file($template) && is_readable($template))
+        {
+            return $template;
+        }
+        return false;
     }
 
 
@@ -270,7 +350,6 @@ class Template
                 default:
             }
         }
-
         if(is_array($return))
         {
             return (string)$return;
@@ -306,7 +385,7 @@ class Template
      * @param string $name expects property name
      * @return mixed
      */
-    public function __get($name)
+    public function &__get($name)
     {
         return $this->get($name);
     }
@@ -368,5 +447,16 @@ class Template
     public function __clone()
     {
         $this->reset();
+    }
+
+
+    /**
+     * on serialize keep the following vars
+     *
+     * @return array
+     */
+    public function __sleep()
+    {
+        return array('vars', 'template');
     }
 }
