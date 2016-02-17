@@ -290,19 +290,25 @@ function setcooki_option($name, $value = '_NIL_', $default = false)
  * is called inside plugin or theme directory will return the correct instance governing the whole theme or plugin. if you
  * pass a instance id in first argument will try to lookup existing instance initialized under the id value which is a
  * combination of "($type):{$name} e.g. "plugin:foo" which is the id of a plugin named foo where foo is the folder name
- * of the plugin/theme!
+ * of the plugin/theme! if no instance is found will throw exception which can be overriden by passing any other default
+ * value in second argument
  *
  * @param null|string $id expects optional instance id hint
+ * @param null|mixed $default expects optional default value
  * @return \Setcooki\Wp\Wp
  * @throws Exception
  */
-function setcooki_me($id = null)
+function setcooki_me($id = null, $default = null)
 {
+    if(is_null($default))
+    {
+        $default = new \Exception("sorry! no clue who i am!");
+    }
     if(($id = \Setcooki\Wp\Wp::me($id, false)) !== false)
     {
         return $id;
     }else{
-        throw new \Exception("sorry! no clue who i am!");
+        return setcooki_default($default);
     }
 }
 
@@ -593,7 +599,7 @@ if(!function_exists('setcooki_handle'))
    	 * @param null|object|array|\Setcooki\Wp\Util\Params $params expects optional params
      * @param null|mixed $fallback expects optional fallback - see Router::fail
      * @return string
-     * @throws Exception
+     * @throws \Setcooki\Wp\Exception
      */
     function setcooki_handle($action, $params = null, $fallback = null)
     {
@@ -616,7 +622,7 @@ if(!function_exists('setcooki_router'))
      *
      * @param null|mixed $fallback expects optional fallback - see Router::fail
      * @return bool|mixed
-     * @throws Exception
+     * @throws \Setcooki\Wp\Exception
      */
     function setcooki_router($fallback = null)
     {
