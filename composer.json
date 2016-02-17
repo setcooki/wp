@@ -2,7 +2,7 @@
   "name": "setcooki/wp",
   "description": "Wordpress RAD Framework",
   "type": "library",
-  "keywords": ["wordpress", "wp", "framework"],
+  "keywords": ["wordpress", "wp", "rad", "framework"],
   "homepage": "https://github.com/setcooki/wp",
   "license": "GPL",
   "authors": [
@@ -14,7 +14,8 @@
   ],
   "support":{
     "issues": "https://github.com/setcooki/wp/issues",
-    "wiki": "https://github.com/setcooki/wp/wiki"
+    "wiki": "https://github.com/setcooki/wp/wiki",
+    "source":
   },
   "config": {
     "vendor-dir": "lib/vendor"
@@ -28,5 +29,5 @@
     },
     "classmap": ["/"]
   },
-  "minimum-stability": "dev"
+  "minimum-stability": "stable"
 }
