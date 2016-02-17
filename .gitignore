@@ -1,3 +1,5 @@
+/.gitmodules
+/setup.sh
 *.iml
 .idea/
 /dev
