@@ -1,17 +1,15 @@
-### Wordpress RAD Framework (DEV/Beta Mode)
+### Wordpress RAD Framework
 
-**PLEASE NOTE: THIS FRAMEWORK IS PUBLIC BETA**
+Rapid developing framework for Wordpress Plugins\Themes includes basis functionality for:
 
-Rapid Developing Framework for Wordpress Plugins\Themes includes basis functionality for:
-
-* Easy plugin boot-strapping
+* Easy theme and plugin boot-strapping
 * Multi-site plugin support
 * Loose coupling of components
-* Plugin configuration handling with custom user overwriting possibilities
-* Plugin MVC architecture with controller, view and template classes
-* Wordpress class wrapper for wp option handling
+* Configuration package for plugin/theme customization
+* Controller package with extensive routing possibilities
+* Wordpress wrapper´s class for option handling
 * Cache Library with apc/memcache/file drivers
-* Shortcut function for fast access
+* Shortcut function for fast and easy access
 * Error/exception handling and logging
 * ... and more
 
@@ -27,7 +25,7 @@ either by composer install with:
 ,
 "require": {
     "php": ">=5.3.3",
-    "setcooki/wp": "@dev",
+    "setcooki/wp": "@master",
 }
 ```
 
@@ -203,6 +201,101 @@ class MyTheme extends \Setcooki\Wp\Theme
     }
 }
 ```
+
+#### Controller/Router
+
+Instead of creating classic wp style templates.php (header.php, footer.php, search.php ...) you can use the controller 
+package and have a router handle all the request by simply placing a single funtion in your themes index.php. to init
+your controller do the following. in your themes initialization:
+
+```php
+class MyTheme extends \Setcooki\Wp\Theme
+{
+    public $options = array();
+
+    public function __construct($options = null)
+    {
+        parent::__construct($options)
+    }
+    
+    public function init()
+    {
+        \Setcooki\Wp\Controller\Resolver::create($this)
+            ->register(new \My\Controller\Post($this);
+            ->register(new \My\Controller\Header($this);
+            ->register(new \My\Controller\Footer($this);
+        
+        \Setcooki\Wp\Routing\Router::create($this)
+            ->add(new Route('url:*', 'Post::get'));
+    }
+}
+```
+
+This example registers your custom controller classes with the resolver instance which is stored inside wp base class to 
+be used from any other location in theme/plugin folder. next initialize a router and add routes to be executed. see 
+Resolver and Router class for how to. execution of router should only be done in themes index.php file since any usage before
+means wordpress may not have initializes post loops etc. in your themes index.php place this single line:
+
+```php
+setcooki_router();
+```
+
+that's it. nor more templates and partials. everything will be handle by the router and the resolver. subsequently if you
+want to not use a router and only the resolver you can execute any registered controller action from anywhere in your code.
+best use would be inside your templates like:
+
+```php
+<?= setcooki_handle('Header::get', ['foo' => 1]); ?>
+
+<article>
+...
+</article>
+
+<?= setcooki_handle('Footer::get', ['foo' => 1]); ?>
+```
+
+this would execute the header and footer get method
+
+
+#### Scope/Reference
+
+Your theme or plugin need to comply to the minimum wordpress requirements. sometimes this means that you do not have
+access to classes instantiated in bootstrapping. for example if you use wordpress custom template files you do not have
+access to your themes instance (see above example for theme creation) simply because you don't have a reference variable
+available. the usually messy way would be storing your theme class instance (or any other) in $GLOBALS. however there is 
+a slick way to get your instance - just use:
+
+```php
+setcooki_wp();
+```
+
+this will return your theme/plugin class instance as long as this function is called inside your theme or plugin folder.
+you can even reference other plugins/themes by passing the id:
+
+```php
+setcooki_wp('plugin:foo');
+```
+
+where id is the combination of the scope (theme|plugin) and the folder name of the plugin (not the style.css name!). ok
+fine - but what if i want to have my own classes/objects theme or plugin wide available without using $GLOBALS or a sort
+of registry?! the \Setcooki\Wp\Wp base class has a simple object store implemented - use it in the following ways depending
+on where you are in your code you can:
+
+```php
+//set
+$this->wp->store('foo', $foo);
+setcooki_wp()->store('foo', $foo);
+setcooki_store('foo', $foo);
+
+//get
+$this->wp->store('foo');
+setcooki_wp()->store('foo');
+setcooki_store('foo');
+
+```
+
+simple as that!
+
 
 #### Hints/Tips
 
