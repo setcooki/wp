@@ -298,13 +298,13 @@ function setcooki_option($name, $value = '_NIL_', $default = false)
  * @return \Setcooki\Wp\Wp
  * @throws Exception
  */
-function setcooki_me($id = null, $default = null)
+function setcooki_wp($id = null, $default = null)
 {
     if(is_null($default))
     {
         $default = new \Exception("sorry! no clue who i am!");
     }
-    if(($id = \Setcooki\Wp\Wp::me($id, false)) !== false)
+    if(($id = \Setcooki\Wp\Wp::wp($id, false)) !== false)
     {
         return $id;
     }else{
@@ -603,10 +603,10 @@ if(!function_exists('setcooki_handle'))
      */
     function setcooki_handle($action, $params = null, $fallback = null)
     {
-        $me = setcooki_me();
-        if($me->stored('resolver'))
+        $wp = setcooki_wp();
+        if($wp->stored('resolver'))
         {
-            return $me->store('resolver')->handle($action, $params, null, null, $fallback);
+            return $wp->store('resolver')->handle($action, $params, null, null, $fallback);
         }
         return false;
     }
@@ -618,7 +618,8 @@ if(!function_exists('setcooki_router'))
     /**
      * if theme/plugin uses a router in theme/plugin init context the router can be also executed/run from any other
      * location within the theme/plugin architecture. e.g. if the router handles all page request it would be placed in
-     * a single line in the themes index.php file as the index file is the last template looked up by wordpress.
+     * a single line in the themes index.php file as the index file is the last template looked up by wordpress. if a
+     * resolver has been initialized the resolver will handle the router instance
      *
      * @param null|mixed $fallback expects optional fallback - see Router::fail
      * @return bool|mixed
@@ -626,10 +627,15 @@ if(!function_exists('setcooki_router'))
      */
     function setcooki_router($fallback = null)
     {
-        $me = setcooki_me();
-        if($me->stored('router'))
+        $wp = setcooki_wp();
+        if($wp->stored('router'))
         {
-            return $me->store('router')->run($fallback);
+            if($wp->stored('resolver'))
+            {
+                return $wp->store('resolver')->handle($wp->store('router'), null, null, null, $fallback);
+            }else{
+                return $wp->store('router')->run($fallback);
+            }
         }
         return false;
     }
