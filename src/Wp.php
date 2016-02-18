@@ -13,7 +13,7 @@ abstract class Wp
      *
      * @var array
      */
-    private static $_me = array();
+    private static $_wp = array();
 
     /**
      * contains all unique objects stored with this instance of the framework
@@ -63,7 +63,7 @@ abstract class Wp
 
         if(!empty($this->scope) && !empty($this->name))
         {
-            self::$_me["$this->scope:$this->name"] = $this;
+            self::$_wp["$this->scope:$this->name"] = $this;
         }
     }
 
@@ -271,7 +271,7 @@ abstract class Wp
      * @param null|mixed $default expects default return value
      * @return mixed
      */
-    public static function me($id = null, $default = null)
+    public static function wp($id = null, $default = null)
     {
         if(is_null($id))
         {
@@ -286,9 +286,9 @@ abstract class Wp
             }
         }
         $id = trim((string)$id);
-        if(array_key_exists($id, self::$_me))
+        if(array_key_exists($id, self::$_wp))
         {
-            return self::$_me[$id];
+            return self::$_wp[$id];
         }else{
             return setcooki_default($default);
         }
