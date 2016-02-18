@@ -69,7 +69,7 @@ class Router
 	 * @param Wp $wp expects wp theme/plugin instance
 	 * @param null|mixed $options expects optional options
 	 */
-	protected function __construct(Wp $wp, $options = null)
+	public function __construct(Wp $wp, $options = null)
 	{
 		$this->wp = $wp;
 		setcooki_init_options($options, $this);
