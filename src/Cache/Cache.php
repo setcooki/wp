@@ -136,20 +136,20 @@ abstract class Cache
     {
         if(func_num_args() > 0)
         {
-            function __key($arg, &$tmp = [])
+            $key = function($arg, &$tmp = []) use(&$key)
             {
                 if(is_array($arg) || is_object($arg))
                 {
                     foreach((array)$arg as $a)
                     {
-                        __key($a, $tmp);
+                        $key($a, $tmp);
                     }
                 }else{
                     $tmp[] = strtolower((string)$arg);
                 }
                 return $tmp;
-            }
-            return self::hash(implode('', __key(func_get_args())));
+            };
+            return self::hash(implode('', $key(func_get_args())));
         }
         return null;
     }
