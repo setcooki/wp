@@ -13,7 +13,19 @@ Rapid developing framework for Wordpress Plugins\Themes includes basis functiona
 * Error/exception handling and logging
 * ... and more
 
-### Install
+### How to (Manual)
+1. [Install](#install)
+2. [Bootstrap](#bootstrap)
+3. [Plugins](#plugins)
+4. [Themes](#themes)
+5. [Controller/Router](#controller-router)
+6. [Scope/Reference](#scope-reference)
+7. [Hints/Tips](#hints-tips)
+
+### Initialization
+
+<a name="install"></a>
+#### Install
 
 either by composer install with:
 
@@ -24,14 +36,15 @@ either by composer install with:
 }]
 ,
 "require": {
-    "php": ">=5.3.3",
+    "php": ">=5.4",
     "setcooki/wp": "@master",
 }
 ```
 
-or download manual zip and use framework without composer support.
+or download manual zip and use framework without composer support as you like
 
-### Bootstrap
+<a name="bootstrap"></a>
+#### Bootstrap
 
 To initialize framework you need to include the /core.php file. if you use composer the most likely way of bootstrapping
 and loading the framework would be like:
@@ -42,14 +55,14 @@ require_once dirname(__FILE__) . '/lib/vendor/autoload.php';
 require_once dirname(__FILE__) . '/lib/vendor/setcooki/wp/core.php';
 ```
 
-If you dont use composer install and composer autoloader it looks like:
+If you do not use composer install and composer autoloader it would look like this:
 
 ```php
 define('SETCOOKI_WP_AUTOLOAD', 1); //optional
 require_once dirname(__FILE__) . '/lib/setcooki/wp/core.php';
 ```
 
-setting `SETCOOKI_WP_AUTOLOAD` will take care that everything in `setcooki/wp` ns will be loaded. to use the autoloader
+setting `SETCOOKI_WP_AUTOLOAD` will take care that everything in `\Setcooki\Wp` namespace will be loaded. to use the autoloader
 for external class loading pass an array of absolute include dirs with `SETCOOKI_WP_AUTOLOAD_DIRS` option. each dir can be
 passed as string path or array where at index 0 the dir path is stored and in index 1 optional ns value for psr-0 loading
 
@@ -95,9 +108,9 @@ return array
 
 PLEASE refer to `core.php` file for all configurable wp framework options
 
-
 ### Usage
 
+<a name="plugins"></a>
 #### Plugins
 
 The most likely scenario developing wordpress plugins/themes with this framework is to extend from the `Setcooki\Wp\Wp` class
@@ -148,7 +161,7 @@ if(function_exists('add_action'))
     (
         //your plugin options
     );
-    add_action('init', array(new MyPlugin($options), 'init'));
+    add_action('init', array(new \My\Namespace\Plugin($options), 'init'));
 }
 ```
 
@@ -162,10 +175,11 @@ if(function_exists('add_action'))
     (
         //plugin options (which can be different for each instance) 
     );
-    add_action('init', array(MyNamespace\MyPlugin::instance($id, $options), 'init'));
+    add_action('init', array(\My\Namespace\Plugin::instance($id, $options), 'init'));
 }
 ```
 
+<a name="themes"></a>
 #### Themes
 
 The same applies for themes. extend from:
@@ -202,6 +216,7 @@ class MyTheme extends \Setcooki\Wp\Theme
 }
 ```
 
+<a name="controller-router"></a>
 #### Controller/Router
 
 Instead of creating classic wp style templates.php (header.php, footer.php, search.php ...) you can use the controller 
@@ -256,13 +271,13 @@ best use would be inside your templates like:
 
 this would execute the header and footer get method
 
-
+<a name="scope-reference"></a>
 #### Scope/Reference
 
 Your theme or plugin need to comply to the minimum wordpress requirements. sometimes this means that you do not have
 access to classes instantiated in bootstrapping. for example if you use wordpress custom template files you do not have
 access to your themes instance (see above example for theme creation) simply because you don't have a reference variable
-available. the usually messy way would be storing your theme class instance (or any other) in $GLOBALS. however there is 
+available. the usually messy way would be storing your theme class instance (or any other) in `$GLOBALS`. however there is 
 a slick way to get your instance - just use:
 
 ```php
@@ -277,8 +292,8 @@ setcooki_wp('plugin:foo');
 ```
 
 where id is the combination of the scope (theme|plugin) and the folder name of the plugin (not the style.css name!). ok
-fine - but what if i want to have my own classes/objects theme or plugin wide available without using $GLOBALS or a sort
-of registry?! the \Setcooki\Wp\Wp base class has a simple object store implemented - use it in the following ways depending
+fine - but what if i want to have my own classes/objects theme or plugin wide available without using `$GLOBALS` or a sort
+of registry?! the `\Setcooki\Wp\Wp` base class has a simple object store implemented - use it in the following ways depending
 on where you are in your code you can:
 
 ```php
@@ -296,11 +311,11 @@ setcooki_store('foo');
 
 simple as that!
 
-
+<a name="hints-tips"></a>
 #### Hints/Tips
 
 If your are locally developing with symlinks to /wp-content folders like /plugins etc to separate content from wordpress core you
-may find that plugins fail to load correctly due to certain php functions/constants like __FILE__ returning the symlink
+may find that plugins fail to load correctly due to certain php functions/constants like `__FILE__` returning the symlink
 dir value thus provoking loading errors. to fix issues related with symlinks try the following:
 
 1)
@@ -311,5 +326,5 @@ define('WP_PLUGIN_DIR', realpath(dirname(__FILE__) . '/../your_path_to_plugin_fo
 define('PLUGINDIR', realpath(dirname(__FILE__) . '/../your_path_to_plugin_folder'));
 ```
 
-this will prevent wordpress setting the plugin path from WP_CONTENT_DIR which when having symlinked /plugins folder outside
-wordpress root will return a wrong value
+this will prevent wordpress setting the plugin path from `WP_CONTENT_DIR` which when having symlinked /plugins folder outside
+wordpress root will return a wrong value.
