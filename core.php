@@ -293,6 +293,7 @@ function setcooki_option($name, $value = '_NIL_', $default = false)
  * of the plugin/theme! if no instance is found will throw exception which can be overriden by passing any other default
  * value in second argument
  *
+ * @see \Setcooki\Wp\Wp::wp
  * @param null|string $id expects optional instance id hint
  * @param null|mixed $default expects optional default value
  * @return \Setcooki\Wp\Wp
@@ -310,6 +311,21 @@ function setcooki_wp($id = null, $default = null)
     }else{
         return setcooki_default($default);
     }
+}
+
+
+/**
+ * setter/getter shortcut method for \Setcooki\Wp\Wp::store function
+ *
+ * @see \Setcooki\Wp\Wp::store
+ * @param null|string $name expects the object name in setter/getter mode
+ * @param null|mixed $value expects the value to set in setter mode
+ * @param null|mixed $default expects the default return value in getter mode
+ * @return mixed
+ */
+function setcooki_store($name, $value = null, $default = null)
+{
+    return setcooki_wp(null, $default)->store($name, $value, $default);
 }
 
 
