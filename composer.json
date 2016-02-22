@@ -15,7 +15,7 @@
   "support":{
     "issues": "https://github.com/setcooki/wp/issues",
     "wiki": "https://github.com/setcooki/wp/wiki",
-    "source":
+    "source": "https://github.com/setcooki/wp"
   },
   "config": {
     "vendor-dir": "lib/vendor"
