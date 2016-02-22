@@ -31,13 +31,13 @@ either by composer install with:
 
 ```javascript
 "repositories": [{
-    "type": "vcs",
+    "type": "git",
     "url": "https://github.com/setcooki/wp"
 }]
 ,
 "require": {
     "php": ">=5.4",
-    "setcooki/wp": "@master",
+    "setcooki/wp": "dev-master",
 }
 ```
 
