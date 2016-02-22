@@ -84,9 +84,10 @@ abstract class Wp
      * @param null|string $name expects the object name in setter/getter mode
      * @param null|mixed $value expects the value to set in setter mode
      * @param null|mixed $default expects the default return value in getter mode
+     * @param boolean $lock expects boolean flag on whether to prevent overwriting already set object under same name
      * @return $this|array|mixed
      */
-    public function store($name = null, $value = null, $default = null)
+    public function store($name = null, $value = null, $default = null, $lock = false)
     {
         if(!is_null($name))
         {
@@ -96,7 +97,7 @@ abstract class Wp
                 if($value === false)
                 {
                     unset($this->_store[$name]);
-                }else{
+                }else if(!(bool)$lock || ((bool)$lock && !array_key_exists($name, $this->_store))){
                     $this->_store[$name] = $value;
                 }
                 return $this;
