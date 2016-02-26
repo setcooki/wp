@@ -13,12 +13,10 @@ abstract class Theme extends Wp
      */
     const THEME_SUPPORT                 = 'THEME_SUPPORT';
 
-
     /**
      * @var array
      */
     public $options = array();
-
 
     /**
      * @var null
@@ -34,11 +32,17 @@ abstract class Theme extends Wp
      */
     protected function __construct($options = null)
     {
-        $class = get_called_class();
         setcooki_init_options($options, $this);
-        add_action('after_setup_theme', array($class, '_afterSetup'));
-        add_action('after_switch_theme', array($class, '_afterSwitch'));
-        add_action('switch_theme', array($class, '_switchTheme'));
+
+        if(self::hasInstance())
+        {
+            $self = self::instance();
+        }else{
+            $self = $this;
+        }
+        add_action('after_setup_theme', array($self, '_afterSetup'));
+        add_action('after_switch_theme', array($self, '_afterSwitch'));
+        add_action('switch_theme', array($self, '_switchTheme'));
 
         parent::__construct();
     }
@@ -63,6 +67,18 @@ abstract class Theme extends Wp
 
 
     /**
+     * check if theme is instantiated static
+     *
+     * @since 1.1.2
+     * @return bool
+     */
+    public static function hasInstance()
+    {
+        return (!is_null(self::$_instance)) ? true : false;
+    }
+
+
+    /**
      * shortcut method for init method
      *
      * @return void
@@ -76,9 +92,9 @@ abstract class Theme extends Wp
     /**
      * @return void
      */
-    public static function _switchTheme()
+    public function _switchTheme()
     {
-        self::instance()->switchTheme();
+        $this->switchTheme();
     }
 
 
@@ -86,13 +102,11 @@ abstract class Theme extends Wp
      * @return void
      * @throws Exception
      */
-    public static function _afterSetup()
+    public function _afterSetup()
     {
-        $self = self::instance();
-
-        if(setcooki_has_option(self::THEME_SUPPORT, $self))
+        if(setcooki_has_option(self::THEME_SUPPORT, $this))
         {
-            foreach((array)setcooki_get_option(self::THEME_SUPPORT, $self) as $option)
+            foreach((array)setcooki_get_option(self::THEME_SUPPORT, $this) as $option)
             {
                 if(add_theme_support((string)$option) === false)
                 {
@@ -100,16 +114,16 @@ abstract class Theme extends Wp
                 }
             }
         }
-        self::instance()->afterSetup();
+        $this->afterSetup();
     }
 
 
     /**
      * @return void
      */
-    public static function _afterSwitch()
+    public function _afterSwitch()
     {
-        self::instance()->afterSwitch();
+        $this->afterSwitch();
     }
 
 
