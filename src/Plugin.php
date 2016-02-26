@@ -27,9 +27,9 @@ abstract class Plugin extends Wp
     protected function __construct($options = null)
     {
         setcooki_init_options($options, $this);
-        register_activation_hook(__FILE__, array(__CLASS__, '_activate'));
-        register_deactivation_hook(__FILE__, array(__CLASS__, '_deactivate'));
-        register_uninstall_hook(__FILE__, array(__CLASS__, '_uninstall'));
+        register_activation_hook(__FILE__, array($this, '_activate'));
+        register_deactivation_hook(__FILE__, array($this, '_deactivate'));
+        register_uninstall_hook(__FILE__, array($this, '_uninstall'));
 
         parent::__construct();
     }
@@ -111,13 +111,13 @@ abstract class Plugin extends Wp
      * @return void
      * @throws Exception
      */
-    protected static function _activate()
+    protected function _activate()
     {
         if(!current_user_can('activate_plugins'))
         {
             return;
         }
-        self::instance()->activate();
+        $this->activate();
     }
 
 
@@ -127,13 +127,13 @@ abstract class Plugin extends Wp
      * @return void
      * @throws Exception
      */
-    protected static function _deactivate()
+    protected function _deactivate()
     {
         if(!current_user_can('activate_plugins'))
         {
             return;
         }
-        self::instance()->deactivate();
+        $this->deactivate();
     }
 
 
@@ -143,7 +143,7 @@ abstract class Plugin extends Wp
      * @return void
      * @throws Exception
      */
-    protected static function _uninstall()
+    protected function _uninstall()
     {
         if(!current_user_can('activate_plugins'))
         {
@@ -153,7 +153,7 @@ abstract class Plugin extends Wp
         {
             return;
         }
-        self::instance()->uninstall();
+        $this->uninstall();
     }
 
 
