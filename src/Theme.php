@@ -33,16 +33,9 @@ abstract class Theme extends Wp
     protected function __construct($options = null)
     {
         setcooki_init_options($options, $this);
-
-        if(self::hasInstance())
-        {
-            $self = self::instance();
-        }else{
-            $self = $this;
-        }
-        add_action('after_setup_theme', array($self, '_afterSetup'));
-        add_action('after_switch_theme', array($self, '_afterSwitch'));
-        add_action('switch_theme', array($self, '_switchTheme'));
+        add_action('after_setup_theme', array($this, '_afterSetup'));
+        add_action('after_switch_theme', array($this, '_afterSwitch'));
+        add_action('switch_theme', array($this, '_switchTheme'));
 
         parent::__construct();
     }
