@@ -2,6 +2,8 @@
 
 namespace Setcooki\Wp;
 
+use Setcooki\Wp\Events\Dispatcher;
+
 /**
  * Class Wp
  * @package Setcooki\Wp
@@ -52,7 +54,7 @@ abstract class Wp
 
 
     /**
-     * class constructor initializes base wp class
+     * class constructor initializes base wp class and set instance options
      */
     protected function __construct()
     {
@@ -65,6 +67,10 @@ abstract class Wp
         {
             self::$_wp["$this->scope:$this->name"] = $this;
         }
+
+        $this->store('dispatcher', new Dispatcher(), null, true);
+        setcooki_event('trigger:setcooki.wp.start', $this);
+        register_shutdown_function(array($this, 'shutdown'));
     }
 
 
@@ -84,9 +90,10 @@ abstract class Wp
      * @param null|string $name expects the object name in setter/getter mode
      * @param null|mixed $value expects the value to set in setter mode
      * @param null|mixed $default expects the default return value in getter mode
+     * @param boolean $lock expects boolean flag on whether to prevent overwriting already set object under same name
      * @return $this|array|mixed
      */
-    public function store($name = null, $value = null, $default = null)
+    public function store($name = null, $value = null, $default = null, $lock = false)
     {
         if(!is_null($name))
         {
@@ -96,7 +103,7 @@ abstract class Wp
                 if($value === false)
                 {
                     unset($this->_store[$name]);
-                }else{
+                }else if(!(bool)$lock || ((bool)$lock && !array_key_exists($name, $this->_store))){
                     $this->_store[$name] = $value;
                 }
                 return $this;
@@ -173,22 +180,19 @@ abstract class Wp
      */
     public static function b($path = '')
     {
-        $debug = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT | DEBUG_BACKTRACE_IGNORE_ARGS, 10);
+        $debug = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT | DEBUG_BACKTRACE_IGNORE_ARGS);
         foreach((array)$debug as $d)
         {
-            if(array_key_exists('object', $d) && is_subclass_of($d['object'], 'Setcooki\Wp\Wp') && property_exists($d['object'], 'base'))
+            if(array_key_exists('object', $d) && is_subclass_of($d['object'], 'Setcooki\Wp\Wp') && property_exists($d['object'], 'base') && !empty($d['object']->base))
             {
                 return (!empty($path)) ? rtrim($d['object']->base, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim($d['object']->base, DIRECTORY_SEPARATOR);
             }
         }
-        if(empty($path))
+        foreach((array)$debug as $d)
         {
-            foreach((array)$debug as $d)
+            if(stripos($d['file'], '/themes/') !== false || stripos($d['file'], '/plugins/') !== false)
             {
-                if(stripos($d['file'], '/themes/') !== false || stripos($d['file'], '/plugins/') !== false)
-                {
-                    return rtrim(preg_replace('@(.*)((\/themes|\/plugins)\/([^\/]{1,}))(.*)$@i', '$1$2', $d['file']), ' ' . DIRECTORY_SEPARATOR);
-                }
+                return (!empty($path)) ? rtrim(preg_replace('@(.*)((\/themes|\/plugins)\/([^\/]{1,}))(.*)$@i', '$1$2', $d['file']), ' ' . DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR .  ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim(preg_replace('@(.*)((\/themes|\/plugins)\/([^\/]{1,}))(.*)$@i', '$1$2', $d['file']), ' ' . DIRECTORY_SEPARATOR);
             }
         }
         return $path;
@@ -334,5 +338,50 @@ abstract class Wp
             }
         }
         return false;
+    }
+
+
+    /**
+     * shutdown handler which can be overridden in concrete theme or plugin instance
+     *
+     * @since 1.1.2
+     * @return void
+     */
+    protected function shutdown()
+    {
+        setcooki_event('trigger:setcooki.wp.stop', $this);
+    }
+
+
+    /**
+     * overload class property will look for object in store and if not found will throw exception since overloading is
+     * not allowed
+     *
+     * @since 1.1.2
+     * @param string $name expects the property name = object name
+     * @return mixed
+     * @throws Exception
+     */
+    public function __get($name)
+    {
+        if($this->stored($name))
+        {
+            return $this->store($name);
+        }else{
+            throw new Exception(vsprintf("nothing under: %s stored in wp base class", array($name)));
+        }
+    }
+
+
+    /**
+     * overload class property with isset() will check for object in store with name in first argument
+     *
+     * @since 1.1.2
+     * @param string $name expects the property name = object name
+     * @return bool
+     */
+    public function __isset($name)
+    {
+       return ($this->stored($name)) ? true : false;
     }
 }

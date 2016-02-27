@@ -570,3 +570,58 @@ function setcooki_regex_delimit($pattern, $trim = '')
     $pattern = trim($pattern, " " .trim($trim));
     return $pattern;
 }
+
+
+/**
+ * check if an array consists of numeric or associated array keys and returns boolean true if so
+ *
+ * @since 1.1.2
+ * @param mixed $array
+ * @return bool
+ */
+function setcooki_array_assoc($array)
+{
+    if(is_array($array))
+    {
+        return array_keys($array) !== range(0, count($array) - 1);
+    }
+    return false;
+}
+
+
+/**
+ * check if a value is callable/closure
+ *
+ * @since 1.1.2
+ * @param mixed $mixed expects value to test
+ * @return bool
+ */
+function setcooki_is_callable($mixed)
+{
+    return (is_callable($mixed) || $mixed instanceof \Closure) ? true : false;
+}
+
+
+/**
+ * mysql LIKE % wildcard match function. checks if the string passed in first argument is LIKE pattern in second argument
+ *
+ * @since 1.1.2
+ * @param string $string expects the string to check
+ * @param string $like expects the like pattern
+ * @return bool
+ */
+function setcooki_str_like($string, $like)
+{
+    $string = (string)$string;
+    $like = (string)$like;
+    if($like[0] === '%' && $like[strlen($like)-1] === '%') {
+        $like = '@'.trim(setcooki_regex_delimit($like), ' %').'@i';
+    }else if($like[0] === '%' && $like[strlen($like)-1] !== '%'){
+        $like = '@'.trim(setcooki_regex_delimit($like), ' %').'$@i';
+    }else if($like[0] !== '%' && $like[strlen($like)-1] === '%'){
+        $like = '@^'.trim(setcooki_regex_delimit($like), ' %').'@i';
+    }else{
+        $like = '@^'.trim(setcooki_regex_delimit($like), ' %').'$@i';
+    }
+    return (bool)preg_match($like, $string);
+}
