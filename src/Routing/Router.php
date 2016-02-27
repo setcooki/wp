@@ -745,8 +745,9 @@ class Router
 	protected function regex($regex)
 	{
 		$regex = trim((string)$regex);
-		if($regex[0] === '%' && $regex[strlen($regex)-1] === '%')
-		{
+		if($regex === '*'){
+			$regex = '@.*@i';
+		}else if($regex[0] === '%' && $regex[strlen($regex)-1] === '%') {
 			$regex = '@'.trim(setcooki_regex_delimit($regex), ' %').'@i';
 		}else if($regex[0] === '%' && $regex[strlen($regex)-1] !== '%'){
 			$regex = '@'.trim(setcooki_regex_delimit($regex), ' %').'$@i';
