@@ -6,7 +6,7 @@ use Setcooki\Wp\Exception;
 
 /**
  * Class Cache
- * @package Setcooki\Wp
+ * @package Setcooki\Wp\Cache
  */
 abstract class Cache
 {
