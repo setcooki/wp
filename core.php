@@ -412,6 +412,44 @@ if(!function_exists('setcooki_log'))
 }
 
 
+if(!function_exists('setcooki_event'))
+{
+    /**
+     * shortcut function to wp themes/plugins global event dispatcher with listen or trigger capabilities. see
+     * concrete implementation for trigger and listen interface here \Setcooki\Wp\Events\Dispatcher
+     *
+     * @since 1.1.2
+     * @see \Setcooki\Wp\Events\Dispatcher::listen
+     * @see \Setcooki\Wp\Events\Dispatcher::trigger
+     * @param mixed $event expects event name(s) or mixed value depending on trigger or listen mode
+     * @param mixed $mixed expects listener object or event object/params depending on trigger or listen mode
+     * @param null|bool|int $flag expects int for priority in listen mode and boolean halt in trigger mode
+     * @return bool|mixed
+     */
+    function setcooki_event($event, $mixed = null, $flag = null)
+    {
+        $wp = setcooki_wp();
+        if($wp->stored('dispatcher'))
+        {
+            if(!is_array($event))
+            {
+                $event = array($event);
+            }
+            if(!empty($event))
+            {
+                if(stripos($event[0], 'trigger:') !== false)
+                {
+                    return $wp->store('dispatcher')->trigger((string)$event[0], $mixed, (bool)$flag);
+                }else{
+                    return $wp->store('dispatcher')->listen($event, $mixed, (int)$flag);
+                }
+            }
+        }
+        return false;
+    }
+}
+
+
 if(!function_exists('setcooki_include'))
 {
     /**
