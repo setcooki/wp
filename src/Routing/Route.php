@@ -8,7 +8,7 @@ use Setcooki\Wp\Request;
 
 /**
  * Class Route
- * @package Setcooki\Wp\Controller
+ * @package Setcooki\Wp\Routing
  */
 class Route
 {
