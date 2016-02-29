@@ -81,7 +81,7 @@ trait Event
 	 */
 	public function setEventDispatcher(Dispatcher $dispatcher = null)
 	{
-		if(is_null($dispatcher))
+		if(!is_null($dispatcher))
 		{
 			$this->_eventDispatcher = $dispatcher;
 		}else{
