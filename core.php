@@ -474,8 +474,12 @@ if(!function_exists('setcooki_include'))
             $file = $file . '.php';
         }
 
-        if(!empty($vars) && is_array($vars))
+        if(!empty($vars))
         {
+            if(!is_array($vars))
+            {
+                $vars = (array)$vars;
+            }
             extract((array)$vars);
             if((bool)$global)
             {
