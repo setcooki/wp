@@ -33,11 +33,16 @@ class Config
      */
     public function __construct($config)
     {
-        if(is_array($config) && array_key_exists(0, $config))
+        if(is_array($config))
         {
-            foreach($config as $c)
+            if(array_key_exists(0, $config))
             {
-                $this->_config = array_merge($this->_config, (array)$this->load($c, false));
+                foreach($config as $c)
+                {
+                    $this->_config = array_merge($this->_config, (array)$this->load($c, false));
+                }
+            }else{
+                $this->_config = $this->load($config, false);
             }
         }else{
             $this->_config = $this->load($config, false);

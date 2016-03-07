@@ -164,6 +164,10 @@ abstract class Wp
                 }
             }
             $this->base = $base;
+            if(empty($this->base))
+            {
+                $this->base = self::b();
+            }
         }
         return $this->base;
     }
@@ -224,6 +228,10 @@ abstract class Wp
         if(is_null($this->name))
         {
             $this->name = basename($this->base());
+            if(empty($this->name))
+            {
+                $this->name = basename(self::b());
+            }
         }
         return $this->name;
     }
@@ -312,7 +320,7 @@ abstract class Wp
         $class = trim((string)$class, ' \\');
 
         //setcooki/wp ns
-        if(stripos(trim($class, ' \\/'), substr(__NAMESPACE__, 0, strpos(__NAMESPACE__, '\\'))) !== false)
+        if(stripos(trim($class, NAMESPACE_SEPARATOR . ' \\/') . NAMESPACE_SEPARATOR, __NAMESPACE__ . NAMESPACE_SEPARATOR) !== false)
         {
             $file = trim(str_ireplace(__NAMESPACE__, '', $class), ' \\');
             $file = str_replace(array('\\'), DIRECTORY_SEPARATOR, $file);
