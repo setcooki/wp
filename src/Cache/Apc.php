@@ -10,13 +10,16 @@ use Setcooki\Wp\Exception;
  */
 class Apc extends Cache
 {
+    /**
+     * prefix option defines a cache item key prefix value
+     */
     const KEY_PREFIX                = 'KEY_PREFIX';
-    const EXPIRATION                = 'EXPIRATION';
 
     /**
-     * @var null
+     * expiration option defines the expiration value of cache file
      */
-    protected static $_instance = null;
+    const EXPIRATION                = 'EXPIRATION';
+
 
     /**
      * @var array
@@ -30,15 +33,21 @@ class Apc extends Cache
 
     /**
      * @param null $options
-     * @return null|Apc
      */
-    public static function instance($options = null)
+    public function __construct($options = null)
     {
-        if(self::$_instance === null)
-        {
-            self::$_instance = new self($options);
-        }
-        return self::$_instance;
+        parent::__construct($options);
+        $this->init();
+    }
+
+
+    /**
+     * @param null $options
+     * @return null|File
+     */
+    public static function create($options = null)
+    {
+        return new self($options);
     }
 
 
