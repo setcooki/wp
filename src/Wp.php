@@ -355,7 +355,7 @@ abstract class Wp
      * @since 1.1.2
      * @return void
      */
-    protected function shutdown()
+    public function shutdown()
     {
         setcooki_event('trigger:setcooki.wp.stop', $this);
     }
