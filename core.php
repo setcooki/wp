@@ -223,17 +223,18 @@ function setcooki_path($type = null, $relative = false, $url = false)
     $path = DIRECTORY_SEPARATOR . trim($path, ' ' . DIRECTORY_SEPARATOR);
     if((bool)$relative)
     {
-        $path = preg_replace('=^\/?'.addslashes($root).'=i', '', $path);
+        if($type === 'plugin')
+        {
+            if(stripos($path, 'wp-content '. DIRECTORY_SEPARATOR . 'plugins') === false)
+            {
+                $path = preg_replace('/(.*)\/(plugins)\/([^\/]{1,}).*/i', '$1/wp-content/$2/$3', $path);
+            }
+            $path =  preg_replace('/(.*)(\/wp-content.*)/i', '$2', $path);
+        }else{
+            $path = preg_replace('=^\/?'.addslashes($root).'=i', '', $path);
+        }
         if((bool)$url)
         {
-            if($type === 'plugin')
-            {
-                if(stripos($path, 'wp-content '. DIRECTORY_SEPARATOR . 'plugins') === false)
-                {
-                    $path = preg_replace('/(.*)\/(plugins)\/([^\/]{1,}).*/i', '$1/wp-content/$2/$3', $path);
-                }
-                $path =  preg_replace('/(.*)(\/wp-content.*)/i', '$2', $path);
-            }
             if(function_exists('get_site_url'))
             {
                 $url = get_site_url();
