@@ -458,7 +458,7 @@ class Router
 			$i = 0;
 			foreach($route->route as $r)
 			{
-				if(method_exists('match', $route))
+				if(method_exists($route, 'match'))
 				{
 					$i += (int)$route->match();
 				}else{
