@@ -185,6 +185,8 @@ function setcooki_path($type = null, $relative = false, $url = false)
     if($type === null)
     {
         $type = 'root';
+    }else{
+        $type = strtolower((string)$type);
     }
 
     $path = null;
@@ -198,7 +200,7 @@ function setcooki_path($type = null, $relative = false, $url = false)
         $root = realpath(rtrim(__DIR__, '/') . '/../../../../../../../');
     }
 
-    switch(strtolower($type))
+    switch($type)
     {
         case 'root':
             $path = $root;
@@ -210,7 +212,6 @@ function setcooki_path($type = null, $relative = false, $url = false)
             $path = (function_exists('get_theme_root')) ? get_theme_root() : ABSPATH . 'wp-content/themes';
             break;
         case 'plugin':
-            //TODO: better to use plugins_url()
             $path = preg_replace('/(.*)\/(plugins)\/([^\/]{1,}).*/i', '$1/$2/$3', dirname(__FILE__));
             break;
         case 'plugins':
@@ -219,13 +220,20 @@ function setcooki_path($type = null, $relative = false, $url = false)
         default;
             return '';
     }
-
     $path = DIRECTORY_SEPARATOR . trim($path, ' ' . DIRECTORY_SEPARATOR);
     if((bool)$relative)
     {
         $path = preg_replace('=^\/?'.addslashes($root).'=i', '', $path);
         if((bool)$url)
         {
+            if($type === 'plugin')
+            {
+                if(stripos($path, 'wp-content '. DIRECTORY_SEPARATOR . 'plugins') === false)
+                {
+                    $path = preg_replace('/(.*)\/(plugins)\/([^\/]{1,}).*/i', '$1/wp-content/$2/$3', $path);
+                }
+                $path =  preg_replace('/(.*)(\/wp-content.*)/i', '$2', $path);
+            }
             if(function_exists('get_site_url'))
             {
                 $url = get_site_url();
