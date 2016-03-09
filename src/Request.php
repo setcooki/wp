@@ -722,6 +722,28 @@ class Request
 
 
     /**
+     * redirect to url
+     *
+     * @param string $url expects the url to redirect to
+     * @param int $code expects the redirect code
+     * @throws Exception
+     */
+    public static function redirect($url, $code = 302)
+   	{
+   		if(filter_var($url, FILTER_VALIDATE_URL) !== false)
+   		{
+   			header('Location: ' . trim((string)$url), true, (int)$code);
+   			if(!headers_sent())
+   			{
+   				die();
+   			}
+   		}else{
+            throw new Exception(setcooki_sprintf(_("url: %s is not a valid url"), $url));
+   		}
+   	}
+
+
+    /**
      * return charset if set if not returns null
      *
      * @return null|string
