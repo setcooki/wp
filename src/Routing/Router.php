@@ -753,6 +753,8 @@ class Router
 			$regex = '@'.trim(setcooki_regex_delimit($regex), ' %').'$@i';
 		}else if($regex[0] !== '%' && $regex[strlen($regex)-1] === '%'){
 			$regex = '@^'.trim(setcooki_regex_delimit($regex), ' %').'@i';
+		}else{
+			$regex = '@^'.setcooki_regex_delimit($regex).'$@i';
 		}
 		return $regex;
 	}
