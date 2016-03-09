@@ -534,6 +534,33 @@ class Resolver
 
 
 	/**
+	 * check if action can be handled by resolver where action can be a callable or controller action
+	 *
+	 * @param mixed $action expects action to check
+	 * @since 1.1.3
+	 * @return bool
+	 */
+	public function handleable($action)
+	{
+		if(is_callable($action))
+		{
+			return true;
+		}else{
+			try
+			{
+				$actions = (array)$this->lookup($action);
+				if(!empty($actions) && preg_match("@$action$@i", "{$actions[0][0]}::{$actions[0][1]}"))
+				{
+					return true;
+				}
+			}
+			catch(Exception $e){}
+		}
+		return false;
+	}
+
+
+	/**
 	 * execute a controller action running pre/post filters registered with resolver or controller
 	 *
 	 * @param string $controller expects the controller path/name
