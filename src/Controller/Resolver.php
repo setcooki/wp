@@ -128,7 +128,7 @@ class Resolver
 	 * @param null|mixed $options expects optional options
 	 * @return Resolver
 	 */
-	public function create(Wp $wp, $options = null)
+	public static function create(Wp $wp, $options = null)
 	{
 		return new self($wp, $options);
 	}
