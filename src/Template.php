@@ -117,10 +117,11 @@ class Template
         {
             if($this->has($key))
             {
-                return setcooki_object_get($this->_vars, $key, $default);
+                $key = setcooki_object_get($this->_vars, $key, $default);
             }else{
-                return setcooki_default($default);
+                $key = setcooki_default($default);
             }
+            return $key;
         }else{
             return $this->_vars;
         }
