@@ -625,3 +625,15 @@ function setcooki_str_like($string, $like)
     }
     return (bool)preg_match($like, $string);
 }
+
+
+/**
+ * create a wordpress style nonce value
+ *
+ * @since 1.1.3
+ * @return string
+ */
+function setcooki_nonce()
+{
+    return wp_create_nonce(substr(substr("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", mt_rand(0 ,50), 1) . substr(md5(time()), 1), 0, 10));
+}
