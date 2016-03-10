@@ -643,6 +643,7 @@ if(!function_exists('setcooki_action'))
             {
                 return $action->execute(func_get_args(), $params);
             //action is callable
+
             }else if(is_callable($action)){
                 return call_user_func_array($action, array_merge($arg, $params));
             //else return unaltered
@@ -705,5 +706,55 @@ if(!function_exists('setcooki_router'))
             }
         }
         return false;
+    }
+}
+
+if(!function_exists('setcooki_shortcode'))
+{
+    /**
+     * shortcode shortcut function that can add, do and remove wordpress shortcodes and allow extended callback capabilities
+     * like using closures or routing a shortcode call to a controller action. e.g. if a controller action is registered
+     * with resolver instance will route to that action and if not will try otherwise to resolve callback until error
+     * is thrown when nothing can be called: the second argument can be:
+     * - void = null if you want to remove a shortcode
+     * - boolean value to do a shortcode
+     * - callable, closure or action to add a shortcode
+     *
+     * @since 1.1.3
+     * @param string $tag expects the shortcode tag
+     * @param null|bool|mixed $mixed expects value according to shortcode mode
+     * @return null|string
+     * @throws Exception
+     */
+    function setcooki_shortcode($tag, $mixed = null)
+    {
+        if(!is_null($mixed))
+        {
+            if(is_bool($mixed))
+            {
+                return do_shortcode($tag, $mixed);
+            }else{
+                $wp = setcooki_wp(null, null);
+                if(!empty($wp) && $wp->stored('resolver') && $wp->store('resolver')->handleable($mixed))
+                {
+                    add_shortcode($tag, function($params, $content) use ($wp, $mixed)
+                    {
+                        return (string)$wp->store('resolver')->handle($mixed, $params, null, null, null, null, $content);
+                    });
+                }else if(is_callable($mixed)){
+                    add_shortcode($tag, $mixed);
+                }else if($mixed instanceof \Closure){
+                    add_shortcode($tag, function($params, $content) use ($mixed)
+                    {
+                        return $mixed($params, $content);
+                    });
+                }else{
+                    throw new \Exception(setcooki_sprintf("callable for shortcode tag: %s is not a callable", $tag));
+                }
+            }
+        }else{
+            remove_shortcode($tag);
+        }
+        return null;
     }
 }
