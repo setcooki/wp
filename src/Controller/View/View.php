@@ -23,7 +23,7 @@ class View
      *
      * @var null|string|Template
      */
-    protected $_view = null;
+    public $view = null;
 
     /**
      * variable container contains all vars available for view
@@ -83,9 +83,9 @@ class View
     {
         if(!is_null($view))
         {
-            $this->_view = $view;
+            $this->view = $view;
         }
-        return $this->_view;
+        return $this->view;
     }
 
 
