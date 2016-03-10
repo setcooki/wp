@@ -217,20 +217,17 @@ function setcooki_array_to_object($array)
  * convert std object to array
  *
  * @param object|mixed $object expects object to convert
+ * @param mixed $default expects default return value
  * @return array|mixed
  */
-function setcooki_object_to_array($object)
+function setcooki_object_to_array($object, $default = null)
 {
-    if(is_object($object))
+    if(($object = json_encode($object)) !== false)
     {
-        $value = get_object_vars($object);
-    }
-    if(is_array($object))
-    {
-   	    return array_map(__FUNCTION__, $object);
+        return json_decode($object, true);
     }else{
-   		return $object;
-   	}
+        return setcooki_default($default);
+    }
 }
 
 
