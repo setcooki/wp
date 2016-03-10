@@ -295,7 +295,9 @@ class View
                 //do nothing
             }else{
                 ob_start();
-                $view->render(null, $vars)->flush();
+                $view->add($vars);
+                $view->render();
+                $view->flush(true);
                 $view = ob_get_clean();
                 if($cache >= 0)
                 {
