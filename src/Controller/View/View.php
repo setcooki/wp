@@ -4,7 +4,7 @@ namespace Setcooki\Wp\Controller\View;
 
 use Setcooki\Wp\Traits\Cache;
 use Setcooki\Wp\Util\Params;
-use Setcooki\Wp\Controller;
+use Setcooki\Wp\Controller\Controller;
 use Setcooki\Wp\Template;
 use Setcooki\Wp\Exception;
 use Setcooki\Wp\Wp;
