@@ -254,7 +254,7 @@ abstract class Controller
 	 * @param mixed $parameters expects parameters
 	 * @throws Exception
 	 */
-	public function __callStatic($name, $arguments)
+	public static function __callStatic($name, $arguments)
 	{
 		throw new Exception(setcooki_sprintf("method: %s does not exist", $name));
 	}
