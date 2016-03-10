@@ -195,20 +195,16 @@ function setcooki_object_isset($object, $key = null, $strict = false)
  * convert array to std object
  *
  * @param array|mixed $array the array to convert
+ * @param mixed $default expects default return value
  * @return object|mixed
  */
-function setcooki_array_to_object($array)
+function setcooki_array_to_object($array, $default = null)
 {
-    if(is_array($array))
+    if(($array = json_encode($array)) !== false)
     {
-        if(array_keys($array) === range(0, count($array) - 1))
-        {
-            return (array)array_map(__FUNCTION__, $array);
-        }else{
-            return (object)array_map(__FUNCTION__, $array);
-        }
+        return json_decode($array, false);
     }else{
-        return $array;
+        return setcooki_default($default);
     }
 }
 
