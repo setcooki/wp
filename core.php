@@ -583,12 +583,17 @@ if(!function_exists('setcooki_filter'))
      */
     function setcooki_filter($tag, $filter, $params = null, $priority = 10)
     {
-        return add_filter((string)$tag, function($value) use ($filter, $params)
+        $wp = setcooki_wp(null, null);
+
+        return add_filter((string)$tag, function($value) use ($wp, $filter, $params)
         {
             //filter chain or bundle
             if(($filter instanceof \Setcooki\Wp\Filter\Chain) || ($filter instanceof \Setcooki\Wp\Filter))
             {
                 return $filter->execute(func_get_args(), $params);
+            //filter is controller action
+            }else if(!empty($wp) && $wp->stored('resolver') && $wp->store('resolver')->handleable($filter)){
+                return $wp->store('resolver')->handle($filter, array(func_get_args(), $params));
             //filter is a callable
             }else if(is_callable($filter)){
                 return call_user_func_array($filter, array(func_get_args(), $params));
@@ -622,7 +627,9 @@ if(!function_exists('setcooki_action'))
      */
     function setcooki_action($tag, $action, $params = null, $priority = 10, $args = 1)
     {
-        return add_action($tag, function($arg) use($action, $params, $args)
+        $wp = setcooki_wp(null, null);
+
+        return add_action($tag, function($arg) use($wp, $action, $params, $args)
         {
             if((int)$args === 1 && (is_array($arg) || is_object($arg)))
             {
@@ -642,8 +649,10 @@ if(!function_exists('setcooki_action'))
             if($action instanceof \Setcooki\Wp\Action)
             {
                 return $action->execute(func_get_args(), $params);
+            //action is controller action
+            }else if(!empty($wp) && $wp->stored('resolver') && $wp->store('resolver')->handleable($action)){
+                return $wp->store('resolver')->handle($action, array_merge($arg, $params));
             //action is callable
-
             }else if(is_callable($action)){
                 return call_user_func_array($action, array_merge($arg, $params));
             //else return unaltered
