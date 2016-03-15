@@ -35,6 +35,10 @@ if(!defined('PATH_SEPARATOR'))
 {
     define('PATH_SEPARATOR', ':');
 }
+if(!defined('PHP_EXT'))
+{
+    define('PHP_EXT', '.php');
+}
 
 /**
  * test php version
