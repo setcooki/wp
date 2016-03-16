@@ -14,6 +14,7 @@ if(!defined('SETCOOKI_NS'))
 }
 define('SETCOOKI_WP_PHP_VERSION',                           '5.3.3');
 define('SETCOOKI_WP_LOG',                                   'LOG');
+define('SETCOOKI_WP_LOGGER',                                'LOGGER');
 define('SETCOOKI_WP_DEBUG',                                 'DEBUG');
 define('SETCOOKI_WP_CHARSET',                               'CHARSET');
 define('SETCOOKI_WP_ERROR_HANDLER',                         'ERROR_HANDLER');
@@ -77,24 +78,26 @@ if(defined('SETCOOKI_WP_AUTOLOAD') && (bool)constant('SETCOOKI_WP_AUTOLOAD'))
 
 /**
  * init wp framework with config which can be one or multiple config files as array. the init function will registered
- * the config values and set global values in $GLOBALS namespace
+ * the config values and set global values in $GLOBALS namespace.
  *
  * @param string|array $config expects options config file(s) absolute path as single value or array
- * @param string $deprecated deprecated since 1.1.3
+ * @param \Setcooki\Wp\Interfaces\Logable $logger expects optional logger instance
  * @return array
  */
-function setcooki_boot($config, $deprecated = null)
+function setcooki_boot($config, \Setcooki\Wp\Interfaces\Logable $logger = null)
 {
     $ns = setcooki_ns();
     $wp = array
     (
         SETCOOKI_WP_LOG                 => false,
+        SETCOOKI_WP_LOGGER              => null,
         SETCOOKI_WP_DEBUG               => false,
         SETCOOKI_WP_CHARSET             => 'utf-8',
         SETCOOKI_WP_ERROR_HANDLER       => true,
         SETCOOKI_WP_EXCEPTION_HANDLER   => true,
         SETCOOKI_WP_AUTOLOAD_DIRS       => null
     );
+
     $config = \Setcooki\Wp\Config::init($config, $ns);
     if(($w = $config->get('wp', false)) !== false)
     {
@@ -107,6 +110,10 @@ function setcooki_boot($config, $deprecated = null)
     if(defined('WP_DEBUG_LOG') && (bool)WP_DEBUG_LOG)
     {
         $wp[SETCOOKI_WP_LOG] = true;
+    }
+    if(!is_null($logger))
+    {
+        $wp[SETCOOKI_WP_LOGGER] = $logger;
     }
     $config->set('wp', $wp);
     if(!isset($GLOBALS[SETCOOKI_NS]))
@@ -205,9 +212,7 @@ function setcooki_path($type = null, $relative = false, $url = false)
     }else{
         $type = strtolower((string)$type);
     }
-
     $path = null;
-
     if(defined('ABSPATH'))
     {
         $root = rtrim(ABSPATH, '/');
@@ -216,7 +221,6 @@ function setcooki_path($type = null, $relative = false, $url = false)
     }else{
         $root = realpath(rtrim(__DIR__, '/') . '/../../../../../../../');
     }
-
     switch($type)
     {
         case 'root':
@@ -464,11 +468,9 @@ if(!function_exists('setcooki_log'))
         }else{
             $message = trim((string)$message);
         }
-
         ob_start();
         trigger_error($message);
         ob_end_clean();
-
         return $message;
     }
 }
