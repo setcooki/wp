@@ -85,10 +85,10 @@ if(defined('SETCOOKI_WP_AUTOLOAD') && (bool)constant('SETCOOKI_WP_AUTOLOAD'))
  * the config values and set global values in $GLOBALS namespace.
  *
  * @param string|array $config expects options config file(s) absolute path as single value or array
- * @param \Setcooki\Wp\Interfaces\Logable $logger expects optional logger instance
+ * @param \Setcooki\Wp\Interfaces\Logable|mixed $logger expects optional logger instance
  * @return array
  */
-function setcooki_boot($config, \Setcooki\Wp\Interfaces\Logable $logger = null)
+function setcooki_boot($config, $logger = null)
 {
     $ns = setcooki_ns();
     $wp = array
@@ -118,7 +118,7 @@ function setcooki_boot($config, \Setcooki\Wp\Interfaces\Logable $logger = null)
     {
         $wp[SETCOOKI_WP_LOG] = true;
     }
-    if(!is_null($logger))
+    if(!is_null($logger) && $logger instanceof \Setcooki\Wp\Interfaces\Logable)
     {
         $wp[SETCOOKI_WP_LOGGER] = $logger;
     }
