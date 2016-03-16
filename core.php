@@ -45,7 +45,7 @@ if(!defined('PHP_EXT'))
  */
 if(version_compare(PHP_VERSION, SETCOOKI_WP_PHP_VERSION, '<'))
 {
-    die("setcooki/wp needs php version > ".SETCOOKI_WP_PHP_VERSION." to run - your version is: " .PHP_VERSION . PHP_EOL);
+    setcooki_die("setcooki/wp needs php version > ".SETCOOKI_WP_PHP_VERSION." to run - your version is: " .PHP_VERSION . PHP_EOL);
 }
 
 /**
@@ -80,12 +80,12 @@ if(defined('SETCOOKI_WP_AUTOLOAD') && (bool)constant('SETCOOKI_WP_AUTOLOAD'))
  * the config values and set global values in $GLOBALS namespace
  *
  * @param string|array $config expects options config file(s) absolute path as single value or array
- * @param string $ns expects the namespace identifier
+ * @param string $deprecated deprecated since 1.1.3
  * @return array
  */
-function setcooki_boot($config, $ns)
+function setcooki_boot($config, $deprecated = null)
 {
-    $ns = trim((string)$ns);
+    $ns = setcooki_ns();
     $wp = array
     (
         SETCOOKI_WP_LOG                 => false,
@@ -109,19 +109,27 @@ function setcooki_boot($config, $ns)
         $wp[SETCOOKI_WP_LOG] = true;
     }
     $config->set('wp', $wp);
+    if(!isset($GLOBALS[SETCOOKI_NS]))
+    {
+        $GLOBALS[SETCOOKI_NS] = array();
+    }
+    if(!isset($GLOBALS[SETCOOKI_NS][$ns]))
+    {
+        $GLOBALS[SETCOOKI_NS][$ns] = array();
+    }
     foreach($wp as $k => $v)
     {
-        $GLOBALS[SETCOOKI_NS][strtoupper(trim($k))] = $v;
+        $GLOBALS[SETCOOKI_NS][$ns][strtoupper(trim($k))] = $v;
     }
-    if(!empty($GLOBALS[SETCOOKI_NS][SETCOOKI_WP_ERROR_HANDLER]) && (bool)$GLOBALS[SETCOOKI_NS][SETCOOKI_WP_ERROR_HANDLER])
+    if(!empty($GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_ERROR_HANDLER]) && (bool)$GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_ERROR_HANDLER])
     {
         set_error_handler('\Setcooki\Wp\Error::handler');
     }
-    if(!empty($GLOBALS[SETCOOKI_NS][SETCOOKI_WP_EXCEPTION_HANDLER]) && (bool)$GLOBALS[SETCOOKI_NS][SETCOOKI_WP_EXCEPTION_HANDLER])
+    if(!empty($GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_EXCEPTION_HANDLER]) && (bool)$GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_EXCEPTION_HANDLER])
     {
         set_exception_handler('\Setcooki\Wp\Exception::handler');
     }
-    return $GLOBALS[SETCOOKI_NS];
+    return $GLOBALS[SETCOOKI_NS][$ns];
 }
 
 
@@ -137,9 +145,10 @@ function setcooki_boot($config, $ns)
  */
 function setcooki_conf($key = null, $value = '_NIL_', $default = null)
 {
+    $ns = setcooki_ns();
     if(is_null($key) && $value === '_NIL_')
     {
-        return (isset($GLOBALS[SETCOOKI_NS])) ? $GLOBALS[SETCOOKI_NS] : array();
+        return (isset($GLOBALS[SETCOOKI_NS][$ns])) ? $GLOBALS[SETCOOKI_NS][$ns] : array();
     }
     $key = strtoupper(trim($key));
     if($value !== '_NIL_')
@@ -148,11 +157,15 @@ function setcooki_conf($key = null, $value = '_NIL_', $default = null)
         {
             $GLOBALS[SETCOOKI_NS] = array();
         }
-        return $GLOBALS[SETCOOKI_NS][$key] = $value;
-    }else{
-        if(isset($GLOBALS[SETCOOKI_NS]) && array_key_exists($key, $GLOBALS[SETCOOKI_NS]))
+        if(!isset($GLOBALS[SETCOOKI_NS][$ns]))
         {
-            return $GLOBALS[SETCOOKI_NS][$key];
+            $GLOBALS[SETCOOKI_NS][$ns] = array();
+        }
+        return $GLOBALS[SETCOOKI_NS][$ns][$key] = $value;
+    }else{
+        if(isset($GLOBALS[SETCOOKI_NS][$ns]) && array_key_exists($key, $GLOBALS[SETCOOKI_NS][$ns]))
+        {
+            return $GLOBALS[SETCOOKI_NS][$ns][$key];
         }else{
             return setcooki_default($default);
         }
@@ -253,6 +266,45 @@ function setcooki_path($type = null, $relative = false, $url = false)
         }
     }else{
         return $path;
+    }
+}
+
+
+function setcooki_die($message)
+{
+}
+
+
+/**
+ * auto determines the ns identifier which is the plugin or theme folder name as framework instance id or ns. each use
+ * of setcooki/wo framework will thereby be a separate instance. to auto get the ns plugin or theme must be running from
+ * inside the /wp-content/plugins or /wp-content/themes folder otherwise plugin will fail silently
+ *
+ * @since 1.1.3
+ * @return string
+ */
+function setcooki_ns()
+{
+    $type = '';
+    foreach(array_merge(array(array('file' => __FILE__)), debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS)) as $bt)
+    {
+        if(stripos($bt['file'], 'plugins' . DIRECTORY_SEPARATOR) !== false)
+        {
+            $type = 'plugin';
+            break;
+        }
+        if(stripos($bt['file'], 'themes' . DIRECTORY_SEPARATOR) !== false)
+        {
+            $type = 'theme';
+            break;
+        }
+    }
+    $ns = basename(setcooki_path($type));
+    if(!empty($type) && !empty($ns))
+    {
+        return strtolower(trim((string)$ns));
+    }else{
+        setcooki_die('unable to get ns from installation - please make sure plugin or theme is running inside /wp-content');
     }
 }
 
