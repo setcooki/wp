@@ -101,7 +101,6 @@ function setcooki_boot($config, \Setcooki\Wp\Interfaces\Logable $logger = null)
         SETCOOKI_WP_EXCEPTION_HANDLER   => true,
         SETCOOKI_WP_AUTOLOAD_DIRS       => null
     );
-
     $config = \Setcooki\Wp\Config::init($config, $ns);
     if(($w = $config->get('wp', false)) !== false)
     {
@@ -123,6 +122,10 @@ function setcooki_boot($config, \Setcooki\Wp\Interfaces\Logable $logger = null)
     {
         $wp[SETCOOKI_WP_LOGGER] = $logger;
     }
+    if(is_null($wp[SETCOOKI_WP_LOGGER]) && $wp[SETCOOKI_WP_DEBUG])
+    {
+        $wp[SETCOOKI_WP_LOGGER] = \Setcooki\Wp\Logger::create();
+    }
     $config->set('wp', $wp);
     if(!isset($GLOBALS[SETCOOKI_NS]))
     {
@@ -143,6 +146,13 @@ function setcooki_boot($config, \Setcooki\Wp\Interfaces\Logable $logger = null)
     if(!empty($GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_EXCEPTION_HANDLER]) && (bool)$GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_EXCEPTION_HANDLER])
     {
         set_exception_handler('\Setcooki\Wp\Exception::handler');
+    }
+    if(!empty($GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_DEBUG]) && (bool)$GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_DEBUG])
+    {
+        if(($logger = setcooki_conf(SETCOOKI_WP_LOGGER)) !== null)
+        {
+            setcooki_set_option('FLUSH', true, $logger);
+        }
     }
     return $GLOBALS[SETCOOKI_NS][$ns];
 }
@@ -285,8 +295,36 @@ function setcooki_path($type = null, $relative = false, $url = false)
 }
 
 
+/**
+ * extension of php´s die() function that will try to log message in first argument before trying to die script which is
+ * only possible in != DEV mode which depends on SETCOOKI_DEV const to be != false. if not in dev mode than only if second
+ * argument hard is set to true will use wordpress wp_die() function to die script.
+ *
+ * @since 1.1.3
+ * @param mixed $message exepects die message
+ * @param bool $hard expects optional flag to die for real in != DEV mode
+ */
 function setcooki_die($message, $hard = false)
 {
+    if(SETCOOKI_DEV === false)
+    {
+        setcooki_log($message, LOG_ALERT);
+        if((bool)$hard)
+        {
+            wp_die($message);
+        }else{
+            //do nothing since rest of application should not be broken
+        }
+    }else{
+        $message = setcooki_log($message, LOG_ALERT);
+        if(php_sapi_name() === 'cli')
+        {
+            echo $message . PHP_EOL;
+            exit(1);
+        }else{
+            die($message);
+        }
+    }
 }
 
 
@@ -467,7 +505,7 @@ if(!function_exists('setcooki_log'))
      */
     function setcooki_log($message, $type = LOG_ERR)
     {
-        if(($logger = setcooki_conf('LOGGER')) !== null)
+        if(($logger = setcooki_conf(SETCOOKI_WP_LOGGER)) !== null)
         {
             return call_user_func_array(array($logger, 'log'), array($type, $message, ((func_num_args() > 2) ? (array)func_get_arg(2) : array())));
         }
