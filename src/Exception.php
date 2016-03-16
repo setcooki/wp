@@ -44,8 +44,7 @@ class Exception extends \ErrorException
         if(($logger = setcooki_conf('LOGGER')) !== null)
         {
             $logger->log(LOG_ERR, $e);
-        }else{
-            throw $e;
         }
+        throw $e;
     }
 }
