@@ -369,13 +369,13 @@ class Logger implements Logable
         }
 
         //if in wp log mode log message to log file
-        if(isset($GLOBALS[SETCOOKI_NS][SETCOOKI_WP_LOG]) && $GLOBALS[SETCOOKI_NS][SETCOOKI_WP_LOG])
+        if(setcooki_conf(SETCOOKI_WP_LOG))
         {
             $this->write($data);
         }
 
         //if in wp debug mode return log message to be send to output stream
-        if(isset($GLOBALS[SETCOOKI_NS][SETCOOKI_WP_DEBUG]) && $GLOBALS[SETCOOKI_NS][SETCOOKI_WP_DEBUG])
+        if(setcooki_conf(SETCOOKI_WP_DEBUG))
         {
             return $data;
         }else{
