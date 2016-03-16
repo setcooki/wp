@@ -452,12 +452,9 @@ if(!function_exists('setcooki_log'))
      */
     function setcooki_log($message, $type = LOG_ERR)
     {
-        if(class_exists('Setcooki\\Wp\\Logger', true))
+        if(($logger = setcooki_conf('LOGGER')) !== null)
         {
-            if(Setcooki\Wp\Logger::hasInstance())
-            {
-                return call_user_func_array(array('Setcooki\\Wp\\Logger', 'l'), func_get_args());
-            }
+            return call_user_func_array(array($logger, 'log'), array($type, $message, ((func_num_args() > 2) ? (array)func_get_arg(2) : array())));
         }
         if($message instanceof \Exception)
         {
