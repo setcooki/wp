@@ -149,10 +149,13 @@ function setcooki_boot($config, \Setcooki\Wp\Interfaces\Logable $logger = null)
     }
     if(!empty($GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_DEBUG]) && (bool)$GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_DEBUG])
     {
-        if(($logger = setcooki_conf(SETCOOKI_WP_LOGGER)) !== null)
+        register_shutdown_function(function()
         {
-            setcooki_set_option('FLUSH', true, $logger);
-        }
+            if(($logger = setcooki_conf(SETCOOKI_WP_LOGGER)) !== null)
+            {
+                $logger->flush();
+            }
+        });
     }
     return $GLOBALS[SETCOOKI_NS][$ns];
 }
