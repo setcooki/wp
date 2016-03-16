@@ -4,6 +4,7 @@
  * set start init timestamp
  */
 define('SETCOOKI_WP_START', microtime(true));
+define('SETCOOKI_WP_PHP_VERSION', '5.3.3');
 
 /**
  * define global config constants
@@ -12,7 +13,10 @@ if(!defined('SETCOOKI_NS'))
 {
     define('SETCOOKI_NS', 'SETCOOKI_WP');
 }
-define('SETCOOKI_WP_PHP_VERSION',                           '5.3.3');
+if(!defined('SETCOOKI_DEV'))
+{
+    define('SETCOOKI_DEV', false);
+}
 define('SETCOOKI_WP_LOG',                                   'LOG');
 define('SETCOOKI_WP_LOGGER',                                'LOGGER');
 define('SETCOOKI_WP_DEBUG',                                 'DEBUG');
@@ -102,6 +106,10 @@ function setcooki_boot($config, \Setcooki\Wp\Interfaces\Logable $logger = null)
     if(($w = $config->get('wp', false)) !== false)
     {
         $wp = (array)$w + $wp;
+    }
+    if(SETCOOKI_DEV)
+    {
+        $wp[SETCOOKI_WP_DEBUG] = true;
     }
     if(defined('WP_DEBUG') && (bool)WP_DEBUG)
     {
@@ -212,7 +220,9 @@ function setcooki_path($type = null, $relative = false, $url = false)
     }else{
         $type = strtolower((string)$type);
     }
+
     $path = null;
+
     if(defined('ABSPATH'))
     {
         $root = rtrim(ABSPATH, '/');
@@ -221,6 +231,7 @@ function setcooki_path($type = null, $relative = false, $url = false)
     }else{
         $root = realpath(rtrim(__DIR__, '/') . '/../../../../../../../');
     }
+
     switch($type)
     {
         case 'root':
@@ -274,7 +285,7 @@ function setcooki_path($type = null, $relative = false, $url = false)
 }
 
 
-function setcooki_die($message)
+function setcooki_die($message, $hard = false)
 {
 }
 
@@ -468,9 +479,11 @@ if(!function_exists('setcooki_log'))
         }else{
             $message = trim((string)$message);
         }
+
         ob_start();
         trigger_error($message);
         ob_end_clean();
+
         return $message;
     }
 }
