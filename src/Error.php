@@ -53,7 +53,8 @@ class Error
             $err[] = "$str, $no";
             $err[] = "in: $file";
             $err[] = "on line: $line";
-            $logger->log((array_key_exists($no, self::$map)) ? self::$map[$no] : LOG_ERR, implode(' ', $err));
+            $err = implode(' ', $err);
+            $logger->log((array_key_exists($no, self::$map)) ? self::$map[$no] : LOG_ERR, $err);
             return false;
         }else{
             restore_error_handler();
