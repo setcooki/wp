@@ -144,23 +144,28 @@ abstract class Wp
 
         if(is_null($this->base))
         {
-            foreach(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) as $bt)
+            if(preg_match('=^(.*(?:plugins|themes)\/[^\/]{1,})\/=i', __FILE__, $m))
             {
-                if($this->isTheme() && preg_match('=(.*)functions.php$=i', $bt['file'], $m))
+                $base = rtrim(trim($m[1]), DIRECTORY_SEPARATOR);
+            }else{
+                foreach(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) as $bt)
                 {
-                    $base = DIRECTORY_SEPARATOR . trim($m[1], ' ' . DIRECTORY_SEPARATOR);
-                    break;
-                }else if($this->isPlugin() && $bt['class'] === get_called_class()){
-                    $dirs = explode(DIRECTORY_SEPARATOR, trim($bt['file'], ' ' . DIRECTORY_SEPARATOR));
-                    for($i = sizeof($dirs) - 1; $i >= 0; $i--)
+                    if($this->isTheme() && preg_match('=(.*)functions.php$=i', $bt['file'], $m))
                     {
-                        if(trim($dirs[$i]) === 'plugins')
+                        $base = DIRECTORY_SEPARATOR . trim($m[1], ' ' . DIRECTORY_SEPARATOR);
+                        break;
+                    }else if($this->isPlugin() && $bt['class'] === get_called_class()){
+                        $dirs = explode(DIRECTORY_SEPARATOR, trim($bt['file'], ' ' . DIRECTORY_SEPARATOR));
+                        for($i = sizeof($dirs) - 1; $i >= 0; $i--)
                         {
-                            $base = DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, array_slice($dirs, 0, $i + 2));
-                            break;
+                            if(trim($dirs[$i]) === 'plugins')
+                            {
+                                $base = DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, array_slice($dirs, 0, $i + 2));
+                                break;
+                            }
                         }
+                        break;
                     }
-                    break;
                 }
             }
             $this->base = $base;
@@ -184,22 +189,27 @@ abstract class Wp
      */
     public static function b($path = '')
     {
-        $debug = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT | DEBUG_BACKTRACE_IGNORE_ARGS);
-        foreach((array)$debug as $d)
+        if(preg_match('=^(.*(?:plugins|themes)\/[^\/]{1,})\/=i', __FILE__, $m))
         {
-            if(array_key_exists('object', $d) && is_subclass_of($d['object'], 'Setcooki\Wp\Wp') && property_exists($d['object'], 'base') && !empty($d['object']->base))
+            return (!empty($path)) ? rtrim(trim($m[1]), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim(trim($m[1]), DIRECTORY_SEPARATOR);
+        }else{
+            $debug = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT | DEBUG_BACKTRACE_IGNORE_ARGS);
+            foreach((array)$debug as $d)
             {
-                return (!empty($path)) ? rtrim($d['object']->base, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim($d['object']->base, DIRECTORY_SEPARATOR);
+                if(array_key_exists('object', $d) && is_subclass_of($d['object'], 'Setcooki\Wp\Wp') && property_exists($d['object'], 'base') && !empty($d['object']->base))
+                {
+                    return (!empty($path)) ? rtrim($d['object']->base, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim($d['object']->base, DIRECTORY_SEPARATOR);
+                }
             }
-        }
-        foreach((array)$debug as $d)
-        {
-            if(stripos($d['file'], '/themes/') !== false || stripos($d['file'], '/plugins/') !== false)
+            foreach((array)$debug as $d)
             {
-                return (!empty($path)) ? rtrim(preg_replace('@(.*)((\/themes|\/plugins)\/([^\/]{1,}))(.*)$@i', '$1$2', $d['file']), ' ' . DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR .  ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim(preg_replace('@(.*)((\/themes|\/plugins)\/([^\/]{1,}))(.*)$@i', '$1$2', $d['file']), ' ' . DIRECTORY_SEPARATOR);
+                if(stripos($d['file'], '/themes/') !== false || stripos($d['file'], '/plugins/') !== false)
+                {
+                    return (!empty($path)) ? rtrim(preg_replace('@(.*)((\/themes|\/plugins)\/([^\/]{1,}))(.*)$@i', '$1$2', $d['file']), ' ' . DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR .  ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim(preg_replace('@(.*)((\/themes|\/plugins)\/([^\/]{1,}))(.*)$@i', '$1$2', $d['file']), ' ' . DIRECTORY_SEPARATOR);
+                }
             }
+            return $path;
         }
-        return $path;
     }
 
 
