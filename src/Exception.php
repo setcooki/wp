@@ -41,9 +41,9 @@ class Exception extends \ErrorException
      */
     public static function handler(\Exception $e)
     {
-        if(class_exists('Setcooki\\Wp\\Logger', true) && Logger::hasInstance())
+        if(($logger = setcooki_conf('LOGGER')) !== null)
         {
-            Logger::l($e);
+            $logger->log(LOG_ERR, $e);
         }else{
             throw $e;
         }
