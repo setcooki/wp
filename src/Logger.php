@@ -19,6 +19,7 @@ class Logger implements Logable
     const INFO              = LOG_NOTICE;
     const DEBUG             = LOG_DEBUG;
 
+    const LOG_DIR           = 'LOG_DIR';
     const LOG_LEVEL         = 'LOG_LEVEL';
     const EXTENSION         = 'EXTENSION';
     const FILE_NAME         = 'FILE_NAME';
@@ -83,31 +84,33 @@ class Logger implements Logable
 
 
     /**
-     * class constructor expects a log dir and optional class options
+     * class constructor expects optional class options
      *
-     * @param string $dir expects a log directory path
      * @param null|array $options optional options
      * @throws Exception
      */
-    public function __construct($dir, $options = null)
+    public function __construct($options = null)
     {
         setcooki_init_options($options, $this);
-        $this->_dir = rtrim($dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-        if(!file_exists($this->_dir))
+        if(setcooki_has_option(self::LOG_DIR, $this))
         {
-            mkdir($this->_dir, setcooki_get_option(self::PERMISSION, $this), true);
-        }
-        if(is_writable($this->_dir))
-        {
-            if(setcooki_has_option(self::FILE_NAME, $this, true))
+            $this->_dir = rtrim(setcooki_get_option(self::LOG_DIR, $this), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+            if(!file_exists($this->_dir))
             {
-                $name = trim(setcooki_get_option(self::FILE_NAME, $this));
-            }else{
-                $name = strftime('%Y-%m-%d', time());
+                mkdir($this->_dir, setcooki_get_option(self::PERMISSION, $this), true);
             }
-            $this->file = $this->_dir . $name . '.' . trim(setcooki_get_option(self::EXTENSION, $this), ' .');
-        }else{
-            throw new Exception(setcooki_sprintf("log directory: %s is not writable", $this->_dir));
+            if(is_writable($this->_dir))
+            {
+                if(setcooki_has_option(self::FILE_NAME, $this, true))
+                {
+                    $name = trim(setcooki_get_option(self::FILE_NAME, $this));
+                }else{
+                    $name = strftime('%Y-%m-%d', time());
+                }
+                $this->file = $this->_dir . $name . '.' . trim(setcooki_get_option(self::EXTENSION, $this), ' .');
+            }else{
+                throw new Exception(setcooki_sprintf("log directory: %s is not writable", $this->_dir));
+            }
         }
     }
 
@@ -116,13 +119,12 @@ class Logger implements Logable
      * shortcut function to create a logger instance
      *
      * @see Setcooki\Wp\Logger::instance
-     * @param string $dir expects a log directory path
      * @param null|array $options optional options
      * @return null|Logger
      */
-    public static function create($dir = null, $options = null)
+    public static function create($options = null)
     {
-        return new self($dir, $options);
+        return new self($options);
     }
 
 
@@ -130,15 +132,14 @@ class Logger implements Logable
      * static singleton setter/getter function
      *
      * @see Setcooki\Wp\Logger::__construct
-     * @param string $dir expects a log directory path
      * @param null|array $options optional options
      * @return null|Logger
      */
-    public static function instance($dir = null, $options = null)
+    public static function instance($options = null)
     {
         if(self::$_instance === null)
         {
-            self::$_instance = new self($dir, $options);
+            self::$_instance = new self($options);
         }
         return self::$_instance;
     }
@@ -312,11 +313,14 @@ class Logger implements Logable
             return;
         }
 
-        if(!@is_resource($this->handle))
+        if(!is_null($this->file))
         {
-            if(($this->handle = fopen($this->file, 'a')) === false)
+            if(!@is_resource($this->handle))
             {
-                throw new Exception(setcooki_sprintf('unable to create log file: %s', $this->file));
+                if(($this->handle = fopen($this->file, 'a')) === false)
+                {
+                    throw new Exception(setcooki_sprintf('unable to create log file: %s', $this->file));
+                }
             }
         }
 
@@ -363,10 +367,7 @@ class Logger implements Logable
 
         $data .= PHP_EOL;
 
-        if(setcooki_get_option(self::FLUSH, $this))
-        {
-            $this->_logs[trim(md5($data))] = $data;
-        }
+        $this->_logs[trim(md5($data))] = $data;
 
         //if in wp log mode log message to log file
         if(setcooki_conf(SETCOOKI_WP_LOG))
@@ -442,6 +443,45 @@ class Logger implements Logable
 
 
     /**
+     * reset logger and remove all log files if any written
+     *
+     * @since 1.1.3
+     * @return void
+     */
+    public function clear()
+    {
+        $this->reset();
+        if($this->_dir)
+        {
+            foreach((array)@glob(rtrim($this->_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . '*.' . setcooki_get_option(self::EXTENSION, $this), GLOB_ERR) as $file)
+            {
+                @unlink($file);
+            }
+        }
+    }
+
+
+    /**
+     * flush log messages to screen
+     *
+     * @since 1.1.3
+     * @return void
+     */
+    public function flush()
+    {
+        if(!empty($this->_logs))
+        {
+            if(strtolower(php_sapi_name()) === 'cli')
+            {
+                echo implode(PHP_EOL, $this->_logs);
+            }else{
+                echo '<pre>' . implode('', array_values($this->_logs)) . '</pre>';
+            }
+        }
+    }
+
+
+    /**
      * reset logger and flush logs to php output stream
      *
      * @return void
@@ -452,14 +492,9 @@ class Logger implements Logable
         {
             @fclose($this->handle);
         }
-        if(!empty($this->_logs))
+        if(setcooki_get_option(self::FLUSH, $this))
         {
-            if(strtolower(php_sapi_name()) === 'cli')
-            {
-                echo implode(PHP_EOL, $this->_logs);
-            }else{
-                echo '<pre>' . implode('', array_values($this->_logs)) . '</pre>';
-            }
+            $this->flush();
         }
         unset($this->_logs);
         $this->_logs = array();
