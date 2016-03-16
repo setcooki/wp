@@ -2,11 +2,13 @@
 
 namespace Setcooki\Wp;
 
+use Setcooki\Wp\Interfaces\Logable;
+
 /**
  * Class Logger
  * @package Setcooki\Wp
  */
-class Logger
+class Logger implements Logable
 {
     const EMERGENCY         = LOG_EMERG;
     const ALERT             = LOG_ALERT;
@@ -87,7 +89,7 @@ class Logger
      * @param null|array $options optional options
      * @throws Exception
      */
-    protected function __construct($dir, $options = null)
+    public function __construct($dir, $options = null)
     {
         setcooki_init_options($options, $this);
         $this->_dir = rtrim($dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
@@ -111,7 +113,7 @@ class Logger
 
 
     /**
-     * shortcut function for Setcooki\Wp\Logger::instance
+     * shortcut function to create a logger instance
      *
      * @see Setcooki\Wp\Logger::instance
      * @param string $dir expects a log directory path
@@ -120,7 +122,7 @@ class Logger
      */
     public static function create($dir = null, $options = null)
     {
-        return self::instance($dir, $options);
+        return new self($dir, $options);
     }
 
 
@@ -271,14 +273,15 @@ class Logger
      * log level as defined by php´s LOG_ constants. the third argument can be an optional array with key => value pairs
      * for extra logging
      *
-     * @param string|mixed|Exception $object expects a log object
-     * @param null|int $level expects the log level
-     * @param null|array $args expects a optional argument array
+     * @param int|string $level expects the log level
+     * @param string|mixed|Exception $message expects a log message
+     * @param null|array $context expects a optional argument array
      * @return null
      * @throws Exception
      */
-    public function log($object, $level = null, $args = null)
+    public function log($level, $message, array $context = array())
     {
+        $object = $message;
         $levels = setcooki_get_option(self::LOG_LEVEL, $this);
 
         if($object instanceof \ErrorException)
@@ -329,10 +332,10 @@ class Logger
         $data .= " ";
         $data .= $message;
 
-        if(!empty($args))
+        if(!empty($context))
         {
             $tmp = array();
-            foreach((array)$args as $k => $v)
+            foreach((array)$context as $k => $v)
             {
                 if(is_numeric($k))
                 {
@@ -382,20 +385,20 @@ class Logger
 
 
     /**
-     * static logger method assuming logger class has been initialized before and class instance is registered
+     * static logger method assuming logger class has been initialized as singleton
      *
      * @see Setcooki\Wp\Logger::log
-     * @param string|mixed|Exception $object expects a log object
-     * @param null|int $level expects the log level
-     * @param null|array $args expects a optional argument array
+     * @param int|string $level expects the log level
+     * @param string|mixed|Exception $message expects a log message
+     * @param null|array $context expects a optional argument array
      * @return null
      * @throws Exception
      */
-    public static function l($object, $level = null, $args = null)
+    public static function l($level, $message, array $context = array())
     {
         if(self::hasInstance())
         {
-            return self::instance()->log($object, $level, $args);
+            return self::instance()->log($level, $message, $context);
         }
         return '';
     }
