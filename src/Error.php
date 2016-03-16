@@ -44,7 +44,7 @@ class Error
      */
     public static function handler($no, $str, $file = null, $line = null, $context = null)
     {
-        if(class_exists('Setcooki\\Wp\\Logger', true) && Logger::hasInstance())
+        if(($logger = setcooki_conf('LOGGER')) !== null)
         {
             $no = (int)$no;
             $str = trim((string)$str);
@@ -53,7 +53,7 @@ class Error
             $err[] = "$str, $no";
             $err[] = "in: $file";
             $err[] = "on line: $line";
-            Logger::l(implode(' ', $err), (array_key_exists($no, self::$map)) ? self::$map[$no] : LOG_ERR);
+            $logger->log((array_key_exists($no, self::$map)) ? self::$map[$no] : LOG_ERR, implode(' ', $err));
             return false;
         }else{
             restore_error_handler();
