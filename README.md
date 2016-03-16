@@ -20,7 +20,8 @@ Rapid developing framework for Wordpress Plugins\Themes includes basis functiona
 4. [Themes](#themes)
 5. [Controller/Router](#controller-router)
 6. [Scope/Reference](#scope-reference)
-7. [Hints/Tips](#hints-tips)
+7. [Debug/Develop](#debug-develop)
+8. [Hints/Tips](#hints-tips)
 
 ### Initialization
 
@@ -76,12 +77,12 @@ which will initialize the framework and set default global variables like log/de
 with custom config options/values call:
 
 ```php
-setcooki_boot('/path/you/your/config.php', 'your_ns_name');
+setcooki_boot('/path/you/your/config.php');
 ```
-This will initialize the wp framework with your config values in `/path/you/your/config.php` under your plugin/theme name
-or namespace in second argument. you can also pass an array of config files to first argument which results in the key =>
-values being merged to one config store available throughout the framework with `Setcooki\Wp\Config` class or `setcooki_config`
-shortcut function. passing an array of configs allows to define a global config for values that will not change per environment
+This will initialize the wp framework with your config values in `/path/you/your/config.php` under your plugin/theme name which is the plugin/theme folder name. 
+you can also pass an array of config files to first argument which results in the key => values being merged to one config store available throughout the 
+framework with `Setcooki\Wp\Config` class or `setcooki_config` shortcut function. 
+passing an array of configs allows to define a global config for values that will not change per environment
 and should not be overwritten by plugin/theme user, and allows to define a user customizable custom config file location. the
 config file is a php file which is expected to return an array. e.g. the following example show global wp framework options
 defined in config file:
@@ -96,6 +97,7 @@ return array
     'wp' => array
     (
         'LOG' => true,
+        'LOGGER' => null,
         'DEBUG => true,
         'HANDLE_ERROR => true,
         'HANDLE_EXCEPTION => true,
@@ -105,6 +107,16 @@ return array
 
 ?>
 ```
+
+IMPORTANT Bootstrap options:
+
+* LOG               = boolean value to enable/disable logging
+* LOGGER            = logger instance compatible with `\Setcooki\Wp\Interfaces\Logable` Interface to enable file or any other type of logging
+* DEBUG             = boolean value to enable/disable debugging which will output log messages to screen
+* CHARSET           = string default charset
+* ERROR_HANDLER     = boolean value if enabled will redirect all errors to framework build-in error handling first
+* EXCEPTION_HANDLER = boolean value if enabled will redirect all exceptions to framework build-in exception handling first
+* AUTOLOAD_DIRS     = array of dirs to autoload
 
 PLEASE refer to `core.php` file for all configurable wp framework options
 
@@ -291,8 +303,14 @@ you can even reference other plugins/themes by passing the id:
 setcooki_wp('plugin:foo');
 ```
 
-where id is the combination of the scope (theme|plugin) and the folder name of the plugin (not the style.css name!). ok
-fine - but what if i want to have my own classes/objects theme or plugin wide available without using `$GLOBALS` or a sort
+where id is the combination of the scope (theme|plugin) and the folder name of the plugin (not the style.css name!).
+the id or ns value for you plugin/theme can also be retrieved inside the scope of your plugin/theme with:
+
+```php
+setcooki_ns();
+```
+
+ok fine - but what if i want to have my own classes/objects theme or plugin wide available without using `$GLOBALS` or a sort
 of registry?! the `\Setcooki\Wp\Wp` base class has a simple object store implemented - use it in the following ways depending
 on where you are in your code you can:
 
@@ -310,6 +328,14 @@ setcooki_store('foo');
 ```
 
 simple as that!
+
+<a name="debug-develop"></a>
+#### Debug/Develop
+
+While developing you should enable debug mode which can be enabled with either enabling wordpress debug mode with `define('WP_DEBUG', true);`
+or setting `define('SETCOOKI_DEV', true);` before any bootstrapping. this will output all logged errors at the end of the screen. in 
+productive mode you can switch from debug to log mode by setting `define('WP_DEBUG_LOG', true);`.
+its not necessary to touch `define('WP_DEBUG_DISPLAY', false);` as this is has no affect on setcooki/wp framework.
 
 <a name="hints-tips"></a>
 #### Hints/Tips
