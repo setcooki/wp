@@ -199,7 +199,7 @@ function setcooki_conf($key = null, $value = '_NIL_', $default = null)
         {
             $GLOBALS[SETCOOKI_NS][$ns] = array();
         }
-        if(\Setcooki\Wp\Config::h("wp.$key", $ns))
+        if(\Setcooki\Wp\Config::hasInstance($ns) && \Setcooki\Wp\Config::h("wp.$key", $ns))
         {
             \Setcooki\Wp\Config::s("wp.$key", $value, $ns);
         }
