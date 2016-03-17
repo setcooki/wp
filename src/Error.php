@@ -2,6 +2,8 @@
 
 namespace Setcooki\Wp;
 
+use Setcooki\Wp\Interfaces\Logable;
+
 /**
  * Class Error
  * @package Setcooki\Wp
@@ -32,7 +34,7 @@ class Error
 
 
     /**
-     * build in error handler that will redirect all error to build in error logger if error logger is loaded if not
+     * build in error handler that will redirect all error to build in error logger if error logger is passed if not
      * will restore previous set error handler
      *
      * @param int $no expects the error level number
@@ -40,11 +42,12 @@ class Error
      * @param null|string $file expects the filename where the error was raised
      * @param null|string $line expects the line number where the error was raised
      * @param null|array $context expects the optional error context
+     * @param null|Logable $logger expects optional logger
      * @return bool
      */
-    public static function handler($no, $str, $file = null, $line = null, $context = null)
+    public static function handler($no, $str, $file = null, $line = null, $context = null, Logable $logger = null)
     {
-        if(($logger = setcooki_conf('LOGGER')) !== null)
+        if(!is_null($logger))
         {
             $no = (int)$no;
             $str = trim((string)$str);
