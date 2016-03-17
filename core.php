@@ -124,7 +124,7 @@ function setcooki_boot($config, $logger = null)
     }
     if(is_null($wp[SETCOOKI_WP_LOGGER]) && $wp[SETCOOKI_WP_DEBUG])
     {
-        $wp[SETCOOKI_WP_LOGGER] = \Setcooki\Wp\Logger::create();
+        $wp[SETCOOKI_WP_LOGGER] = $logger = \Setcooki\Wp\Logger::create();
     }
     $config->set('wp', $wp);
     if(!isset($GLOBALS[SETCOOKI_NS]))
@@ -137,29 +137,33 @@ function setcooki_boot($config, $logger = null)
     }
     foreach($wp as $k => $v)
     {
-        $GLOBALS[SETCOOKI_NS][$ns][strtoupper(trim($k))] = $v;
+        $k = strtoupper(trim((string)$k));
+        if(!isset($GLOBALS[SETCOOKI_NS][$ns][$k]))
+        {
+            $GLOBALS[SETCOOKI_NS][$ns][$k] = $v;
+        }
     }
     if(!empty($GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_ERROR_HANDLER]) && (bool)$GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_ERROR_HANDLER])
     {
-        set_error_handler(function($no, $str, $file = null, $line = null, $context = null) use ($logger)
+        set_error_handler(function($no, $str, $file = null, $line = null, $context = null) use ($wp)
         {
-            \Setcooki\Wp\Error::handler($no, $str, $file, $line, $context, $logger);
+            \Setcooki\Wp\Error::handler($no, $str, $file, $line, $context, $wp[SETCOOKI_WP_LOGGER]);
         });
     }
     if(!empty($GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_EXCEPTION_HANDLER]) && (bool)$GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_EXCEPTION_HANDLER])
     {
-        set_exception_handler(function(\Exception $e) use ($logger)
+        set_exception_handler(function(\Exception $e) use ($wp)
         {
-            \Setcooki\Wp\Exception::handler($e, $logger);
+            \Setcooki\Wp\Exception::handler($e, $wp[SETCOOKI_WP_LOGGER]);
         });
     }
     if(!empty($GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_DEBUG]) && (bool)$GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_DEBUG])
     {
-        register_shutdown_function(function()
+        register_shutdown_function(function() use ($wp)
         {
-            if(($logger = setcooki_conf(SETCOOKI_WP_LOGGER)) !== null)
+            if(!empty($wp[SETCOOKI_WP_LOGGER]))
             {
-                $logger->flush();
+                $wp[SETCOOKI_WP_LOGGER]->flush();
             }
         });
     }
