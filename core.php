@@ -141,11 +141,17 @@ function setcooki_boot($config, $logger = null)
     }
     if(!empty($GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_ERROR_HANDLER]) && (bool)$GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_ERROR_HANDLER])
     {
-        set_error_handler('\Setcooki\Wp\Error::handler');
+        set_error_handler(function($no, $str, $file = null, $line = null, $context = null) use ($logger)
+        {
+            \Setcooki\Wp\Error::handler($no, $str, $file, $line, $context, $logger);
+        });
     }
     if(!empty($GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_EXCEPTION_HANDLER]) && (bool)$GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_EXCEPTION_HANDLER])
     {
-        set_exception_handler('\Setcooki\Wp\Exception::handler');
+        set_exception_handler(function(\Exception $e) use ($logger)
+        {
+            \Setcooki\Wp\Exception::handler($e, $logger);
+        });
     }
     if(!empty($GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_DEBUG]) && (bool)$GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_DEBUG])
     {
@@ -257,7 +263,19 @@ function setcooki_path($type = null, $relative = false, $url = false)
             $path = (function_exists('get_theme_root')) ? get_theme_root() : ABSPATH . 'wp-content/themes';
             break;
         case 'plugin':
-            $path = preg_replace('/(.*)\/(plugins)\/([^\/]{1,}).*/i', '$1/$2/$3', dirname(__FILE__));
+            if(stripos(__FILE__, 'plugins' . DIRECTORY_SEPARATOR) !== false)
+            {
+                $path = preg_replace('/(.*)\/(plugins)\/([^\/]{1,}).*/i', '$1/$2/$3', dirname(__FILE__));
+            }else{
+                foreach(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) as $bt)
+                {
+                    if(stripos($bt['file'], 'plugins' . DIRECTORY_SEPARATOR) !== false && preg_match('=^(.*(?:plugins)\/[^\/]{1,})\/=i', $bt['file'], $m))
+                    {
+                        $path = trim($m[1]);
+                        break;
+                    }
+                }
+            }
             break;
         case 'plugins':
             $path = (defined('WP_PLUGIN_DIR')) ? WP_PLUGIN_DIR : ABSPATH . 'wp-content/plugins';
@@ -341,21 +359,27 @@ function setcooki_die($message, $hard = false)
  */
 function setcooki_ns()
 {
+    $ns = '';
     $type = '';
     foreach(array_merge(array(array('file' => __FILE__)), debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS)) as $bt)
     {
-        if(stripos($bt['file'], 'plugins' . DIRECTORY_SEPARATOR) !== false)
+        if(($pos = stripos($bt['file'], 'plugins' . DIRECTORY_SEPARATOR)) !== false)
         {
+            $ns = substr($bt['file'], $pos + 8, stripos(substr($bt['file'], $pos + 8), DIRECTORY_SEPARATOR));
             $type = 'plugin';
             break;
         }
-        if(stripos($bt['file'], 'themes' . DIRECTORY_SEPARATOR) !== false)
+        if(($pos = stripos($bt['file'], 'themes' . DIRECTORY_SEPARATOR)) !== false)
         {
+            $ns = substr($bt['file'], $pos + 7, stripos(substr($bt['file'], $pos + 7), DIRECTORY_SEPARATOR));
             $type = 'theme';
             break;
         }
     }
-    $ns = basename(setcooki_path($type));
+    if(empty($ns))
+    {
+        $ns = basename(setcooki_path($type));
+    }
     if(!empty($type) && !empty($ns))
     {
         return strtolower(trim((string)$ns));
