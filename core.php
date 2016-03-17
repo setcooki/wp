@@ -195,6 +195,10 @@ function setcooki_conf($key = null, $value = '_NIL_', $default = null)
         {
             $GLOBALS[SETCOOKI_NS][$ns] = array();
         }
+        if(\Setcooki\Wp\Config::h("wp.$key", $ns))
+        {
+            \Setcooki\Wp\Config::s("wp.$key", $value, $ns);
+        }
         return $GLOBALS[SETCOOKI_NS][$ns][$key] = $value;
     }else{
         if(isset($GLOBALS[SETCOOKI_NS][$ns]) && array_key_exists($key, $GLOBALS[SETCOOKI_NS][$ns]))
