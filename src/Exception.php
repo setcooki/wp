@@ -2,6 +2,8 @@
 
 namespace Setcooki\Wp;
 
+use Setcooki\Wp\Interfaces\Logable;
+
 /**
  * Class Exception
  * @package Setcooki\Wp
@@ -34,14 +36,15 @@ class Exception extends \ErrorException
 
 
     /**
-     * custom exception handler logs uncaught exception to build in logger if logger is instantiated
+     * custom exception handler logs uncaught exception to build in logger if logger is passed in second argument
      *
      * @param \Exception $e expects an exception
+     * @param null|Logable $logger expects optional logger
      * @throws \Exception
      */
-    public static function handler(\Exception $e)
+    public static function handler(\Exception $e, Logable $logger = null)
     {
-        if(($logger = setcooki_conf('LOGGER')) !== null)
+        if(!is_null($logger))
         {
             $logger->log(LOG_ERR, $e);
         }
