@@ -234,6 +234,21 @@ class Config
 
 
     /**
+     * static shortcut for Setcooki\Wp\Config::has
+     *
+     * @since 1.1.3
+     * @param null|string $key expects the config key
+     * @param null|string $ns expects the optional namespace of the config store
+     * @return bool
+     * @throws Exception
+     */
+    public static function h($key = null, $ns = null)
+    {
+        return self::instance($ns)->has($ns, $key);
+    }
+
+
+    /**
      * checks if a config value by key is set in config store identified by namespace identifier in first argument
      *
      * @param string $ns expects the namespace of the config store
