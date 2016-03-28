@@ -630,3 +630,29 @@ function setcooki_nonce()
 {
     return wp_create_nonce(substr(substr("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", mt_rand(0 ,50), 1) . substr(md5(time()), 1), 0, 10));
 }
+
+
+/**
+ * more flexible implementation of php´s basename function. accepts file extension suffix as wildcard ".*"
+ *
+ * @since 1.1.3
+ * @param string $path expects the path
+ * @param null|string $suffix expects the optional file extension suffix to remove
+ * @return string
+ */
+function setcooki_basename($path, $suffix = null)
+{
+    $path = basename($path);
+    if(!is_null($suffix))
+    {
+        if($suffix === '.*')
+        {
+            $path = substr($path, 0, strripos($path, '.'));
+        }else if($suffix === '*.*'){
+            $path = substr($path, 0, stripos($path, '.'));
+        }else{
+            $path = basename($path, $suffix);
+        }
+    }
+    return $path;
+}
