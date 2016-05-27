@@ -141,20 +141,29 @@ abstract class Wp
     public function base()
     {
         $base = null;
+        $class = get_called_class();
 
         if(is_null($this->base))
         {
-            if(preg_match('=^(.*(?:plugins|themes)\/[^\/]{1,})\/=i', __FILE__, $m))
+            if($this->isTheme())
             {
-                $base = rtrim(trim($m[1]), DIRECTORY_SEPARATOR);
-            }else{
                 foreach(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) as $bt)
                 {
-                    if($this->isTheme() && preg_match('=(.*)functions.php$=i', $bt['file'], $m))
+                    if(preg_match('=(.*)functions.php$=i', $bt['file'], $m))
                     {
                         $base = DIRECTORY_SEPARATOR . trim($m[1], ' ' . DIRECTORY_SEPARATOR);
                         break;
-                    }else if($this->isPlugin() && $bt['class'] === get_called_class()){
+                    }
+                }
+            }else{
+                foreach(debug_backtrace() as $bt)
+                {
+                    if
+                    (
+                        (isset($bt['class']) && $bt['class'] === $class)
+                        ||
+                        (isset($bt['object']) && get_class($bt['object']) === $class)
+                    ){
                         $dirs = explode(DIRECTORY_SEPARATOR, trim($bt['file'], ' ' . DIRECTORY_SEPARATOR));
                         for($i = sizeof($dirs) - 1; $i >= 0; $i--)
                         {
@@ -164,7 +173,6 @@ abstract class Wp
                                 break;
                             }
                         }
-                        break;
                     }
                 }
             }
