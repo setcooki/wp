@@ -266,11 +266,11 @@ function setcooki_is_value($value = null)
  */
 function setcooki_default($value)
 {
-    if(is_callable($value) || (is_string($value) && function_exists($value)))
+    if($value instanceof Exception)
     {
-        return call_user_func($value);
-    }else if($value instanceof Exception) {
         throw $value;
+    }else if(is_callable($value) || (is_string($value) && function_exists($value))){
+        return call_user_func($value);
     }else if($value === 'exit'){
         exit(0);
     }
