@@ -10,14 +10,21 @@ use Setcooki\Wp\Exception;
  */
 class File extends Cache
 {
+    /**
+     * path option defines the path where cache files are stored
+     */
     const PATH                      = 'PATH';
-    const EXTENSION                 = 'EXTENSION';
-    const EXPIRATION                = 'EXPIRATION';
 
     /**
-     * @var null
+     * extension option defines the file extension value for cache files
      */
-    protected static $_instance = null;
+    const EXTENSION                 = 'EXTENSION';
+
+    /**
+     * expiration option defines the expiration value of cache file
+     */
+    const EXPIRATION                = 'EXPIRATION';
+
 
     /**
      * @var array
@@ -31,15 +38,21 @@ class File extends Cache
 
     /**
      * @param null $options
+     */
+    public function __construct($options = null)
+    {
+        parent::__construct($options);
+        $this->init();
+    }
+
+
+    /**
+     * @param null $options
      * @return null|File
      */
-    public static function instance($options = null)
+    public static function create($options = null)
     {
-        if(self::$_instance === null)
-        {
-            self::$_instance = new self($options);
-        }
-        return self::$_instance;
+        return new self($options);
     }
 
 

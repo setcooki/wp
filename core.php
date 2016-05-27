@@ -4,6 +4,7 @@
  * set start init timestamp
  */
 define('SETCOOKI_WP_START', microtime(true));
+define('SETCOOKI_WP_PHP_VERSION', '5.3.3');
 
 /**
  * define global config constants
@@ -12,8 +13,12 @@ if(!defined('SETCOOKI_NS'))
 {
     define('SETCOOKI_NS', 'SETCOOKI_WP');
 }
-define('SETCOOKI_WP_PHP_VERSION',                           '5.3.3');
+if(!defined('SETCOOKI_DEV'))
+{
+    define('SETCOOKI_DEV', false);
+}
 define('SETCOOKI_WP_LOG',                                   'LOG');
+define('SETCOOKI_WP_LOGGER',                                'LOGGER');
 define('SETCOOKI_WP_DEBUG',                                 'DEBUG');
 define('SETCOOKI_WP_CHARSET',                               'CHARSET');
 define('SETCOOKI_WP_ERROR_HANDLER',                         'ERROR_HANDLER');
@@ -35,13 +40,17 @@ if(!defined('PATH_SEPARATOR'))
 {
     define('PATH_SEPARATOR', ':');
 }
+if(!defined('PHP_EXT'))
+{
+    define('PHP_EXT', '.php');
+}
 
 /**
  * test php version
  */
 if(version_compare(PHP_VERSION, SETCOOKI_WP_PHP_VERSION, '<'))
 {
-    die("setcooki/wp needs php version > ".SETCOOKI_WP_PHP_VERSION." to run - your version is: " .PHP_VERSION . PHP_EOL);
+    setcooki_die("setcooki/wp needs php version > ".SETCOOKI_WP_PHP_VERSION." to run - your version is: " .PHP_VERSION . PHP_EOL);
 }
 
 /**
@@ -73,18 +82,19 @@ if(defined('SETCOOKI_WP_AUTOLOAD') && (bool)constant('SETCOOKI_WP_AUTOLOAD'))
 
 /**
  * init wp framework with config which can be one or multiple config files as array. the init function will registered
- * the config values and set global values in $GLOBALS namespace
+ * the config values and set global values in $GLOBALS namespace.
  *
  * @param string|array $config expects options config file(s) absolute path as single value or array
- * @param string $ns expects the namespace identifier
+ * @param \Setcooki\Wp\Interfaces\Logable|mixed $logger expects optional logger instance
  * @return array
  */
-function setcooki_boot($config, $ns)
+function setcooki_boot($config, $logger = null)
 {
-    $ns = trim((string)$ns);
+    $ns = setcooki_ns();
     $wp = array
     (
         SETCOOKI_WP_LOG                 => false,
+        SETCOOKI_WP_LOGGER              => null,
         SETCOOKI_WP_DEBUG               => false,
         SETCOOKI_WP_CHARSET             => 'utf-8',
         SETCOOKI_WP_ERROR_HANDLER       => true,
@@ -96,6 +106,10 @@ function setcooki_boot($config, $ns)
     {
         $wp = (array)$w + $wp;
     }
+    if(SETCOOKI_DEV)
+    {
+        $wp[SETCOOKI_WP_DEBUG] = true;
+    }
     if(defined('WP_DEBUG') && (bool)WP_DEBUG)
     {
         $wp[SETCOOKI_WP_DEBUG] = true;
@@ -104,20 +118,56 @@ function setcooki_boot($config, $ns)
     {
         $wp[SETCOOKI_WP_LOG] = true;
     }
+    if(!is_null($logger) && $logger instanceof \Setcooki\Wp\Interfaces\Logable)
+    {
+        $wp[SETCOOKI_WP_LOGGER] = $logger;
+    }
+    if(is_null($wp[SETCOOKI_WP_LOGGER]) && $wp[SETCOOKI_WP_DEBUG])
+    {
+        $wp[SETCOOKI_WP_LOGGER] = $logger = \Setcooki\Wp\Logger::create();
+    }
     $config->set('wp', $wp);
+    if(!isset($GLOBALS[SETCOOKI_NS]))
+    {
+        $GLOBALS[SETCOOKI_NS] = array();
+    }
+    if(!isset($GLOBALS[SETCOOKI_NS][$ns]))
+    {
+        $GLOBALS[SETCOOKI_NS][$ns] = array();
+    }
     foreach($wp as $k => $v)
     {
-        $GLOBALS[SETCOOKI_NS][strtoupper(trim($k))] = $v;
+        $k = strtoupper(trim((string)$k));
+        if(!isset($GLOBALS[SETCOOKI_NS][$ns][$k]))
+        {
+            $GLOBALS[SETCOOKI_NS][$ns][$k] = $v;
+        }
     }
-    if(!empty($GLOBALS[SETCOOKI_NS][SETCOOKI_WP_ERROR_HANDLER]) && (bool)$GLOBALS[SETCOOKI_NS][SETCOOKI_WP_ERROR_HANDLER])
+    if(!empty($GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_ERROR_HANDLER]) && (bool)$GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_ERROR_HANDLER])
     {
-        set_error_handler('\Setcooki\Wp\Error::handler');
+        set_error_handler(function($no, $str, $file = null, $line = null, $context = null) use ($wp)
+        {
+            \Setcooki\Wp\Error::handler($no, $str, $file, $line, $context, $wp[SETCOOKI_WP_LOGGER]);
+        });
     }
-    if(!empty($GLOBALS[SETCOOKI_NS][SETCOOKI_WP_EXCEPTION_HANDLER]) && (bool)$GLOBALS[SETCOOKI_NS][SETCOOKI_WP_EXCEPTION_HANDLER])
+    if(!empty($GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_EXCEPTION_HANDLER]) && (bool)$GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_EXCEPTION_HANDLER])
     {
-        set_exception_handler('\Setcooki\Wp\Exception::handler');
+        set_exception_handler(function(\Exception $e) use ($wp)
+        {
+            \Setcooki\Wp\Exception::handler($e, $wp[SETCOOKI_WP_LOGGER]);
+        });
     }
-    return $GLOBALS[SETCOOKI_NS];
+    if(!empty($GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_DEBUG]) && (bool)$GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_DEBUG])
+    {
+        register_shutdown_function(function() use ($wp)
+        {
+            if(!empty($wp[SETCOOKI_WP_LOGGER]))
+            {
+                $wp[SETCOOKI_WP_LOGGER]->flush();
+            }
+        });
+    }
+    return $GLOBALS[SETCOOKI_NS][$ns];
 }
 
 
@@ -133,9 +183,10 @@ function setcooki_boot($config, $ns)
  */
 function setcooki_conf($key = null, $value = '_NIL_', $default = null)
 {
+    $ns = setcooki_ns();
     if(is_null($key) && $value === '_NIL_')
     {
-        return (isset($GLOBALS[SETCOOKI_NS])) ? $GLOBALS[SETCOOKI_NS] : array();
+        return (isset($GLOBALS[SETCOOKI_NS][$ns])) ? $GLOBALS[SETCOOKI_NS][$ns] : array();
     }
     $key = strtoupper(trim($key));
     if($value !== '_NIL_')
@@ -144,11 +195,19 @@ function setcooki_conf($key = null, $value = '_NIL_', $default = null)
         {
             $GLOBALS[SETCOOKI_NS] = array();
         }
-        return $GLOBALS[SETCOOKI_NS][$key] = $value;
-    }else{
-        if(isset($GLOBALS[SETCOOKI_NS]) && array_key_exists($key, $GLOBALS[SETCOOKI_NS]))
+        if(!isset($GLOBALS[SETCOOKI_NS][$ns]))
         {
-            return $GLOBALS[SETCOOKI_NS][$key];
+            $GLOBALS[SETCOOKI_NS][$ns] = array();
+        }
+        if(\Setcooki\Wp\Config::hasInstance($ns) && \Setcooki\Wp\Config::h("wp.$key", $ns))
+        {
+            \Setcooki\Wp\Config::s("wp.$key", $value, $ns);
+        }
+        return $GLOBALS[SETCOOKI_NS][$ns][$key] = $value;
+    }else{
+        if(isset($GLOBALS[SETCOOKI_NS][$ns]) && array_key_exists($key, $GLOBALS[SETCOOKI_NS][$ns]))
+        {
+            return $GLOBALS[SETCOOKI_NS][$ns][$key];
         }else{
             return setcooki_default($default);
         }
@@ -185,6 +244,8 @@ function setcooki_path($type = null, $relative = false, $url = false)
     if($type === null)
     {
         $type = 'root';
+    }else{
+        $type = strtolower((string)$type);
     }
 
     $path = null;
@@ -198,7 +259,7 @@ function setcooki_path($type = null, $relative = false, $url = false)
         $root = realpath(rtrim(__DIR__, '/') . '/../../../../../../../');
     }
 
-    switch(strtolower($type))
+    switch($type)
     {
         case 'root':
             $path = $root;
@@ -210,8 +271,19 @@ function setcooki_path($type = null, $relative = false, $url = false)
             $path = (function_exists('get_theme_root')) ? get_theme_root() : ABSPATH . 'wp-content/themes';
             break;
         case 'plugin':
-            //TODO: better to use plugins_url()
-            $path = preg_replace('/(.*)\/(plugins)\/([^\/]{1,}).*/i', '$1/$2/$3', dirname(__FILE__));
+            if(stripos(__FILE__, 'plugins' . DIRECTORY_SEPARATOR) !== false)
+            {
+                $path = preg_replace('/(.*)\/(plugins)\/([^\/]{1,}).*/i', '$1/$2/$3', dirname(__FILE__));
+            }else{
+                foreach(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) as $bt)
+                {
+                    if(stripos($bt['file'], 'plugins' . DIRECTORY_SEPARATOR) !== false && preg_match('=^(.*(?:plugins)\/[^\/]{1,})\/=i', $bt['file'], $m))
+                    {
+                        $path = trim($m[1]);
+                        break;
+                    }
+                }
+            }
             break;
         case 'plugins':
             $path = (defined('WP_PLUGIN_DIR')) ? WP_PLUGIN_DIR : ABSPATH . 'wp-content/plugins';
@@ -219,11 +291,19 @@ function setcooki_path($type = null, $relative = false, $url = false)
         default;
             return '';
     }
-
     $path = DIRECTORY_SEPARATOR . trim($path, ' ' . DIRECTORY_SEPARATOR);
     if((bool)$relative)
     {
-        $path = preg_replace('=^\/?'.addslashes($root).'=i', '', $path);
+        if($type === 'plugin')
+        {
+            if(stripos($path, 'wp-content '. DIRECTORY_SEPARATOR . 'plugins') === false)
+            {
+                $path = preg_replace('/(.*)\/(plugins)\/([^\/]{1,}).*/i', '$1/wp-content/$2/$3', $path);
+            }
+            $path =  preg_replace('/(.*)(\/wp-content.*)/i', '$2', $path);
+        }else{
+            $path = preg_replace('=^\/?'.addslashes($root).'=i', '', $path);
+        }
         if((bool)$url)
         {
             if(function_exists('get_site_url'))
@@ -240,6 +320,79 @@ function setcooki_path($type = null, $relative = false, $url = false)
         }
     }else{
         return $path;
+    }
+}
+
+
+/**
+ * extension of php´s die() function that will try to log message in first argument before trying to die script which is
+ * only possible in != DEV mode which depends on SETCOOKI_DEV const to be != false. if not in dev mode than only if second
+ * argument hard is set to true will use wordpress wp_die() function to die script.
+ *
+ * @since 1.1.3
+ * @param mixed $message exepects die message
+ * @param bool $hard expects optional flag to die for real in != DEV mode
+ */
+function setcooki_die($message, $hard = false)
+{
+    if(SETCOOKI_DEV === false)
+    {
+        setcooki_log($message, LOG_ALERT);
+        if((bool)$hard)
+        {
+            wp_die($message);
+        }else{
+            //do nothing since rest of application should not be broken
+        }
+    }else{
+        $message = setcooki_log($message, LOG_ALERT);
+        if(php_sapi_name() === 'cli')
+        {
+            echo $message . PHP_EOL;
+            exit(1);
+        }else{
+            die($message);
+        }
+    }
+}
+
+
+/**
+ * auto determines the ns identifier which is the plugin or theme folder name as framework instance id or ns. each use
+ * of setcooki/wo framework will thereby be a separate instance. to auto get the ns plugin or theme must be running from
+ * inside the /wp-content/plugins or /wp-content/themes folder otherwise plugin will fail silently
+ *
+ * @since 1.1.3
+ * @return string
+ */
+function setcooki_ns()
+{
+    $ns = '';
+    $type = '';
+    foreach(array_merge(array(array('file' => __FILE__)), debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS)) as $bt)
+    {
+        if(($pos = stripos($bt['file'], 'plugins' . DIRECTORY_SEPARATOR)) !== false)
+        {
+            $ns = substr($bt['file'], $pos + 8, stripos(substr($bt['file'], $pos + 8), DIRECTORY_SEPARATOR));
+            $type = 'plugin';
+            break;
+        }
+        if(($pos = stripos($bt['file'], 'themes' . DIRECTORY_SEPARATOR)) !== false)
+        {
+            $ns = substr($bt['file'], $pos + 7, stripos(substr($bt['file'], $pos + 7), DIRECTORY_SEPARATOR));
+            $type = 'theme';
+            break;
+        }
+    }
+    if(empty($ns))
+    {
+        $ns = basename(setcooki_path($type));
+    }
+    if(!empty($type) && !empty($ns))
+    {
+        return strtolower(trim((string)$ns));
+    }else{
+        setcooki_die('unable to get ns from installation - please make sure plugin or theme is running inside /wp-content');
     }
 }
 
@@ -387,12 +540,9 @@ if(!function_exists('setcooki_log'))
      */
     function setcooki_log($message, $type = LOG_ERR)
     {
-        if(class_exists('Setcooki\\Wp\\Logger', true))
+        if(($logger = setcooki_conf(SETCOOKI_WP_LOGGER)) !== null)
         {
-            if(Setcooki\Wp\Logger::hasInstance())
-            {
-                return call_user_func_array(array('Setcooki\\Wp\\Logger', 'l'), func_get_args());
-            }
+            return call_user_func_array(array($logger, 'log'), array($type, $message, ((func_num_args() > 2) ? (array)func_get_arg(2) : array())));
         }
         if($message instanceof \Exception)
         {
@@ -474,8 +624,12 @@ if(!function_exists('setcooki_include'))
             $file = $file . '.php';
         }
 
-        if(!empty($vars) && is_array($vars))
+        if(!empty($vars))
         {
+            if(!is_array($vars))
+            {
+                $vars = (array)$vars;
+            }
             extract((array)$vars);
             if((bool)$global)
             {
@@ -570,12 +724,17 @@ if(!function_exists('setcooki_filter'))
      */
     function setcooki_filter($tag, $filter, $params = null, $priority = 10)
     {
-        return add_filter((string)$tag, function($value) use ($filter, $params)
+        $wp = setcooki_wp(null, null);
+
+        return add_filter((string)$tag, function($value) use ($wp, $filter, $params)
         {
             //filter chain or bundle
             if(($filter instanceof \Setcooki\Wp\Filter\Chain) || ($filter instanceof \Setcooki\Wp\Filter))
             {
                 return $filter->execute(func_get_args(), $params);
+            //filter is controller action
+            }else if(!empty($wp) && $wp->stored('resolver') && $wp->store('resolver')->handleable($filter)){
+                return $wp->store('resolver')->handle($filter, array(func_get_args(), $params));
             //filter is a callable
             }else if(is_callable($filter)){
                 return call_user_func_array($filter, array(func_get_args(), $params));
@@ -609,7 +768,9 @@ if(!function_exists('setcooki_action'))
      */
     function setcooki_action($tag, $action, $params = null, $priority = 10, $args = 1)
     {
-        return add_action($tag, function($arg) use($action, $params, $args)
+        $wp = setcooki_wp(null, null);
+
+        return add_action($tag, function($arg) use($wp, $action, $params, $args)
         {
             if((int)$args === 1 && (is_array($arg) || is_object($arg)))
             {
@@ -629,6 +790,9 @@ if(!function_exists('setcooki_action'))
             if($action instanceof \Setcooki\Wp\Action)
             {
                 return $action->execute(func_get_args(), $params);
+            //action is controller action
+            }else if(!empty($wp) && $wp->stored('resolver') && $wp->store('resolver')->handleable($action)){
+                return $wp->store('resolver')->handle($action, array_merge($arg, $params));
             //action is callable
             }else if(is_callable($action)){
                 return call_user_func_array($action, array_merge($arg, $params));
@@ -692,5 +856,55 @@ if(!function_exists('setcooki_router'))
             }
         }
         return false;
+    }
+}
+
+if(!function_exists('setcooki_shortcode'))
+{
+    /**
+     * shortcode shortcut function that can add, do and remove wordpress shortcodes and allow extended callback capabilities
+     * like using closures or routing a shortcode call to a controller action. e.g. if a controller action is registered
+     * with resolver instance will route to that action and if not will try otherwise to resolve callback until error
+     * is thrown when nothing can be called: the second argument can be:
+     * - void = null if you want to remove a shortcode
+     * - boolean value to do a shortcode
+     * - callable, closure or action to add a shortcode
+     *
+     * @since 1.1.3
+     * @param string $tag expects the shortcode tag
+     * @param null|bool|mixed $mixed expects value according to shortcode mode
+     * @return null|string
+     * @throws Exception
+     */
+    function setcooki_shortcode($tag, $mixed = null)
+    {
+        if(!is_null($mixed))
+        {
+            if(is_bool($mixed))
+            {
+                return do_shortcode($tag, $mixed);
+            }else{
+                $wp = setcooki_wp(null, null);
+                if(!empty($wp) && $wp->stored('resolver') && $wp->store('resolver')->handleable($mixed))
+                {
+                    add_shortcode($tag, function($params, $content) use ($wp, $mixed)
+                    {
+                        return (string)$wp->store('resolver')->handle($mixed, $params, null, null, null, null, $content);
+                    });
+                }else if(is_callable($mixed)){
+                    add_shortcode($tag, $mixed);
+                }else if($mixed instanceof \Closure){
+                    add_shortcode($tag, function($params, $content) use ($mixed)
+                    {
+                        return $mixed($params, $content);
+                    });
+                }else{
+                    throw new \Exception(setcooki_sprintf("callable for shortcode tag: %s is not a callable", $tag));
+                }
+            }
+        }else{
+            remove_shortcode($tag);
+        }
+        return null;
     }
 }

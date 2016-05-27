@@ -128,7 +128,7 @@ class Resolver
 	 * @param null|mixed $options expects optional options
 	 * @return Resolver
 	 */
-	public function create(Wp $wp, $options = null)
+	public static function create(Wp $wp, $options = null)
 	{
 		return new self($wp, $options);
 	}
@@ -333,6 +333,75 @@ class Resolver
 
 
 	/**
+	 * bind wordpress hook to controller action. wordpress hooks supported are shortcode, action, filter. pass th hook
+	 * as "{$type}:{$value}" e.g "action::admin_init" or "shortcode:myshortcode". the execution of hook will be passed
+	 * to setcooki_* shortcut methods like setcooki_shortcode, setcooki_action, setcooki_filter. the second argument is
+	 * expected to be a valid controller action. you can also pass multiple bindings in encapsulated array. NOTE! that
+	 * you can overload this method to pass additional arguments to respective shortcut functions. e.g. action hook
+	 * can receive more arguments like priority etc. in this case call this method like:
+	 *
+	 * ```php
+	 * $resolver->bind('action:admin_init', 'controller::init', null, 1)
+	 * ```
+	 * which will pass priority value to add_action()
+	 *
+	 * @since 1.1.3
+	 * @see setcooki_shortcode
+	 * @see setcooki_action
+	 * @see setcooki_filter
+	 * @param string|array $hook expects hook value as string or multiple bindings as array
+	 * @param null|string $action expectt controller action
+	 * @return $this
+	 * @throws Exception
+	 */
+	public function bind($hook, $action = null)
+	{
+		if(!is_array($hook))
+		{
+			$hook = array(func_get_args());
+		}else{
+			$hook = array_values($hook);
+			if(!is_array($hook[0]))
+			{
+				$hook = array($hook);
+			}
+		}
+		foreach($hook as $h)
+		{
+			if(is_array($h) && !setcooki_array_assoc($h) && sizeof($h) >= 2)
+			{
+				$h[0] = trim((string)$h[0]);
+				if(stripos($h[0], ':') !== false)
+				{
+					$type = strtolower(substr($h[0], 0, strpos($h[0], ':')));
+					$tag = trim(substr($h[0], strpos($h[0], ':') + 1), ' :');
+					switch($type)
+					{
+						case 'shortcode':
+							setcooki_shortcode($tag, $h[1]);
+							break;
+						case 'action':
+							call_user_func_array('setcooki_action', array_merge(array($tag, $h[1]), array_slice($h, 2)));
+							break;
+						case 'filter':
+							call_user_func_array('setcooki_filter', array_merge(array($tag, $h[1]), array_slice($h, 2)));
+							break;
+						default:
+							throw new Exception(setcooki_sprintf("hook type: %s not known", array($type)));
+					}
+				}else{
+					throw new Exception(setcooki_sprintf("unable to bind: %s since value does not resolve to any known hook", array($hook)));
+				}
+			}else{
+				throw new Exception("need bindings with at least hook and action");
+			}
+		}
+
+		return $this;
+	}
+
+
+	/**
 	 * attach filter objects to controller or controller actions or even too multiple controllers depending on filter options
 	 * which if empty = null will attach a filter that will be called on each controller.action on before. see filter
 	 * unit for more details on valid and accepted options. the first argument can be a filter class as string, filter
@@ -530,6 +599,33 @@ class Resolver
 		}else{
 			return (string)$return;
 		}
+	}
+
+
+	/**
+	 * check if action can be handled by resolver where action can be a callable or controller action
+	 *
+	 * @param mixed $action expects action to check
+	 * @since 1.1.3
+	 * @return bool
+	 */
+	public function handleable($action)
+	{
+		if(is_callable($action))
+		{
+			return true;
+		}else{
+			try
+			{
+				$actions = (array)$this->lookup($action);
+				if(!empty($actions) && preg_match("@$action$@i", "{$actions[0][0]}::{$actions[0][1]}"))
+				{
+					return true;
+				}
+			}
+			catch(Exception $e){}
+		}
+		return false;
 	}
 
 

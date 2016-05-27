@@ -11,11 +11,15 @@ use Setcooki\Wp\Exception;
 abstract class Cache
 {
     /**
+     * contains current instance
+     *
      * @var null
      */
     protected static $_instance = null;
 
     /**
+     * contains all instances
+     *
      * @var array
      */
     protected static $_instances = array();
@@ -29,7 +33,6 @@ abstract class Cache
     protected function __construct($options = null)
     {
         setcooki_init_options($options, $this);
-        $this->init();
     }
 
 
@@ -88,7 +91,7 @@ abstract class Cache
      */
     public static function factory($driver, $options = null, $ns = null)
     {
-        $class = __CLASS__ . NAMESPACE_SEPARATOR . ucfirst($driver);
+        $class = __NAMESPACE__ . NAMESPACE_SEPARATOR . ucfirst($driver);
         if(class_exists($class, true))
         {
             if($ns !== null)
@@ -173,39 +176,49 @@ abstract class Cache
 
 
     /**
-     * @param $key
-     * @param null $default
+     * get cache item
+     *
+     * @param string $key expects the cache item key
+     * @param null|mixed $default expects default return value
      * @return mixed
      */
     abstract public function get($key, $default = null);
 
 
     /**
-     * @param $key
-     * @param $value
-     * @param null $lifetime
+     * set a cache item
+     *
+     * @param string $key expects the cache item key
+     * @param mixed $value expects the value to cache
+     * @param null|int $lifetime expects optional lifetime of cache item where omit means never expire
      * @return mixed
      */
     abstract public function set($key, $value, $lifetime = null);
 
 
     /**
-     * @param $key
-     * @return mixed
+     * checks if a cache item exists
+     *
+     * @param string $key expects the cache item key
+     * @return bool
      */
     abstract public function has($key);
 
 
     /**
-     * @param $key
-     * @return mixed
+     * forget/remove a cache item
+     *
+     * @param string $key expects the cache item key
+     * @return bool
      */
     abstract public function forget($key);
 
 
     /**
-     * @param bool $expired
-     * @return mixed
+     * purge or clear cache store
+     *
+     * @param bool $expired expects boolean flag whether to remove only expired items or all
+     * @return bool
      */
     abstract public function purge($expired = true);
 

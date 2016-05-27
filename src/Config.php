@@ -33,11 +33,16 @@ class Config
      */
     public function __construct($config)
     {
-        if(is_array($config) && array_key_exists(0, $config))
+        if(is_array($config))
         {
-            foreach($config as $c)
+            if(array_key_exists(0, $config))
             {
-                $this->_config = array_merge($this->_config, (array)$this->load($c, false));
+                foreach($config as $c)
+                {
+                    $this->_config = array_merge($this->_config, (array)$this->load($c, false));
+                }
+            }else{
+                $this->_config = $this->load($config, false);
             }
         }else{
             $this->_config = $this->load($config, false);
@@ -141,7 +146,7 @@ class Config
      */
     public static function load($file, $throw = true)
     {
-        if(preg_match('/\.phtml|\.php([0-9]{1,})?|\.inc$/i', (string)$file))
+        if(is_string($file) && preg_match('/\.phtml|\.php([0-9]{1,})?|\.inc$/i', $file))
         {
             if(is_file($file))
             {
@@ -225,6 +230,21 @@ class Config
             return setcooki_object_get(self::instance($ns)->_config, $key, setcooki_default($default));
         }
         return setcooki_default($default);
+    }
+
+
+    /**
+     * static shortcut for Setcooki\Wp\Config::has
+     *
+     * @since 1.1.3
+     * @param null|string $key expects the config key
+     * @param null|string $ns expects the optional namespace of the config store
+     * @return bool
+     * @throws Exception
+     */
+    public static function h($key = null, $ns = null)
+    {
+        return self::instance($ns)->has($ns, $key);
     }
 
 

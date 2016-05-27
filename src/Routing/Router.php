@@ -458,7 +458,7 @@ class Router
 			$i = 0;
 			foreach($route->route as $r)
 			{
-				if(method_exists('match', $route))
+				if(method_exists($route, 'match'))
 				{
 					$i += (int)$route->match();
 				}else{
@@ -753,6 +753,8 @@ class Router
 			$regex = '@'.trim(setcooki_regex_delimit($regex), ' %').'$@i';
 		}else if($regex[0] !== '%' && $regex[strlen($regex)-1] === '%'){
 			$regex = '@^'.trim(setcooki_regex_delimit($regex), ' %').'@i';
+		}else{
+			$regex = '@^'.setcooki_regex_delimit($regex).'$@i';
 		}
 		return $regex;
 	}

@@ -16,5 +16,5 @@ interface Initiable
      * @param Wp $wp expects instance of wp
      * @param mixed $options expects optional options
      */
-    public static function init(Wp &$wp, $options = null);
+    public static function init(Wp $wp, $options = null);
 }

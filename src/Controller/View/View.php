@@ -4,7 +4,7 @@ namespace Setcooki\Wp\Controller\View;
 
 use Setcooki\Wp\Traits\Cache;
 use Setcooki\Wp\Util\Params;
-use Setcooki\Wp\Controller;
+use Setcooki\Wp\Controller\Controller;
 use Setcooki\Wp\Template;
 use Setcooki\Wp\Exception;
 use Setcooki\Wp\Wp;
@@ -23,7 +23,7 @@ class View
      *
      * @var null|string|Template
      */
-    protected $_view = null;
+    public $view = null;
 
     /**
      * variable container contains all vars available for view
@@ -83,9 +83,9 @@ class View
     {
         if(!is_null($view))
         {
-            $this->_view = $view;
+            $this->view = $view;
         }
-        return $this->_view;
+        return $this->view;
     }
 
 
@@ -295,7 +295,9 @@ class View
                 //do nothing
             }else{
                 ob_start();
-                $view->render(null, $vars)->flush();
+                $view->add($vars);
+                $view->render();
+                $view->flush(true);
                 $view = ob_get_clean();
                 if($cache >= 0)
                 {

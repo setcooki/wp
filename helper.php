@@ -195,20 +195,16 @@ function setcooki_object_isset($object, $key = null, $strict = false)
  * convert array to std object
  *
  * @param array|mixed $array the array to convert
+ * @param mixed $default expects default return value
  * @return object|mixed
  */
-function setcooki_array_to_object($array)
+function setcooki_array_to_object($array, $default = null)
 {
-    if(is_array($array))
+    if(($array = json_encode($array)) !== false)
     {
-        if(array_keys($array) === range(0, count($array) - 1))
-        {
-            return (array)array_map(__FUNCTION__, $array);
-        }else{
-            return (object)array_map(__FUNCTION__, $array);
-        }
+        return json_decode($array, false);
     }else{
-        return $array;
+        return setcooki_default($default);
     }
 }
 
@@ -217,20 +213,17 @@ function setcooki_array_to_object($array)
  * convert std object to array
  *
  * @param object|mixed $object expects object to convert
+ * @param mixed $default expects default return value
  * @return array|mixed
  */
-function setcooki_object_to_array($object)
+function setcooki_object_to_array($object, $default = null)
 {
-    if(is_object($object))
+    if(($object = json_encode($object)) !== false)
     {
-        $value = get_object_vars($object);
-    }
-    if(is_array($object))
-    {
-   	    return array_map(__FUNCTION__, $object);
+        return json_decode($object, true);
     }else{
-   		return $object;
-   	}
+        return setcooki_default($default);
+    }
 }
 
 
@@ -273,11 +266,11 @@ function setcooki_is_value($value = null)
  */
 function setcooki_default($value)
 {
-    if(is_callable($value) || (is_string($value) && function_exists($value)))
+    if($value instanceof Exception)
     {
-        return call_user_func($value);
-    }else if($value instanceof Exception) {
         throw $value;
+    }else if(is_callable($value) || (is_string($value) && function_exists($value))){
+        return call_user_func($value);
     }else if($value === 'exit'){
         exit(0);
     }
@@ -624,4 +617,42 @@ function setcooki_str_like($string, $like)
         $like = '@^'.trim(setcooki_regex_delimit($like), ' %').'$@i';
     }
     return (bool)preg_match($like, $string);
+}
+
+
+/**
+ * create a wordpress style nonce value
+ *
+ * @since 1.1.3
+ * @return string
+ */
+function setcooki_nonce()
+{
+    return wp_create_nonce(substr(substr("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", mt_rand(0 ,50), 1) . substr(md5(time()), 1), 0, 10));
+}
+
+
+/**
+ * more flexible implementation of php´s basename function. accepts file extension suffix as wildcard ".*"
+ *
+ * @since 1.1.3
+ * @param string $path expects the path
+ * @param null|string $suffix expects the optional file extension suffix to remove
+ * @return string
+ */
+function setcooki_basename($path, $suffix = null)
+{
+    $path = basename($path);
+    if(!is_null($suffix))
+    {
+        if($suffix === '.*')
+        {
+            $path = substr($path, 0, strripos($path, '.'));
+        }else if($suffix === '*.*'){
+            $path = substr($path, 0, stripos($path, '.'));
+        }else{
+            $path = basename($path, $suffix);
+        }
+    }
+    return $path;
 }

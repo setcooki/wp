@@ -26,10 +26,20 @@ abstract class Plugin extends Wp
      */
     protected function __construct($options = null)
     {
+        $self = $this;
+        $plugin = setcooki_path('plugin');
+        $plugin = $plugin . DIRECTORY_SEPARATOR . basename($plugin) . PHP_EXT;
+
         setcooki_init_options($options, $this);
-        register_activation_hook(__FILE__, array($this, '_activate'));
-        register_deactivation_hook(__FILE__, array($this, '_deactivate'));
-        register_uninstall_hook(__FILE__, array($this, '_uninstall'));
+        register_activation_hook($plugin, function() use ($self)
+        {
+            $self->_activate();
+        });
+        register_deactivation_hook($plugin, function() use ($self)
+        {
+            $self->_deactivate();
+        });
+        register_uninstall_hook($plugin, array(__CLASS__, '_uninstall'));
 
         parent::__construct();
     }
@@ -143,7 +153,7 @@ abstract class Plugin extends Wp
      * @return void
      * @throws Exception
      */
-    protected function _uninstall()
+    protected static function _uninstall()
     {
         if(!current_user_can('activate_plugins'))
         {
@@ -153,7 +163,14 @@ abstract class Plugin extends Wp
         {
             return;
         }
-        $this->uninstall();
+        if(self::hasInstance(get_current_blog_id()))
+        {
+            self::instance(get_current_blog_id())->uninstall();
+        }else if(($wp = parent::wp()) !== null){
+            $wp->uninstall();
+        }else{
+            throw new Exception('unable to get plugin instance for uninstall');
+        }
     }
 
 

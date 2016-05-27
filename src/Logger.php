@@ -2,11 +2,13 @@
 
 namespace Setcooki\Wp;
 
+use Setcooki\Wp\Interfaces\Logable;
+
 /**
  * Class Logger
  * @package Setcooki\Wp
  */
-class Logger
+class Logger implements Logable
 {
     const EMERGENCY         = LOG_EMERG;
     const ALERT             = LOG_ALERT;
@@ -17,6 +19,7 @@ class Logger
     const INFO              = LOG_NOTICE;
     const DEBUG             = LOG_DEBUG;
 
+    const LOG_DIR           = 'LOG_DIR';
     const LOG_LEVEL         = 'LOG_LEVEL';
     const EXTENSION         = 'EXTENSION';
     const FILE_NAME         = 'FILE_NAME';
@@ -81,46 +84,47 @@ class Logger
 
 
     /**
-     * class constructor expects a log dir and optional class options
+     * class constructor expects optional class options
      *
-     * @param string $dir expects a log directory path
      * @param null|array $options optional options
      * @throws Exception
      */
-    protected function __construct($dir, $options = null)
+    public function __construct($options = null)
     {
         setcooki_init_options($options, $this);
-        $this->_dir = rtrim($dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-        if(!file_exists($this->_dir))
+        if(setcooki_has_option(self::LOG_DIR, $this))
         {
-            mkdir($this->_dir, setcooki_get_option(self::PERMISSION, $this), true);
-        }
-        if(is_writable($this->_dir))
-        {
-            if(setcooki_has_option(self::FILE_NAME, $this, true))
+            $this->_dir = rtrim(setcooki_get_option(self::LOG_DIR, $this), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+            if(!file_exists($this->_dir))
             {
-                $name = trim(setcooki_get_option(self::FILE_NAME, $this));
-            }else{
-                $name = strftime('%Y-%m-%d', time());
+                mkdir($this->_dir, setcooki_get_option(self::PERMISSION, $this), true);
             }
-            $this->file = $this->_dir . $name . '.' . trim(setcooki_get_option(self::EXTENSION, $this), ' .');
-        }else{
-            throw new Exception(setcooki_sprintf("log directory: %s is not writable", $this->_dir));
+            if(is_writable($this->_dir))
+            {
+                if(setcooki_has_option(self::FILE_NAME, $this, true))
+                {
+                    $name = trim(setcooki_get_option(self::FILE_NAME, $this));
+                }else{
+                    $name = strftime('%Y-%m-%d', time());
+                }
+                $this->file = $this->_dir . $name . '.' . trim(setcooki_get_option(self::EXTENSION, $this), ' .');
+            }else{
+                throw new Exception(setcooki_sprintf("log directory: %s is not writable", $this->_dir));
+            }
         }
     }
 
 
     /**
-     * shortcut function for Setcooki\Wp\Logger::instance
+     * shortcut function to create a logger instance
      *
      * @see Setcooki\Wp\Logger::instance
-     * @param string $dir expects a log directory path
      * @param null|array $options optional options
      * @return null|Logger
      */
-    public static function create($dir = null, $options = null)
+    public static function create($options = null)
     {
-        return self::instance($dir, $options);
+        return new self($options);
     }
 
 
@@ -128,15 +132,14 @@ class Logger
      * static singleton setter/getter function
      *
      * @see Setcooki\Wp\Logger::__construct
-     * @param string $dir expects a log directory path
      * @param null|array $options optional options
      * @return null|Logger
      */
-    public static function instance($dir = null, $options = null)
+    public static function instance($options = null)
     {
         if(self::$_instance === null)
         {
-            self::$_instance = new self($dir, $options);
+            self::$_instance = new self($options);
         }
         return self::$_instance;
     }
@@ -271,14 +274,15 @@ class Logger
      * log level as defined by php´s LOG_ constants. the third argument can be an optional array with key => value pairs
      * for extra logging
      *
-     * @param string|mixed|Exception $object expects a log object
-     * @param null|int $level expects the log level
-     * @param null|array $args expects a optional argument array
+     * @param int|string $level expects the log level
+     * @param string|mixed|Exception $message expects a log message
+     * @param null|array $context expects a optional argument array
      * @return null
      * @throws Exception
      */
-    public function log($object, $level = null, $args = null)
+    public function log($level, $message, array $context = array())
     {
+        $object = $message;
         $levels = setcooki_get_option(self::LOG_LEVEL, $this);
 
         if($object instanceof \ErrorException)
@@ -309,11 +313,14 @@ class Logger
             return;
         }
 
-        if(!@is_resource($this->handle))
+        if(!is_null($this->file))
         {
-            if(($this->handle = fopen($this->file, 'a')) === false)
+            if(!@is_resource($this->handle))
             {
-                throw new Exception(setcooki_sprintf('unable to create log file: %s', $this->file));
+                if(($this->handle = fopen($this->file, 'a')) === false)
+                {
+                    throw new Exception(setcooki_sprintf('unable to create log file: %s', $this->file));
+                }
             }
         }
 
@@ -329,10 +336,10 @@ class Logger
         $data .= " ";
         $data .= $message;
 
-        if(!empty($args))
+        if(!empty($context))
         {
             $tmp = array();
-            foreach((array)$args as $k => $v)
+            foreach((array)$context as $k => $v)
             {
                 if(is_numeric($k))
                 {
@@ -360,19 +367,16 @@ class Logger
 
         $data .= PHP_EOL;
 
-        if(setcooki_get_option(self::FLUSH, $this))
-        {
-            $this->_logs[trim(md5($data))] = $data;
-        }
+        $this->_logs[trim(md5($data))] = $data;
 
         //if in wp log mode log message to log file
-        if(isset($GLOBALS[SETCOOKI_NS][SETCOOKI_WP_LOG]) && $GLOBALS[SETCOOKI_NS][SETCOOKI_WP_LOG])
+        if(setcooki_conf(SETCOOKI_WP_LOG))
         {
             $this->write($data);
         }
 
         //if in wp debug mode return log message to be send to output stream
-        if(isset($GLOBALS[SETCOOKI_NS][SETCOOKI_WP_DEBUG]) && $GLOBALS[SETCOOKI_NS][SETCOOKI_WP_DEBUG])
+        if(setcooki_conf(SETCOOKI_WP_DEBUG))
         {
             return $data;
         }else{
@@ -382,20 +386,20 @@ class Logger
 
 
     /**
-     * static logger method assuming logger class has been initialized before and class instance is registered
+     * static logger method assuming logger class has been initialized as singleton
      *
      * @see Setcooki\Wp\Logger::log
-     * @param string|mixed|Exception $object expects a log object
-     * @param null|int $level expects the log level
-     * @param null|array $args expects a optional argument array
+     * @param int|string $level expects the log level
+     * @param string|mixed|Exception $message expects a log message
+     * @param null|array $context expects a optional argument array
      * @return null
      * @throws Exception
      */
-    public static function l($object, $level = null, $args = null)
+    public static function l($level, $message, array $context = array())
     {
         if(self::hasInstance())
         {
-            return self::instance()->log($object, $level, $args);
+            return self::instance()->log($level, $message, $context);
         }
         return '';
     }
@@ -439,6 +443,45 @@ class Logger
 
 
     /**
+     * reset logger and remove all log files if any written
+     *
+     * @since 1.1.3
+     * @return void
+     */
+    public function clear()
+    {
+        $this->reset();
+        if($this->_dir)
+        {
+            foreach((array)@glob(rtrim($this->_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . '*.' . setcooki_get_option(self::EXTENSION, $this), GLOB_ERR) as $file)
+            {
+                @unlink($file);
+            }
+        }
+    }
+
+
+    /**
+     * flush log messages to screen
+     *
+     * @since 1.1.3
+     * @return void
+     */
+    public function flush()
+    {
+        if(!empty($this->_logs))
+        {
+            if(strtolower(php_sapi_name()) === 'cli')
+            {
+                echo implode(PHP_EOL, $this->_logs);
+            }else{
+                echo '<pre>' . implode('', array_values($this->_logs)) . '</pre>';
+            }
+        }
+    }
+
+
+    /**
      * reset logger and flush logs to php output stream
      *
      * @return void
@@ -449,14 +492,9 @@ class Logger
         {
             @fclose($this->handle);
         }
-        if(!empty($this->_logs))
+        if(setcooki_get_option(self::FLUSH, $this))
         {
-            if(strtolower(php_sapi_name()) === 'cli')
-            {
-                echo implode(PHP_EOL, $this->_logs);
-            }else{
-                echo '<pre>' . implode('', array_values($this->_logs)) . '</pre>';
-            }
+            $this->flush();
         }
         unset($this->_logs);
         $this->_logs = array();
