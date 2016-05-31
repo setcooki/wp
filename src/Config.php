@@ -39,7 +39,7 @@ class Config
             {
                 foreach($config as $c)
                 {
-                    $this->_config = array_merge($this->_config, (array)$this->load($c, false));
+                    $this->_config = array_replace_recursive($this->_config, (array)$this->load($c, false));
                 }
             }else{
                 $this->_config = $this->load($config, false);
