@@ -26,28 +26,34 @@ class Exception extends \ErrorException
     /**
      * shortcut function to throw an exception
      *
-     * @param \Exception $e expects an exception
-     * @throws \Exception
+     * @param mixed $e expects an exception
+     * @throws \Throwable|\Exception
      */
-    public static function t(\Exception $e)
+    public static function t($e)
     {
-        throw $e;
+        if($e instanceof \Exception || $e instanceof \Throwable)
+        {
+            throw $e;
+        }
     }
 
 
     /**
      * custom exception handler logs uncaught exception to build in logger if logger is passed in second argument
      *
-     * @param \Exception $e expects an exception
+     * @param mixed $e expects an exception
      * @param null|Logable $logger expects optional logger
-     * @throws \Exception
+     * @throws \Throwable|\Exception
      */
-    public static function handler(\Exception $e, Logable $logger = null)
+    public static function handler($e, Logable $logger = null)
     {
         if(!is_null($logger))
         {
             $logger->log(LOG_ERR, $e);
         }
-        throw $e;
+        if($e instanceof \Exception || $e instanceof \Throwable)
+        {
+            throw $e;
+        }
     }
 }
