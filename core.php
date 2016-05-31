@@ -159,7 +159,7 @@ function setcooki_boot($config, $logger = null)
     }
     if(!empty($GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_EXCEPTION_HANDLER]) && (bool)$GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_EXCEPTION_HANDLER])
     {
-        set_exception_handler(function(\Exception $e) use ($wp)
+        set_exception_handler(function($e) use ($wp)
         {
             \Setcooki\Wp\Exception::handler($e, $wp[SETCOOKI_WP_LOGGER]);
         });
