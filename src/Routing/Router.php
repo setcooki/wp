@@ -595,7 +595,7 @@ class Router
 	 *
 	 * @param null|mixed $fallback expects a valid fallback value
 	 * @return mixed
-	 * @throws \Exception
+	 * @throws \Exception|\Throwable
 	 * @throws null
 	 */
 	public static function fail($fallback = null)
@@ -605,7 +605,7 @@ class Router
 			if($fallback instanceof Route)
 			{
 				return self::exec($fallback);
-			}else if($fallback instanceof \Exception){
+			}else if($fallback instanceof \Exception || $fallback instanceof \Throwable){
 				throw $fallback;
 			}else if(is_object($fallback) && $fallback instanceof \Closure){
 				return $fallback();
