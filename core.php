@@ -106,6 +106,13 @@ function setcooki_boot($config, $logger = null)
     {
         $wp = (array)$w + $wp;
     }
+    if(!empty($wp[SETCOOKI_WP_AUTOLOAD_DIRS]))
+    {
+        if(!defined('SETCOOKI_WP_AUTOLOAD') || (defined('SETCOOKI_WP_AUTOLOAD') && !(bool)constant('SETCOOKI_WP_AUTOLOAD')))
+        {
+            @spl_autoload_register(array('\Setcooki\Wp\Wp', 'autoload'), false);
+        }
+    }
     if(SETCOOKI_DEV)
     {
         $wp[SETCOOKI_WP_DEBUG] = true;
@@ -277,7 +284,7 @@ function setcooki_path($type = null, $relative = false, $url = false)
             }else{
                 foreach(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) as $bt)
                 {
-                    if(stripos($bt['file'], 'plugins' . DIRECTORY_SEPARATOR) !== false && preg_match('=^(.*(?:plugins)\/[^\/]{1,})\/=i', $bt['file'], $m))
+                    if(isset($bt['file']) && stripos($bt['file'], 'plugins' . DIRECTORY_SEPARATOR) !== false && preg_match('=^(.*(?:plugins)\/[^\/]{1,})\/=i', $bt['file'], $m))
                     {
                         $path = trim($m[1]);
                         break;
@@ -371,13 +378,13 @@ function setcooki_ns()
     $type = '';
     foreach(array_merge(array(array('file' => __FILE__)), debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS)) as $bt)
     {
-        if(($pos = stripos($bt['file'], 'plugins' . DIRECTORY_SEPARATOR)) !== false)
+        if(isset($bt['file']) && ($pos = stripos($bt['file'], 'plugins' . DIRECTORY_SEPARATOR)) !== false)
         {
             $ns = substr($bt['file'], $pos + 8, stripos(substr($bt['file'], $pos + 8), DIRECTORY_SEPARATOR));
             $type = 'plugin';
             break;
         }
-        if(($pos = stripos($bt['file'], 'themes' . DIRECTORY_SEPARATOR)) !== false)
+        if(isset($bt['file']) && ($pos = stripos($bt['file'], 'themes' . DIRECTORY_SEPARATOR)) !== false)
         {
             $ns = substr($bt['file'], $pos + 7, stripos(substr($bt['file'], $pos + 7), DIRECTORY_SEPARATOR));
             $type = 'theme';
