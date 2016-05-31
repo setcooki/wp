@@ -682,11 +682,11 @@ class Resolver
 	 *
 	 * @param mixed $return expects the return value from controller action
 	 * @return null|string
-	 * @throws \Exception
+	 * @throws \Exception|\Throwable
 	 */
 	protected function resolve($return)
 	{
-		if($return instanceof \Exception)
+		if($return instanceof \Exception || $return instanceof \Throwable)
 		{
 			throw $return;
 		}else if($return instanceof View){
