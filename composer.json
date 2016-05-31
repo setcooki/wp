@@ -21,7 +21,7 @@
     "vendor-dir": "lib/vendor"
   },
   "require": {
-    "php": ">=5.3.3"
+    "php": ">=5.4.4"
   },
   "autoload": {
     "psr-0": {

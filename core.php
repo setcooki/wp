@@ -267,7 +267,7 @@ function setcooki_base()
         }
         return false;
     };
-    foreach((array)debug_backtrace() as $d)
+    foreach((array)debug_backtrace(null, 15) as $d)
     {
         if(isset($d['object']) && ($b = $base($d['object'])) !== false)
         {
