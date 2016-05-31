@@ -241,6 +241,7 @@ function setcooki_import($class)
  * deep get base path by running through debug stack to find the theme/plugin base class that has been initialized at start
  * of plugin/theme. returns boolean false if no object with path var can be found
  *
+ * @since 1.1.4
  * @return mixed
  */
 function setcooki_base()
@@ -419,7 +420,7 @@ function setcooki_die($message, $hard = false)
 function setcooki_ns()
 {
     $ns = '';
-    $type = '';
+    $type = 'plugin';
     foreach(array_merge(array(array('file' => __FILE__)), debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS)) as $bt)
     {
         if(isset($bt['file']) && ($pos = stripos($bt['file'], 'plugins' . DIRECTORY_SEPARATOR)) !== false)
@@ -437,7 +438,7 @@ function setcooki_ns()
     }
     if(empty($ns))
     {
-        $ns = basename(setcooki_path($type));
+        $ns = basename((string)setcooki_path($type));
     }
     if(!empty($type) && !empty($ns))
     {
