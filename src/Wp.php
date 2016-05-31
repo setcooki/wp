@@ -189,35 +189,15 @@ abstract class Wp
     /**
      * static method to get base path of plugin/theme from anywhere. will only work if wp base class or extended
      * classes have been initialized prior to calling this functions or callee really resides in a wordpress theme/plugin.
-     * 3 passes are made to determine base path if framework does nit reside in theme/plugin folder.
+     * 3 passes are made to determine base path if framework does reside in theme/plugin folder.
      *
      * @experimental
+     * @see setcooki_base
      * @param string $path expects optional path addition
      * @return string
      */
     public static function b($path = '')
     {
-        //iterate through objects in backtrace to find base class which must be a subclass of 'Setcooki\Wp\Wp'
-        $b = function($base) use(&$b)
-        {
-            if(is_object($base))
-            {
-                foreach(get_object_vars($base) as $v)
-                {
-                    if(is_object($v))
-                    {
-                        if(is_subclass_of($v, 'Setcooki\Wp\Wp') && property_exists($v, 'base') && !empty($v->base))
-                        {
-                            return $v->base;
-                        }else{
-                            $b($v);
-                        }
-                    }
-                }
-            }
-            return false;
-        };
-
         if(preg_match('=^(.*(?:plugins|themes)\/[^\/]{1,})\/=i', __FILE__, $m))
         {
             return (!empty($path)) ? rtrim(trim($m[1]), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim(trim($m[1]), DIRECTORY_SEPARATOR);
@@ -232,16 +212,9 @@ abstract class Wp
                 }
             }
             //second pass (deep recursive object base check)
-            foreach((array)$debug as $d)
+            if(($b = setcooki_base()) !== false)
             {
-                if(array_key_exists('object', $d))
-                {
-                    $d = $b($d['object']);
-                    if(!empty($d))
-                    {
-                        return (!empty($path)) ? rtrim($d, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim($d, DIRECTORY_SEPARATOR);
-                    }
-                }
+                return (!empty($path)) ? rtrim($b, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim($b, DIRECTORY_SEPARATOR);
             }
             //third pass (fallback to file path)
             foreach((array)$debug as $d)
@@ -251,7 +224,6 @@ abstract class Wp
                     return (!empty($path)) ? rtrim(preg_replace('@(.*)((\/themes|\/plugins)\/([^\/]{1,}))(.*)$@i', '$1$2', $d['file']), ' ' . DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR .  ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim(preg_replace('@(.*)((\/themes|\/plugins)\/([^\/]{1,}))(.*)$@i', '$1$2', $d['file']), ' ' . DIRECTORY_SEPARATOR);
                 }
             }
-
             unset($b);
             return $path;
         }

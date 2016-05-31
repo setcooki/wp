@@ -238,6 +238,46 @@ function setcooki_import($class)
 
 
 /**
+ * deep get base path by running through debug stack to find the theme/plugin base class that has been initialized at start
+ * of plugin/theme. returns boolean false if no object with path var can be found
+ *
+ * @return mixed
+ */
+function setcooki_base()
+{
+    $base = function($b) use(&$base)
+    {
+        if(is_object($b))
+        {
+            foreach(get_object_vars($b) as $k =>  $v)
+            {
+                if(is_object($v))
+                {
+                    if(is_subclass_of($v, 'Setcooki\Wp\Wp') && property_exists($v, 'base') && !empty($v->base))
+                    {
+                        return $v->base;
+                    }else{
+                        $base($v);
+                    }
+                }else if($k === 'base' && !empty($v)) {
+                    return $v;
+                }
+            }
+        }
+        return false;
+    };
+    foreach((array)debug_backtrace() as $d)
+    {
+        if(isset($d['object']) && ($b = $base($d['object'])) !== false)
+        {
+            return $b;
+        }
+    }
+    return false;
+}
+
+
+/**
  * get the current path or uri by type which can be "root", "theme", "plugin". the path can be returned as absolute, relative
  * path or even as uri with site url prepended
  *
@@ -289,6 +329,10 @@ function setcooki_path($type = null, $relative = false, $url = false)
                         $path = trim($m[1]);
                         break;
                     }
+                }
+                if(empty($path))
+                {
+                    $path = (string)setcooki_base();
                 }
             }
             break;
