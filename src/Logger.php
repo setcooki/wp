@@ -289,7 +289,7 @@ class Logger implements Logable
         {
             $message = $object->getMessage() . ' in ' . $object->getFile() . ':' . $object->getLine();
             $level = (int)$object->getSeverity();
-        }else if($object instanceof \Exception){
+        }else if($object instanceof \Exception || $object instanceof \Throwable){
             $message = $object->getMessage() . ' in ' . $object->getFile() . ':' . $object->getLine();
             $level = self::ERROR;
         }else if(is_array($object) && array_key_exists(0, $object)){
