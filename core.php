@@ -4,7 +4,7 @@
  * set start init timestamp
  */
 define('SETCOOKI_WP_START', microtime(true));
-define('SETCOOKI_WP_PHP_VERSION', '5.3.3');
+define('SETCOOKI_WP_PHP_VERSION', '5.4.4');
 
 /**
  * define global config constants
