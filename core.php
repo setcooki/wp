@@ -3,8 +3,14 @@
 /**
  * set start init timestamp
  */
-define('SETCOOKI_WP_START', microtime(true));
-define('SETCOOKI_WP_PHP_VERSION', '5.4.4');
+if(!defined('SETCOOKI_WP_START'))
+{
+    define('SETCOOKI_WP_START', microtime(true));
+}
+if(!defined('SETCOOKI_WP_PHP_VERSION'))
+{
+    define('SETCOOKI_WP_PHP_VERSION', '5.4.4');
+}
 
 /**
  * define global config constants
@@ -17,13 +23,34 @@ if(!defined('SETCOOKI_DEV'))
 {
     define('SETCOOKI_DEV', false);
 }
-define('SETCOOKI_WP_LOG',                                   'LOG');
-define('SETCOOKI_WP_LOGGER',                                'LOGGER');
-define('SETCOOKI_WP_DEBUG',                                 'DEBUG');
-define('SETCOOKI_WP_CHARSET',                               'CHARSET');
-define('SETCOOKI_WP_ERROR_HANDLER',                         'ERROR_HANDLER');
-define('SETCOOKI_WP_EXCEPTION_HANDLER',                     'EXCEPTION_HANDLER');
-define('SETCOOKI_WP_AUTOLOAD_DIRS',                         'AUTOLOAD_DIRS');
+if(!defined('SETCOOKI_WP_LOG'))
+{
+    define('SETCOOKI_WP_LOG', 'LOG');
+}
+if(!defined('SETCOOKI_WP_LOGGER'))
+{
+    define('SETCOOKI_WP_LOGGER', 'LOGGER');
+}
+if(!defined('SETCOOKI_WP_DEBUG'))
+{
+    define('SETCOOKI_WP_DEBUG', 'DEBUG');
+}
+if(!defined('SETCOOKI_WP_CHARSET'))
+{
+    define('SETCOOKI_WP_CHARSET', 'CHARSET');
+}
+if(!defined('SETCOOKI_WP_ERROR_HANDLER'))
+{
+    define('SETCOOKI_WP_ERROR_HANDLER', 'ERROR_HANDLER');
+}
+if(!defined('SETCOOKI_WP_EXCEPTION_HANDLER'))
+{
+    define('SETCOOKI_WP_EXCEPTION_HANDLER', 'EXCEPTION_HANDLER');
+}
+if(!defined('SETCOOKI_WP_AUTOLOAD_DIRS'))
+{
+    define('SETCOOKI_WP_AUTOLOAD_DIRS', 'AUTOLOAD_DIRS');
+}
 
 /**
  * set global constants
@@ -69,8 +96,14 @@ if(function_exists('get_magic_quotes_gpc') && call_user_func('get_magic_quotes_g
  */
 require_once dirname(__FILE__) . '/wp.php';
 require_once dirname(__FILE__) . '/helper.php';
-require_once dirname(__FILE__) . '/src/Wp.php';
-require_once dirname(__FILE__) . '/src/Config.php';
+if(!class_exists('Setcooki\\Wp\\Wp'))
+{
+    require_once dirname(__FILE__) . '/src/Wp.php';
+}
+if(!class_exists('Setcooki\\Wp\\Config'))
+{
+    require_once dirname(__FILE__) . '/src/Config.php';
+}
 
 /**
  * register autoloader
@@ -81,123 +114,64 @@ if(defined('SETCOOKI_WP_AUTOLOAD') && (bool)constant('SETCOOKI_WP_AUTOLOAD'))
 }
 
 /**
- * init wp framework with config which can be one or multiple config files as array. the init function will registered
- * the config values and set global values in $GLOBALS namespace.
- *
- * @param string|array $config expects options config file(s) absolute path as single value or array
- * @param \Setcooki\Wp\Interfaces\Logable|mixed $logger expects optional logger instance
- * @return array
+ * core functions
  */
-function setcooki_boot($config, $logger = null)
+if(!function_exists('setcooki_boot'))
 {
-    $ns = setcooki_ns();
-    $wp = array
-    (
-        SETCOOKI_WP_LOG                 => false,
-        SETCOOKI_WP_LOGGER              => null,
-        SETCOOKI_WP_DEBUG               => false,
-        SETCOOKI_WP_CHARSET             => 'utf-8',
-        SETCOOKI_WP_ERROR_HANDLER       => true,
-        SETCOOKI_WP_EXCEPTION_HANDLER   => true,
-        SETCOOKI_WP_AUTOLOAD_DIRS       => null
-    );
-    $config = \Setcooki\Wp\Config::init($config, $ns);
-    if(($w = $config->get('wp', false)) !== false)
+    /**
+     * init wp framework with config which can be one or multiple config files as array. the init function will registered
+     * the config values and set global values in $GLOBALS namespace.
+     *
+     * @param string|array $config expects options config file(s) absolute path as single value or array
+     * @param \Setcooki\Wp\Interfaces\Logable|mixed $logger expects optional logger instance
+     * @return array
+     */
+    function setcooki_boot($config, $logger = null)
     {
-        $wp = (array)$w + $wp;
-    }
-    if(!empty($wp[SETCOOKI_WP_AUTOLOAD_DIRS]))
-    {
-        if(!defined('SETCOOKI_WP_AUTOLOAD') || (defined('SETCOOKI_WP_AUTOLOAD') && !(bool)constant('SETCOOKI_WP_AUTOLOAD')))
+        $ns = setcooki_ns();
+        $wp = array
+        (
+            SETCOOKI_WP_LOG                 => false,
+            SETCOOKI_WP_LOGGER              => null,
+            SETCOOKI_WP_DEBUG               => false,
+            SETCOOKI_WP_CHARSET             => 'utf-8',
+            SETCOOKI_WP_ERROR_HANDLER       => true,
+            SETCOOKI_WP_EXCEPTION_HANDLER   => true,
+            SETCOOKI_WP_AUTOLOAD_DIRS       => null
+        );
+        $config = \Setcooki\Wp\Config::init($config, $ns);
+        if(($w = $config->get('wp', false)) !== false)
         {
-            @spl_autoload_register(array('\Setcooki\Wp\Wp', 'autoload'), false);
+            $wp = (array)$w + $wp;
         }
-    }
-    if(SETCOOKI_DEV)
-    {
-        $wp[SETCOOKI_WP_DEBUG] = true;
-    }
-    if(defined('WP_DEBUG') && (bool)WP_DEBUG)
-    {
-        $wp[SETCOOKI_WP_DEBUG] = true;
-    }
-    if(defined('WP_DEBUG_LOG') && (bool)WP_DEBUG_LOG)
-    {
-        $wp[SETCOOKI_WP_LOG] = true;
-    }
-    if(!is_null($logger) && $logger instanceof \Setcooki\Wp\Interfaces\Logable)
-    {
-        $wp[SETCOOKI_WP_LOGGER] = $logger;
-    }
-    if(is_null($wp[SETCOOKI_WP_LOGGER]) && $wp[SETCOOKI_WP_DEBUG])
-    {
-        $wp[SETCOOKI_WP_LOGGER] = $logger = \Setcooki\Wp\Logger::create();
-    }
-    $config->set('wp', $wp);
-    if(!isset($GLOBALS[SETCOOKI_NS]))
-    {
-        $GLOBALS[SETCOOKI_NS] = array();
-    }
-    if(!isset($GLOBALS[SETCOOKI_NS][$ns]))
-    {
-        $GLOBALS[SETCOOKI_NS][$ns] = array();
-    }
-    foreach($wp as $k => $v)
-    {
-        $k = strtoupper(trim((string)$k));
-        if(!isset($GLOBALS[SETCOOKI_NS][$ns][$k]))
+        if(!empty($wp[SETCOOKI_WP_AUTOLOAD_DIRS]))
         {
-            $GLOBALS[SETCOOKI_NS][$ns][$k] = $v;
-        }
-    }
-    if(!empty($GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_ERROR_HANDLER]) && (bool)$GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_ERROR_HANDLER])
-    {
-        set_error_handler(function($no, $str, $file = null, $line = null, $context = null) use ($wp)
-        {
-            \Setcooki\Wp\Error::handler($no, $str, $file, $line, $context, $wp[SETCOOKI_WP_LOGGER]);
-        });
-    }
-    if(!empty($GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_EXCEPTION_HANDLER]) && (bool)$GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_EXCEPTION_HANDLER])
-    {
-        set_exception_handler(function($e) use ($wp)
-        {
-            \Setcooki\Wp\Exception::handler($e, $wp[SETCOOKI_WP_LOGGER]);
-        });
-    }
-    if(!empty($GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_DEBUG]) && (bool)$GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_DEBUG])
-    {
-        register_shutdown_function(function() use ($wp)
-        {
-            if(!empty($wp[SETCOOKI_WP_LOGGER]))
+            if(!defined('SETCOOKI_WP_AUTOLOAD') || (defined('SETCOOKI_WP_AUTOLOAD') && !(bool)constant('SETCOOKI_WP_AUTOLOAD')))
             {
-                $wp[SETCOOKI_WP_LOGGER]->flush();
+                @spl_autoload_register(array('\Setcooki\Wp\Wp', 'autoload'), false);
             }
-        });
-    }
-    return $GLOBALS[SETCOOKI_NS][$ns];
-}
-
-
-/**
- * setter/getter for global configs. setter if second argument is not _NIL_. if no argument is set will return complete
- * config object
- *
- * @param null|string $key expects the config value key
- * @param string|mixed $value expects the config value
- * @param null|mixed $default expects optional default return value
- * @return mixed
- * @throws Exception
- */
-function setcooki_conf($key = null, $value = '_NIL_', $default = null)
-{
-    $ns = setcooki_ns();
-    if(is_null($key) && $value === '_NIL_')
-    {
-        return (isset($GLOBALS[SETCOOKI_NS][$ns])) ? $GLOBALS[SETCOOKI_NS][$ns] : array();
-    }
-    $key = strtoupper(trim($key));
-    if($value !== '_NIL_')
-    {
+        }
+        if(SETCOOKI_DEV)
+        {
+            $wp[SETCOOKI_WP_DEBUG] = true;
+        }
+        if(defined('WP_DEBUG') && (bool)WP_DEBUG)
+        {
+            $wp[SETCOOKI_WP_DEBUG] = true;
+        }
+        if(defined('WP_DEBUG_LOG') && (bool)WP_DEBUG_LOG)
+        {
+            $wp[SETCOOKI_WP_LOG] = true;
+        }
+        if(!is_null($logger) && $logger instanceof \Setcooki\Wp\Interfaces\Logable)
+        {
+            $wp[SETCOOKI_WP_LOGGER] = $logger;
+        }
+        if(is_null($wp[SETCOOKI_WP_LOGGER]) && $wp[SETCOOKI_WP_DEBUG])
+        {
+            $wp[SETCOOKI_WP_LOGGER] = $logger = \Setcooki\Wp\Logger::create();
+        }
+        $config->set('wp', $wp);
         if(!isset($GLOBALS[SETCOOKI_NS]))
         {
             $GLOBALS[SETCOOKI_NS] = array();
@@ -206,15 +180,357 @@ function setcooki_conf($key = null, $value = '_NIL_', $default = null)
         {
             $GLOBALS[SETCOOKI_NS][$ns] = array();
         }
-        if(\Setcooki\Wp\Config::hasInstance($ns) && \Setcooki\Wp\Config::h("wp.$key", $ns))
+        foreach($wp as $k => $v)
         {
-            \Setcooki\Wp\Config::s("wp.$key", $value, $ns);
+            $k = strtoupper(trim((string)$k));
+            if(!isset($GLOBALS[SETCOOKI_NS][$ns][$k]))
+            {
+                $GLOBALS[SETCOOKI_NS][$ns][$k] = $v;
+            }
         }
-        return $GLOBALS[SETCOOKI_NS][$ns][$key] = $value;
-    }else{
-        if(isset($GLOBALS[SETCOOKI_NS][$ns]) && array_key_exists($key, $GLOBALS[SETCOOKI_NS][$ns]))
+        if(!empty($GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_ERROR_HANDLER]) && (bool)$GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_ERROR_HANDLER])
         {
-            return $GLOBALS[SETCOOKI_NS][$ns][$key];
+            set_error_handler(function($no, $str, $file = null, $line = null, $context = null) use ($wp)
+            {
+                \Setcooki\Wp\Error::handler($no, $str, $file, $line, $context, $wp[SETCOOKI_WP_LOGGER]);
+            });
+        }
+        if(!empty($GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_EXCEPTION_HANDLER]) && (bool)$GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_EXCEPTION_HANDLER])
+        {
+            set_exception_handler(function($e) use ($wp)
+            {
+                \Setcooki\Wp\Exception::handler($e, $wp[SETCOOKI_WP_LOGGER]);
+            });
+        }
+        if(!empty($GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_DEBUG]) && (bool)$GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_DEBUG])
+        {
+            register_shutdown_function(function() use ($wp)
+            {
+                if(!empty($wp[SETCOOKI_WP_LOGGER]))
+                {
+                    $wp[SETCOOKI_WP_LOGGER]->flush();
+                }
+            });
+        }
+        return $GLOBALS[SETCOOKI_NS][$ns];
+    }
+}
+
+
+if(!function_exists('setcooki_conf'))
+{
+    /**
+     * setter/getter for global configs. setter if second argument is not _NIL_. if no argument is set will return complete
+     * config object
+     *
+     * @param null|string $key expects the config value key
+     * @param string|mixed $value expects the config value
+     * @param null|mixed $default expects optional default return value
+     * @return mixed
+     * @throws Exception
+     */
+    function setcooki_conf($key = null, $value = '_NIL_', $default = null)
+    {
+        $ns = setcooki_ns();
+        if(is_null($key) && $value === '_NIL_')
+        {
+            return (isset($GLOBALS[SETCOOKI_NS][$ns])) ? $GLOBALS[SETCOOKI_NS][$ns] : array();
+        }
+        $key = strtoupper(trim($key));
+        if($value !== '_NIL_')
+        {
+            if(!isset($GLOBALS[SETCOOKI_NS]))
+            {
+                $GLOBALS[SETCOOKI_NS] = array();
+            }
+            if(!isset($GLOBALS[SETCOOKI_NS][$ns]))
+            {
+                $GLOBALS[SETCOOKI_NS][$ns] = array();
+            }
+            if(\Setcooki\Wp\Config::hasInstance($ns) && \Setcooki\Wp\Config::h("wp.$key", $ns))
+            {
+                \Setcooki\Wp\Config::s("wp.$key", $value, $ns);
+            }
+            return $GLOBALS[SETCOOKI_NS][$ns][$key] = $value;
+        }else{
+            if(isset($GLOBALS[SETCOOKI_NS][$ns]) && array_key_exists($key, $GLOBALS[SETCOOKI_NS][$ns]))
+            {
+                return $GLOBALS[SETCOOKI_NS][$ns][$key];
+            }else{
+                return setcooki_default($default);
+            }
+        }
+    }
+}
+
+
+if(!function_exists('setcooki_import'))
+{
+    /**
+     * imports a class be class name using a build in autoloader
+     *
+     * @param string $class expects the class name with ns or without
+     * @return void
+     */
+    function setcooki_import($class)
+    {
+        if(class_exists('Setcooki\Wp\Wp'))
+        {
+            Setcooki\Wp\Wp::autoload($class);
+        }
+    }
+}
+
+
+if(!function_exists('setcooki_base'))
+{
+    /**
+     * deep get base path by running through debug stack to find the theme/plugin base class that has been initialized at start
+     * of plugin/theme. returns boolean false if no object with path var can be found
+     *
+     * @since 1.1.4
+     * @param array $stack expects optional stack trace from debug_backtrace
+     * @return mixed
+     */
+    function setcooki_base($stack = null)
+    {
+        if(is_null($stack))
+        {
+            $stack = debug_backtrace(null, 15);
+        }
+        $base = static function($b) use(&$base)
+        {
+            if(is_object($b))
+            {
+                foreach(get_object_vars($b) as $k =>  $v)
+                {
+                    if(is_object($v))
+                    {
+                        if(is_subclass_of($v, 'Setcooki\Wp\Wp') && property_exists($v, 'base') && !empty($v->base))
+                        {
+                            return $v->base;
+                        }else{
+                            $base($v);
+                        }
+                    }else if($k === 'base' && !empty($v)){
+                        return $v;
+                    }
+                }
+            }
+            return false;
+        };
+        foreach((array)$stack as $d)
+        {
+            if(isset($d['object']) && ($b = $base($d['object'])) !== false)
+            {
+                return $b;
+            }
+        }
+        unset($stack);
+        return false;
+    }
+}
+
+
+if(!function_exists('setcooki_path'))
+{
+    /**
+     * get the current path or uri by type which can be "root", "theme", "plugin". the path can be returned as absolute, relative
+     * path or even as uri with site url prepended
+     *
+     * @param string|null $type expects the path to get which defaults to "root"
+     * @param bool $relative expects boolean true|false to either get path absolute or relative
+     * @param bool $url expects boolean true|false to either get the path as uri or path
+     * @return mixed|null|string
+     */
+    function setcooki_path($type = null, $relative = false, $url = false)
+    {
+        if($type === null)
+        {
+            $type = 'root';
+        }else{
+            $type = strtolower((string)$type);
+        }
+    
+        $path = null;
+    
+        if(defined('ABSPATH'))
+        {
+            $root = rtrim(ABSPATH, '/');
+        }else if(isset($_SERVER['DOCUMENT_ROOT']) && !empty($_SERVER['DOCUMENT_ROOT'])){
+            $root = rtrim($_SERVER['DOCUMENT_ROOT'], '/');
+        }else{
+            $root = realpath(rtrim(__DIR__, '/') . '/../../../../../../../');
+        }
+    
+        switch($type)
+        {
+            case 'root':
+                $path = $root;
+                break;
+            case 'theme':
+                $path = get_stylesheet_directory();
+                break;
+            case 'themes':
+                $path = (function_exists('get_theme_root')) ? get_theme_root() : ABSPATH . 'wp-content/themes';
+                break;
+            case 'plugin':
+                if(stripos(__FILE__, 'plugins' . DIRECTORY_SEPARATOR) !== false)
+                {
+                    $path = preg_replace('/(.*)\/(plugins)\/([^\/]{1,}).*/i', '$1/$2/$3', dirname(__FILE__));
+                }else{
+                    $debug = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 15);
+                    foreach((array)$debug as $bt)
+                    {
+                        if(isset($bt['file']) && stripos($bt['file'], 'plugins' . DIRECTORY_SEPARATOR) !== false && preg_match('=^(.*(?:plugins)\/[^\/]{1,})\/=i', $bt['file'], $m))
+                        {
+                            $path = trim($m[1]);
+                            break;
+                        }
+                    }
+                    if(empty($path))
+                    {
+                        $path = (string)setcooki_base($debug);
+                    }
+                    unset($debug);
+                }
+                break;
+            case 'plugins':
+                $path = (defined('WP_PLUGIN_DIR')) ? WP_PLUGIN_DIR : ABSPATH . 'wp-content/plugins';
+                break;
+            default;
+                return '';
+        }
+        $path = DIRECTORY_SEPARATOR . trim($path, ' ' . DIRECTORY_SEPARATOR);
+        if((bool)$relative)
+        {
+            if($type === 'plugin')
+            {
+                if(stripos($path, 'wp-content '. DIRECTORY_SEPARATOR . 'plugins') === false)
+                {
+                    $path = preg_replace('/(.*)\/(plugins)\/([^\/]{1,}).*/i', '$1/wp-content/$2/$3', $path);
+                }
+                $path =  preg_replace('/(.*)(\/wp-content.*)/i', '$2', $path);
+            }else{
+                $path = preg_replace('=^\/?'.addslashes($root).'=i', '', $path);
+            }
+            if((bool)$url)
+            {
+                if(function_exists('get_site_url'))
+                {
+                    $url = get_site_url();
+                }else if(strtolower(php_sapi_name()) !== 'cli'){
+                    $url = ((!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') || (int)$_SERVER['SERVER_PORT'] === 443) ? 'https://' : 'http://' . $_SERVER['SERVER_NAME'];
+                }else{
+                    $url = '';
+                }
+                return trim($url, DIRECTORY_SEPARATOR) . $path;
+            }else{
+                return $path;
+            }
+        }else{
+            return $path;
+        }
+    }
+}
+
+
+if(!function_exists('setcooki_die'))
+{
+    /**
+     * extension of php´s die() function that will try to log message in first argument before trying to die script which is
+     * only possible in != DEV mode which depends on SETCOOKI_DEV const to be != false. if not in dev mode than only if second
+     * argument hard is set to true will use wordpress wp_die() function to die script.
+     *
+     * @since 1.1.3
+     * @param mixed $message exepects die message
+     * @param bool $hard expects optional flag to die for real in != DEV mode
+     */
+    function setcooki_die($message, $hard = false)
+    {
+        if(SETCOOKI_DEV === false)
+        {
+            setcooki_log($message, LOG_ALERT);
+            if((bool)$hard)
+            {
+                wp_die($message);
+            }else{
+                //do nothing since rest of application should not be broken
+            }
+        }else{
+            $message = setcooki_log($message, LOG_ALERT);
+            if(php_sapi_name() === 'cli')
+            {
+                echo $message . PHP_EOL;
+                exit(1);
+            }else{
+                die($message);
+            }
+        }
+    }
+}
+
+
+if(!function_exists('setcooki_ns'))
+{
+    /**
+     * auto determines the ns identifier which is the plugin or theme folder name as framework instance id or ns. each use
+     * of setcooki/wo framework will thereby be a separate instance. to auto get the ns plugin or theme must be running from
+     * inside the /wp-content/plugins or /wp-content/themes folder otherwise plugin will fail silently
+     *
+     * @since 1.1.3
+     * @return string
+     */
+    function setcooki_ns()
+    {
+        $ns = '';
+        $type = 'plugin';
+        foreach(array_merge(array(array('file' => __FILE__)), debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS)) as $bt)
+        {
+            if(isset($bt['file']) && ($pos = stripos($bt['file'], 'plugins' . DIRECTORY_SEPARATOR)) !== false)
+            {
+                $ns = substr($bt['file'], $pos + 8, stripos(substr($bt['file'], $pos + 8), DIRECTORY_SEPARATOR));
+                $type = 'plugin';
+                break;
+            }
+            if(isset($bt['file']) && ($pos = stripos($bt['file'], 'themes' . DIRECTORY_SEPARATOR)) !== false)
+            {
+                $ns = substr($bt['file'], $pos + 7, stripos(substr($bt['file'], $pos + 7), DIRECTORY_SEPARATOR));
+                $type = 'theme';
+                break;
+            }
+        }
+        if(empty($ns))
+        {
+            $ns = basename((string)setcooki_path($type));
+        }
+        if(!empty($type) && !empty($ns))
+        {
+            return strtolower(trim((string)$ns));
+        }else{
+            setcooki_die('unable to get ns from installation - please make sure plugin or theme is running inside /wp-content');
+        }
+    }
+}
+
+
+if(!function_exists('setcooki_config'))
+{
+    /**
+     * getter for configs registered with Setcooki\Wp\Config class. see Setcooki\Wp\Config::get for more
+     *
+     * @see Setcooki\Wp\Config::get
+     * @param null|string $key expects a config key or path
+     * @param null|mixed $default expects optional return value
+     * @param null|string $ns expects the optional namespace prior set with config class
+     * @return mixed
+     * @throws Exception
+     */
+    function setcooki_config($key = null, $default = null, $ns = null)
+    {
+        if(class_exists('Setcooki\Wp\Config') && Setcooki\Wp\Config::hasInstance($ns))
+        {
+            return Setcooki\Wp\Config::g($key, $default, $ns);
         }else{
             return setcooki_default($default);
         }
@@ -222,323 +538,76 @@ function setcooki_conf($key = null, $value = '_NIL_', $default = null)
 }
 
 
-/**
- * imports a class be class name using a build in autoloader
- *
- * @param string $class expects the class name with ns or without
- * @return void
- */
-function setcooki_import($class)
+if(!function_exists('setcooki_option'))
 {
-    if(class_exists('Setcooki\Wp\Wp'))
+    /**
+     * wordpress option handling shortcut function to set/get option with option name with or without path "." syntax
+     *
+     * @see Setcooki\Wp\Option
+     * @param string $name expects option name
+     * @param mixed $value expects option value
+     * @param bool $default expects optional default return value for get
+     * @return bool|mixed
+     */
+    function setcooki_option($name, $value = '_NIL_', $default = false)
     {
-        Setcooki\Wp\Wp::autoload($class);
-    }
-}
-
-
-/**
- * deep get base path by running through debug stack to find the theme/plugin base class that has been initialized at start
- * of plugin/theme. returns boolean false if no object with path var can be found
- *
- * @since 1.1.4
- * @param array $stack expects optional stack trace from debug_backtrace
- * @return mixed
- */
-function setcooki_base($stack = null)
-{
-    if(is_null($stack))
-    {
-        $stack = debug_backtrace(null, 15);
-    }
-    $base = static function($b) use(&$base)
-    {
-        if(is_object($b))
+        if($value !== '_NIL_')
         {
-            foreach(get_object_vars($b) as $k =>  $v)
-            {
-                if(is_object($v))
-                {
-                    if(is_subclass_of($v, 'Setcooki\Wp\Wp') && property_exists($v, 'base') && !empty($v->base))
-                    {
-                        return $v->base;
-                    }else{
-                        $base($v);
-                    }
-                }else if($k === 'base' && !empty($v)){
-                    return $v;
-                }
-            }
-        }
-        return false;
-    };
-    foreach((array)$stack as $d)
-    {
-        if(isset($d['object']) && ($b = $base($d['object'])) !== false)
-        {
-            return $b;
-        }
-    }
-    unset($stack);
-    return false;
-}
-
-
-/**
- * get the current path or uri by type which can be "root", "theme", "plugin". the path can be returned as absolute, relative
- * path or even as uri with site url prepended
- *
- * @param string|null $type expects the path to get which defaults to "root"
- * @param bool $relative expects boolean true|false to either get path absolute or relative
- * @param bool $url expects boolean true|false to either get the path as uri or path
- * @return mixed|null|string
- */
-function setcooki_path($type = null, $relative = false, $url = false)
-{
-    if($type === null)
-    {
-        $type = 'root';
-    }else{
-        $type = strtolower((string)$type);
-    }
-
-    $path = null;
-
-    if(defined('ABSPATH'))
-    {
-        $root = rtrim(ABSPATH, '/');
-    }else if(isset($_SERVER['DOCUMENT_ROOT']) && !empty($_SERVER['DOCUMENT_ROOT'])){
-        $root = rtrim($_SERVER['DOCUMENT_ROOT'], '/');
-    }else{
-        $root = realpath(rtrim(__DIR__, '/') . '/../../../../../../../');
-    }
-
-    switch($type)
-    {
-        case 'root':
-            $path = $root;
-            break;
-        case 'theme':
-            $path = get_stylesheet_directory();
-            break;
-        case 'themes':
-            $path = (function_exists('get_theme_root')) ? get_theme_root() : ABSPATH . 'wp-content/themes';
-            break;
-        case 'plugin':
-            if(stripos(__FILE__, 'plugins' . DIRECTORY_SEPARATOR) !== false)
-            {
-                $path = preg_replace('/(.*)\/(plugins)\/([^\/]{1,}).*/i', '$1/$2/$3', dirname(__FILE__));
-            }else{
-                $debug = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 15);
-                foreach((array)$debug as $bt)
-                {
-                    if(isset($bt['file']) && stripos($bt['file'], 'plugins' . DIRECTORY_SEPARATOR) !== false && preg_match('=^(.*(?:plugins)\/[^\/]{1,})\/=i', $bt['file'], $m))
-                    {
-                        $path = trim($m[1]);
-                        break;
-                    }
-                }
-                if(empty($path))
-                {
-                    $path = (string)setcooki_base($debug);
-                }
-                unset($debug);
-            }
-            break;
-        case 'plugins':
-            $path = (defined('WP_PLUGIN_DIR')) ? WP_PLUGIN_DIR : ABSPATH . 'wp-content/plugins';
-            break;
-        default;
-            return '';
-    }
-    $path = DIRECTORY_SEPARATOR . trim($path, ' ' . DIRECTORY_SEPARATOR);
-    if((bool)$relative)
-    {
-        if($type === 'plugin')
-        {
-            if(stripos($path, 'wp-content '. DIRECTORY_SEPARATOR . 'plugins') === false)
-            {
-                $path = preg_replace('/(.*)\/(plugins)\/([^\/]{1,}).*/i', '$1/wp-content/$2/$3', $path);
-            }
-            $path =  preg_replace('/(.*)(\/wp-content.*)/i', '$2', $path);
+            return Setcooki\Wp\Option::save($name, $value);
         }else{
-            $path = preg_replace('=^\/?'.addslashes($root).'=i', '', $path);
+            return Setcooki\Wp\Option::get($name, $default);
         }
-        if((bool)$url)
+    }
+}
+
+
+if(!function_exists('setcooki_wp'))
+{
+    /**
+     * get the setcooki plugin/theme base class instance from any context by calling this function. as long as this function
+     * is called inside plugin or theme directory will return the correct instance governing the whole theme or plugin. if you
+     * pass a instance id in first argument will try to lookup existing instance initialized under the id value which is a
+     * combination of "($type):{$name} e.g. "plugin:foo" which is the id of a plugin named foo where foo is the folder name
+     * of the plugin/theme! if no instance is found will throw exception which can be overriden by passing any other default
+     * value in second argument
+     *
+     * @see \Setcooki\Wp\Wp::wp
+     * @param null|string $id expects optional instance id hint
+     * @param null|mixed $default expects optional default value
+     * @return \Setcooki\Wp\Wp
+     * @throws Exception
+     */
+    function setcooki_wp($id = null, $default = null)
+    {
+        if(is_null($default))
         {
-            if(function_exists('get_site_url'))
-            {
-                $url = get_site_url();
-            }else if(strtolower(php_sapi_name()) !== 'cli'){
-                $url = ((!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') || (int)$_SERVER['SERVER_PORT'] === 443) ? 'https://' : 'http://' . $_SERVER['SERVER_NAME'];
-            }else{
-                $url = '';
-            }
-            return trim($url, DIRECTORY_SEPARATOR) . $path;
+            $default = new \Exception("sorry! no clue who i am!");
+        }
+        if(($id = \Setcooki\Wp\Wp::wp($id, false)) !== false)
+        {
+            return $id;
         }else{
-            return $path;
-        }
-    }else{
-        return $path;
-    }
-}
-
-
-/**
- * extension of php´s die() function that will try to log message in first argument before trying to die script which is
- * only possible in != DEV mode which depends on SETCOOKI_DEV const to be != false. if not in dev mode than only if second
- * argument hard is set to true will use wordpress wp_die() function to die script.
- *
- * @since 1.1.3
- * @param mixed $message exepects die message
- * @param bool $hard expects optional flag to die for real in != DEV mode
- */
-function setcooki_die($message, $hard = false)
-{
-    if(SETCOOKI_DEV === false)
-    {
-        setcooki_log($message, LOG_ALERT);
-        if((bool)$hard)
-        {
-            wp_die($message);
-        }else{
-            //do nothing since rest of application should not be broken
-        }
-    }else{
-        $message = setcooki_log($message, LOG_ALERT);
-        if(php_sapi_name() === 'cli')
-        {
-            echo $message . PHP_EOL;
-            exit(1);
-        }else{
-            die($message);
+            return setcooki_default($default);
         }
     }
 }
 
 
-/**
- * auto determines the ns identifier which is the plugin or theme folder name as framework instance id or ns. each use
- * of setcooki/wo framework will thereby be a separate instance. to auto get the ns plugin or theme must be running from
- * inside the /wp-content/plugins or /wp-content/themes folder otherwise plugin will fail silently
- *
- * @since 1.1.3
- * @return string
- */
-function setcooki_ns()
+if(!function_exists('setcooki_store'))
 {
-    $ns = '';
-    $type = 'plugin';
-    foreach(array_merge(array(array('file' => __FILE__)), debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS)) as $bt)
+    /**
+     * setter/getter shortcut method for \Setcooki\Wp\Wp::store function
+     *
+     * @see \Setcooki\Wp\Wp::store
+     * @param null|string $name expects the object name in setter/getter mode
+     * @param null|mixed $value expects the value to set in setter mode
+     * @param null|mixed $default expects the default return value in getter mode
+     * @return mixed
+     */
+    function setcooki_store($name, $value = null, $default = null)
     {
-        if(isset($bt['file']) && ($pos = stripos($bt['file'], 'plugins' . DIRECTORY_SEPARATOR)) !== false)
-        {
-            $ns = substr($bt['file'], $pos + 8, stripos(substr($bt['file'], $pos + 8), DIRECTORY_SEPARATOR));
-            $type = 'plugin';
-            break;
-        }
-        if(isset($bt['file']) && ($pos = stripos($bt['file'], 'themes' . DIRECTORY_SEPARATOR)) !== false)
-        {
-            $ns = substr($bt['file'], $pos + 7, stripos(substr($bt['file'], $pos + 7), DIRECTORY_SEPARATOR));
-            $type = 'theme';
-            break;
-        }
+        return setcooki_wp(null, $default)->store($name, $value, $default);
     }
-    if(empty($ns))
-    {
-        $ns = basename((string)setcooki_path($type));
-    }
-    if(!empty($type) && !empty($ns))
-    {
-        return strtolower(trim((string)$ns));
-    }else{
-        setcooki_die('unable to get ns from installation - please make sure plugin or theme is running inside /wp-content');
-    }
-}
-
-
-/**
- * getter for configs registered with Setcooki\Wp\Config class. see Setcooki\Wp\Config::get for more
- *
- * @see Setcooki\Wp\Config::get
- * @param null|string $key expects a config key or path
- * @param null|mixed $default expects optional return value
- * @param null|string $ns expects the optional namespace prior set with config class
- * @return mixed
- * @throws Exception
- */
-function setcooki_config($key = null, $default = null, $ns = null)
-{
-    if(class_exists('Setcooki\Wp\Config') && Setcooki\Wp\Config::hasInstance($ns))
-    {
-        return Setcooki\Wp\Config::g($key, $default, $ns);
-    }else{
-        return setcooki_default($default);
-    }
-}
-
-
-/**
- * wordpress option handling shortcut function to set/get option with option name with or without path "." syntax
- *
- * @see Setcooki\Wp\Option
- * @param string $name expects option name
- * @param mixed $value expects option value
- * @param bool $default expects optional default return value for get
- * @return bool|mixed
- */
-function setcooki_option($name, $value = '_NIL_', $default = false)
-{
-    if($value !== '_NIL_')
-    {
-        return Setcooki\Wp\Option::save($name, $value);
-    }else{
-        return Setcooki\Wp\Option::get($name, $default);
-    }
-}
-
-
-/**
- * get the setcooki plugin/theme base class instance from any context by calling this function. as long as this function
- * is called inside plugin or theme directory will return the correct instance governing the whole theme or plugin. if you
- * pass a instance id in first argument will try to lookup existing instance initialized under the id value which is a
- * combination of "($type):{$name} e.g. "plugin:foo" which is the id of a plugin named foo where foo is the folder name
- * of the plugin/theme! if no instance is found will throw exception which can be overriden by passing any other default
- * value in second argument
- *
- * @see \Setcooki\Wp\Wp::wp
- * @param null|string $id expects optional instance id hint
- * @param null|mixed $default expects optional default value
- * @return \Setcooki\Wp\Wp
- * @throws Exception
- */
-function setcooki_wp($id = null, $default = null)
-{
-    if(is_null($default))
-    {
-        $default = new \Exception("sorry! no clue who i am!");
-    }
-    if(($id = \Setcooki\Wp\Wp::wp($id, false)) !== false)
-    {
-        return $id;
-    }else{
-        return setcooki_default($default);
-    }
-}
-
-
-/**
- * setter/getter shortcut method for \Setcooki\Wp\Wp::store function
- *
- * @see \Setcooki\Wp\Wp::store
- * @param null|string $name expects the object name in setter/getter mode
- * @param null|mixed $value expects the value to set in setter mode
- * @param null|mixed $default expects the default return value in getter mode
- * @return mixed
- */
-function setcooki_store($name, $value = null, $default = null)
-{
-    return setcooki_wp(null, $default)->store($name, $value, $default);
 }
 
 

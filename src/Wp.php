@@ -189,7 +189,8 @@ abstract class Wp
     /**
      * static method to get base path of plugin/theme from anywhere. will only work if wp base class or extended
      * classes have been initialized prior to calling this functions or callee really resides in a wordpress theme/plugin.
-     * 3 passes are made to determine base path if framework does reside in theme/plugin folder.
+     * several passes are made to determine base path starting from iterating stack trace for initialized theme/plugin
+     * instance and with last pass assuming framework installed inside theme or plugin folder
      *
      * @experimental
      * @see setcooki_base
@@ -198,36 +199,36 @@ abstract class Wp
      */
     public static function b($path = '')
     {
+        $debug = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT | DEBUG_BACKTRACE_IGNORE_ARGS);
+        //first pass (object base check)
+        foreach((array)$debug as $d)
+        {
+            if(array_key_exists('object', $d) && is_subclass_of($d['object'], 'Setcooki\Wp\Wp') && property_exists($d['object'], 'base') && !empty($d['object']->base))
+            {
+                return (!empty($path)) ? rtrim($d['object']->base, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim($d['object']->base, DIRECTORY_SEPARATOR);
+            }
+        }
+        //second pass (deep recursive object base check)
+        if(($b = setcooki_base($debug)) !== false)
+        {
+            return (!empty($path)) ? rtrim($b, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim($b, DIRECTORY_SEPARATOR);
+        }
+        //third pass (fallback to file path)
+        foreach((array)$debug as $d)
+        {
+            if(isset($d['file']) && (stripos($d['file'], '/themes/') !== false || stripos($d['file'], '/plugins/') !== false))
+            {
+                return (!empty($path)) ? rtrim(preg_replace('@(.*)((\/themes|\/plugins)\/([^\/]{1,}))(.*)$@i', '$1$2', $d['file']), ' ' . DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR .  ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim(preg_replace('@(.*)((\/themes|\/plugins)\/([^\/]{1,}))(.*)$@i', '$1$2', $d['file']), ' ' . DIRECTORY_SEPARATOR);
+            }
+        }
+        //last pass (is framework installed inside plugin or theme)
         if(preg_match('=^(.*(?:plugins|themes)\/[^\/]{1,})\/=i', __FILE__, $m))
         {
             return (!empty($path)) ? rtrim(trim($m[1]), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim(trim($m[1]), DIRECTORY_SEPARATOR);
-        }else{
-            $debug = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT | DEBUG_BACKTRACE_IGNORE_ARGS);
-            //first pass (object base check)
-            foreach((array)$debug as $d)
-            {
-                if(array_key_exists('object', $d) && is_subclass_of($d['object'], 'Setcooki\Wp\Wp') && property_exists($d['object'], 'base') && !empty($d['object']->base))
-                {
-                    return (!empty($path)) ? rtrim($d['object']->base, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim($d['object']->base, DIRECTORY_SEPARATOR);
-                }
-            }
-            //second pass (deep recursive object base check)
-            if(($b = setcooki_base($debug)) !== false)
-            {
-                return (!empty($path)) ? rtrim($b, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim($b, DIRECTORY_SEPARATOR);
-            }
-            //third pass (fallback to file path)
-            foreach((array)$debug as $d)
-            {
-                if(isset($d['file']) && (stripos($d['file'], '/themes/') !== false || stripos($d['file'], '/plugins/') !== false))
-                {
-                    return (!empty($path)) ? rtrim(preg_replace('@(.*)((\/themes|\/plugins)\/([^\/]{1,}))(.*)$@i', '$1$2', $d['file']), ' ' . DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR .  ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim(preg_replace('@(.*)((\/themes|\/plugins)\/([^\/]{1,}))(.*)$@i', '$1$2', $d['file']), ' ' . DIRECTORY_SEPARATOR);
-                }
-            }
-            unset($b);
-            unset($debug);
-            return $path;
         }
+        unset($b);
+        unset($debug);
+        return $path;
     }
 
 
