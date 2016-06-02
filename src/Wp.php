@@ -219,7 +219,7 @@ abstract class Wp
             //third pass (fallback to file path)
             foreach((array)$debug as $d)
             {
-                if(stripos($d['file'], '/themes/') !== false || stripos($d['file'], '/plugins/') !== false)
+                if(isset($d['file']) && (stripos($d['file'], '/themes/') !== false || stripos($d['file'], '/plugins/') !== false))
                 {
                     return (!empty($path)) ? rtrim(preg_replace('@(.*)((\/themes|\/plugins)\/([^\/]{1,}))(.*)$@i', '$1$2', $d['file']), ' ' . DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR .  ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim(preg_replace('@(.*)((\/themes|\/plugins)\/([^\/]{1,}))(.*)$@i', '$1$2', $d['file']), ' ' . DIRECTORY_SEPARATOR);
                 }
