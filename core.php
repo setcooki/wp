@@ -242,11 +242,16 @@ function setcooki_import($class)
  * of plugin/theme. returns boolean false if no object with path var can be found
  *
  * @since 1.1.4
+ * @param array $stack expects optional stack trace from debug_backtrace
  * @return mixed
  */
-function setcooki_base()
+function setcooki_base($stack = null)
 {
-    $base = function($b) use(&$base)
+    if(is_null($stack))
+    {
+        $stack = debug_backtrace(null, 15);
+    }
+    $base = static function($b) use(&$base)
     {
         if(is_object($b))
         {
@@ -260,20 +265,21 @@ function setcooki_base()
                     }else{
                         $base($v);
                     }
-                }else if($k === 'base' && !empty($v)) {
+                }else if($k === 'base' && !empty($v)){
                     return $v;
                 }
             }
         }
         return false;
     };
-    foreach((array)debug_backtrace(null, 15) as $d)
+    foreach((array)$stack as $d)
     {
         if(isset($d['object']) && ($b = $base($d['object'])) !== false)
         {
             return $b;
         }
     }
+    unset($stack);
     return false;
 }
 
@@ -323,7 +329,8 @@ function setcooki_path($type = null, $relative = false, $url = false)
             {
                 $path = preg_replace('/(.*)\/(plugins)\/([^\/]{1,}).*/i', '$1/$2/$3', dirname(__FILE__));
             }else{
-                foreach(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) as $bt)
+                $debug = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 15);
+                foreach((array)$debug as $bt)
                 {
                     if(isset($bt['file']) && stripos($bt['file'], 'plugins' . DIRECTORY_SEPARATOR) !== false && preg_match('=^(.*(?:plugins)\/[^\/]{1,})\/=i', $bt['file'], $m))
                     {
@@ -333,8 +340,9 @@ function setcooki_path($type = null, $relative = false, $url = false)
                 }
                 if(empty($path))
                 {
-                    $path = (string)setcooki_base();
+                    $path = (string)setcooki_base($debug);
                 }
+                unset($debug);
             }
             break;
         case 'plugins':

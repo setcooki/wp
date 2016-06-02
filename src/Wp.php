@@ -212,7 +212,7 @@ abstract class Wp
                 }
             }
             //second pass (deep recursive object base check)
-            if(($b = setcooki_base()) !== false)
+            if(($b = setcooki_base($debug)) !== false)
             {
                 return (!empty($path)) ? rtrim($b, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim($b, DIRECTORY_SEPARATOR);
             }
@@ -225,6 +225,7 @@ abstract class Wp
                 }
             }
             unset($b);
+            unset($debug);
             return $path;
         }
     }
