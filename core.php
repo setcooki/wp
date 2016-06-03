@@ -346,15 +346,16 @@ if(!function_exists('setcooki_base'))
         {
             if(isset($d['file']) && isset($d['function']) && $d['function'] === 'setcooki_boot')
             {
-                return preg_replace('=.*\/(themes|plugins)\/([^\/]{1,})\/.*=i', '\\2', $d['file']);
+                return strtolower(preg_replace('=.*\/(themes|plugins)\/([^\/]{1,})\/.*=i', '\\2', $d['file']));
             }
         }
+
         //4) fourth pass check file path for theme/plugin folder
         foreach((array)$stack as $d)
         {
-            if(isset($d['file']) && (bool)preg_match('=.*\/(themes|plugins)\/.*=i', $d['file']))
+            if(isset($d['file']) && (bool)preg_match('=.*\/(themes|plugins)\/([^\/]{1,})\/.*=i', $d['file'], $m))
             {
-               return pathinfo($d['file'], PATHINFO_FILENAME);
+                return strtolower(trim($m[2]));
             }
         }
         unset($stack);
