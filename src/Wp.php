@@ -344,6 +344,10 @@ abstract class Wp
      */
     public static function autoload($class)
     {
+        if(!setcooki_base())
+        {
+            return false;
+        }
         $ext = '.php';
         $src = rtrim(realpath(dirname(__FILE__)), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
         $class = trim((string)$class, ' \\');
