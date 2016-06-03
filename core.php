@@ -349,6 +349,14 @@ if(!function_exists('setcooki_base'))
                 return preg_replace('=.*\/(themes|plugins)\/([^\/]{1,})\/.*=i', '\\2', $d['file']);
             }
         }
+        //4) fourth pass check file path for theme/plugin folder
+        foreach((array)$stack as $d)
+        {
+            if(isset($d['file']) && (bool)preg_match('=.*\/(themes|plugins)\/.*=i', $d['file']))
+            {
+               return pathinfo($d['file'], PATHINFO_FILENAME);
+            }
+        }
         unset($stack);
         return false;
     }
