@@ -37,7 +37,7 @@ either by composer install with:
 }]
 ,
 "require": {
-    "php": ">=5.4",
+    "php": ">=5.4.4",
     "setcooki/wp": "dev-master",
 }
 ```
@@ -51,7 +51,6 @@ To initialize framework you need to include the /core.php file. if you use compo
 and loading the framework would be like:
 
 ```php
-define('SETCOOKI_WP_AUTOLOAD', 0); //optional
 require_once dirname(__FILE__) . '/lib/vendor/autoload.php';
 require_once dirname(__FILE__) . '/lib/vendor/setcooki/wp/core.php';
 ```

@@ -77,7 +77,7 @@ if(!defined('PHP_EXT'))
  */
 if(version_compare(PHP_VERSION, SETCOOKI_WP_PHP_VERSION, '<'))
 {
-    setcooki_die("setcooki/wp needs php version > ".SETCOOKI_WP_PHP_VERSION." to run - your version is: " .PHP_VERSION . PHP_EOL);
+    setcooki_die("setcooki/wp needs php version > ".SETCOOKI_WP_PHP_VERSION." to run - your version is: " .PHP_VERSION . PHP_EOL, false, true);
 }
 
 /**
@@ -231,35 +231,36 @@ if(!function_exists('setcooki_conf'))
      */
     function setcooki_conf($key = null, $value = '_NIL_', $default = null)
     {
-        $ns = setcooki_ns();
-        if(is_null($key) && $value === '_NIL_')
+        if(($ns = setcooki_ns()) !== false)
         {
-            return (isset($GLOBALS[SETCOOKI_NS][$ns])) ? $GLOBALS[SETCOOKI_NS][$ns] : array();
-        }
-        $key = strtoupper(trim($key));
-        if($value !== '_NIL_')
-        {
-            if(!isset($GLOBALS[SETCOOKI_NS]))
+            if(is_null($key) && $value === '_NIL_')
             {
-                $GLOBALS[SETCOOKI_NS] = array();
+                return (isset($GLOBALS[SETCOOKI_NS][$ns])) ? $GLOBALS[SETCOOKI_NS][$ns] : array();
             }
-            if(!isset($GLOBALS[SETCOOKI_NS][$ns]))
+            $key = strtoupper(trim($key));
+            if($value !== '_NIL_')
             {
-                $GLOBALS[SETCOOKI_NS][$ns] = array();
-            }
-            if(\Setcooki\Wp\Config::hasInstance($ns) && \Setcooki\Wp\Config::h("wp.$key", $ns))
-            {
-                \Setcooki\Wp\Config::s("wp.$key", $value, $ns);
-            }
-            return $GLOBALS[SETCOOKI_NS][$ns][$key] = $value;
-        }else{
-            if(isset($GLOBALS[SETCOOKI_NS][$ns]) && array_key_exists($key, $GLOBALS[SETCOOKI_NS][$ns]))
-            {
-                return $GLOBALS[SETCOOKI_NS][$ns][$key];
+                if(!isset($GLOBALS[SETCOOKI_NS]))
+                {
+                    $GLOBALS[SETCOOKI_NS] = array();
+                }
+                if(!isset($GLOBALS[SETCOOKI_NS][$ns]))
+                {
+                    $GLOBALS[SETCOOKI_NS][$ns] = array();
+                }
+                if(\Setcooki\Wp\Config::hasInstance($ns) && \Setcooki\Wp\Config::h("wp.$key", $ns))
+                {
+                    \Setcooki\Wp\Config::s("wp.$key", $value, $ns);
+                }
+                return $GLOBALS[SETCOOKI_NS][$ns][$key] = $value;
             }else{
-                return setcooki_default($default);
+                if(isset($GLOBALS[SETCOOKI_NS][$ns]) && array_key_exists($key, $GLOBALS[SETCOOKI_NS][$ns]))
+                {
+                    return $GLOBALS[SETCOOKI_NS][$ns][$key];
+                }
             }
         }
+        return setcooki_default($default);
     }
 }
 
@@ -286,7 +287,7 @@ if(!function_exists('setcooki_base'))
 {
     /**
      * deep get base path by running through debug stack to find the theme/plugin base class that has been initialized at start
-     * of plugin/theme. returns boolean false if no object with path var can be found
+     * of plugin/theme. returns boolean false if no object withvalid path info can be found
      *
      * @since 1.1.4
      * @param array $stack expects optional stack trace from debug_backtrace
@@ -316,14 +317,36 @@ if(!function_exists('setcooki_base'))
                         return $v;
                     }
                 }
+            }else if(is_array($b)){
+                foreach($b as $k => $v)
+                {
+                    return $base($v);
+                }
             }
             return false;
         };
+        //1) first pass look for plugin/theme base class in object stack trace
         foreach((array)$stack as $d)
         {
             if(isset($d['object']) && ($b = $base($d['object'])) !== false)
             {
                 return $b;
+            }
+        }
+        //2) second pass look for plugin/theme base class in args stack trace
+        foreach((array)$stack as $d)
+        {
+            if(isset($d['function']) && isset($d['args']) && stripos($d['function'], 'call_user_func') !== false && ($b = $base($d['args'])) !== false)
+            {
+                return basename($b);
+            }
+        }
+        //3) third pass look for setcooki_boot bootstrap trace
+        foreach((array)$stack as $d)
+        {
+            if(isset($d['file']) && isset($d['function']) && $d['function'] === 'setcooki_boot')
+            {
+                return preg_replace('=.*\/(themes|plugins)\/([^\/]{1,})\/.*=i', '\\2', $d['file']);
             }
         }
         unset($stack);
@@ -351,9 +374,9 @@ if(!function_exists('setcooki_path'))
         }else{
             $type = strtolower((string)$type);
         }
-    
+
         $path = null;
-    
+
         if(defined('ABSPATH'))
         {
             $root = rtrim(ABSPATH, '/');
@@ -362,7 +385,7 @@ if(!function_exists('setcooki_path'))
         }else{
             $root = realpath(rtrim(__DIR__, '/') . '/../../../../../../../');
         }
-    
+
         switch($type)
         {
             case 'root':
@@ -440,17 +463,24 @@ if(!function_exists('setcooki_die'))
     /**
      * extension of php´s die() function that will try to log message in first argument before trying to die script which is
      * only possible in != DEV mode which depends on SETCOOKI_DEV const to be != false. if not in dev mode than only if second
-     * argument hard is set to true will use wordpress wp_die() function to die script.
+     * argument hard is set to true will use wordpress wp_die() function to die script.default return value is false
      *
      * @since 1.1.3
      * @param mixed $message exepects die message
+     * @param bool $log expects optional flag to whether send die message to log object or not
      * @param bool $hard expects optional flag to die for real in != DEV mode
+     * @return bool false
      */
-    function setcooki_die($message, $hard = false)
+    function setcooki_die($message, $log = true, $hard = false)
     {
         if(SETCOOKI_DEV === false)
         {
-            setcooki_log($message, LOG_ALERT);
+            if((bool)$log)
+            {
+                setcooki_log($message, LOG_ALERT);
+            }else{
+                trigger_error($message, E_USER_ERROR);
+            }
             if((bool)$hard)
             {
                 wp_die($message);
@@ -458,7 +488,12 @@ if(!function_exists('setcooki_die'))
                 //do nothing since rest of application should not be broken
             }
         }else{
-            $message = setcooki_log($message, LOG_ALERT);
+            if((bool)$log)
+            {
+                $message = setcooki_log($message, LOG_ALERT);
+            }else{
+                trigger_error($message, E_USER_ERROR);
+            }
             if(php_sapi_name() === 'cli')
             {
                 echo $message . PHP_EOL;
@@ -467,6 +502,7 @@ if(!function_exists('setcooki_die'))
                 die($message);
             }
         }
+        return false;
     }
 }
 
@@ -483,32 +519,11 @@ if(!function_exists('setcooki_ns'))
      */
     function setcooki_ns()
     {
-        $ns = '';
-        $type = 'plugin';
-        foreach(array_merge(array(array('file' => __FILE__)), debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS)) as $bt)
+        if(($base = setcooki_base(debug_backtrace(null, 15))) !== false)
         {
-            if(isset($bt['file']) && ($pos = stripos($bt['file'], 'plugins' . DIRECTORY_SEPARATOR)) !== false)
-            {
-                $ns = substr($bt['file'], $pos + 8, stripos(substr($bt['file'], $pos + 8), DIRECTORY_SEPARATOR));
-                $type = 'plugin';
-                break;
-            }
-            if(isset($bt['file']) && ($pos = stripos($bt['file'], 'themes' . DIRECTORY_SEPARATOR)) !== false)
-            {
-                $ns = substr($bt['file'], $pos + 7, stripos(substr($bt['file'], $pos + 7), DIRECTORY_SEPARATOR));
-                $type = 'theme';
-                break;
-            }
-        }
-        if(empty($ns))
-        {
-            $ns = basename((string)setcooki_path($type));
-        }
-        if(!empty($type) && !empty($ns))
-        {
-            return strtolower(trim((string)$ns));
+            return strtolower(trim((string)$base));
         }else{
-            setcooki_die('unable to get ns from installation - please make sure plugin or theme is running inside /wp-content');
+            return setcooki_die('unable to get ns from installation - please make sure plugin or theme is running inside /wp-content', false, false);
         }
     }
 }
@@ -673,7 +688,7 @@ if(!function_exists('setcooki_log'))
         {
             return call_user_func_array(array($logger, 'log'), array($type, $message, ((func_num_args() > 2) ? (array)func_get_arg(2) : array())));
         }
-        if($message instanceof \Exception)
+        if($message instanceof \Exception || $message instanceof \Throwable)
         {
             $message = $message->getMessage() . ' in ' . $message->getFile() . ':' . $message->getLine();
         }else if(is_array($message)){
