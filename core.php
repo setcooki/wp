@@ -263,13 +263,15 @@ if(!function_exists('setcooki_base'))
 {
     /**
      * deep get base path by running through debug stack to find the theme/plugin base class that has been initialized at start
-     * of plugin/theme. returns boolean false if no object withvalid path info can be found
+     * of plugin/theme. returns boolean false if no object with valid path info can be found. will return the base path
+     * to plugin/theme or name of theme/plugin if second argument is boolean true
      *
      * @since 1.1.4
      * @param array $stack expects optional stack trace from debug_backtrace
-     * @return mixed
+     * @param bool $name expects optional flag on whether to return the base path or base name only
+     * @return string|bool
      */
-    function setcooki_base($stack = null)
+    function setcooki_base($stack = null, $name = false)
     {
         if(is_null($stack))
         {
@@ -306,7 +308,7 @@ if(!function_exists('setcooki_base'))
         {
             if(isset($d['object']) && ($b = $base($d['object'])) !== false)
             {
-                return $b;
+                return ((bool)$name) ? strtolower(basename($b)) : $b;
             }
         }
         //2) second pass look for plugin/theme base class in args stack trace
@@ -314,7 +316,7 @@ if(!function_exists('setcooki_base'))
         {
             if(isset($d['function']) && isset($d['args']) && stripos($d['function'], 'call_user_func') !== false && ($b = $base($d['args'])) !== false)
             {
-                return basename($b);
+                return ((bool)$name) ? strtolower(basename($b)) : $b;
             }
         }
         //3) third pass look for setcooki_boot bootstrap trace
@@ -322,16 +324,16 @@ if(!function_exists('setcooki_base'))
         {
             if(isset($d['file']) && isset($d['function']) && $d['function'] === 'setcooki_boot')
             {
-                return strtolower(preg_replace('=.*\/(themes|plugins)\/([^\/]{1,})\/.*=i', '\\2', $d['file']));
+                return ((bool)$name) ? strtolower(preg_replace('=(.*\/(themes|plugins)\/([^\/]{1,}))\/.*=i', '\\3', $d['file'])) : preg_replace('=(.*\/(themes|plugins)\/([^\/]{1,}))\/.*=i', '\\1', $d['file']);
             }
         }
 
         //4) fourth pass check file path for theme/plugin folder
         foreach((array)$stack as $d)
         {
-            if(isset($d['file']) && (bool)preg_match('=.*\/(themes|plugins)\/([^\/]{1,})\/.*=i', $d['file'], $m))
+            if(isset($d['file']) && (bool)preg_match('=(.*\/(themes|plugins)\/([^\/]{1,}))\/.*=i', $d['file'], $m))
             {
-                return strtolower(trim($m[2]));
+                return ((bool)$name) ? strtolower(trim($m[3])) : $m[1];
             }
         }
         unset($stack);
@@ -504,7 +506,7 @@ if(!function_exists('setcooki_ns'))
      */
     function setcooki_ns()
     {
-        if(($base = setcooki_base(debug_backtrace(null, 15))) !== false)
+        if(($base = setcooki_base(debug_backtrace(null, 15), true)) !== false)
         {
             return strtolower(trim((string)$base));
         }else{
