@@ -47,7 +47,7 @@ or download manual zip and use framework without composer support as you like
 <a name="bootstrap"></a>
 #### Bootstrap
 
-To initialize framework you need to include the /core.php file. if you use composer the most likely way of bootstrapping
+To initialize framework you need to include either /core.php or /boot.php file. if you use composer the most likely way of bootstrapping
 and loading the framework would be like:
 
 ```php
@@ -59,8 +59,11 @@ If you do not use composer install and composer autoloader it would look like th
 
 ```php
 define('SETCOOKI_WP_AUTOLOAD', 1); //optional
-require_once dirname(__FILE__) . '/lib/setcooki/wp/core.php';
+require_once dirname(__FILE__) . '/lib/setcooki/wp/boot.php';
 ```
+
+if you use multiple instances of the framework the preferred way is to include /boot.php since it prevents multiple inclusions
+of /core.php
 
 setting `SETCOOKI_WP_AUTOLOAD` will take care that everything in `\Setcooki\Wp` namespace will be loaded. to use the autoloader
 for external class loading pass an array of absolute include dirs with `SETCOOKI_WP_AUTOLOAD_DIRS` option. each dir can be

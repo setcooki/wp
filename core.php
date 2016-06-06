@@ -15,49 +15,25 @@ if(!defined('SETCOOKI_WP_PHP_VERSION'))
 /**
  * define global config constants
  */
-if(!defined('SETCOOKI_NS'))
-{
-    define('SETCOOKI_NS', 'SETCOOKI_WP');
-}
 if(!defined('SETCOOKI_DEV'))
 {
     define('SETCOOKI_DEV', false);
 }
-if(!defined('SETCOOKI_WP_LOG'))
-{
-    define('SETCOOKI_WP_LOG', 'LOG');
-}
-if(!defined('SETCOOKI_WP_LOGGER'))
-{
-    define('SETCOOKI_WP_LOGGER', 'LOGGER');
-}
-if(!defined('SETCOOKI_WP_DEBUG'))
-{
-    define('SETCOOKI_WP_DEBUG', 'DEBUG');
-}
-if(!defined('SETCOOKI_WP_CHARSET'))
-{
-    define('SETCOOKI_WP_CHARSET', 'CHARSET');
-}
-if(!defined('SETCOOKI_WP_ERROR_HANDLER'))
-{
-    define('SETCOOKI_WP_ERROR_HANDLER', 'ERROR_HANDLER');
-}
-if(!defined('SETCOOKI_WP_EXCEPTION_HANDLER'))
-{
-    define('SETCOOKI_WP_EXCEPTION_HANDLER', 'EXCEPTION_HANDLER');
-}
-if(!defined('SETCOOKI_WP_AUTOLOAD_DIRS'))
-{
-    define('SETCOOKI_WP_AUTOLOAD_DIRS', 'AUTOLOAD_DIRS');
-}
+define('SETCOOKI_NS', 'SETCOOKI_WP');
+define('SETCOOKI_WP_LOG', 'LOG');
+define('SETCOOKI_WP_LOGGER', 'LOGGER');
+define('SETCOOKI_WP_DEBUG', 'DEBUG');
+define('SETCOOKI_WP_CHARSET', 'CHARSET');
+define('SETCOOKI_WP_ERROR_HANDLER', 'ERROR_HANDLER');
+define('SETCOOKI_WP_EXCEPTION_HANDLER', 'EXCEPTION_HANDLER');
+define('SETCOOKI_WP_AUTOLOAD_DIRS', 'AUTOLOAD_DIRS');
 
 /**
  * set global constants
  */
 if(!defined('DIRECTORY_SEPARATOR'))
 {
-    define('DIRECTORY_SEPARATOR', ((isset($_ENV['OS']) && strpos('win', $_ENV["OS"]) !== false) ? '\\' : '/'));
+    define('DIRECTORY_SEPARATOR', ((isset($_ENV['OS']) && strpos('win', $_ENV['OS']) !== false) ? '\\' : '/'));
 }
 if(!defined('NAMESPACE_SEPARATOR'))
 {
