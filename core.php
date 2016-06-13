@@ -735,11 +735,11 @@ if(!function_exists('setcooki_include'))
 {
     /**
      * include partials, template snippets, etc. from theme location with this function. works with child/parent theme
-     * setups where function will search for file first in child theme then in parent theme. the first argument expects
-     * a file name/path from active theme root with or without file extension that if not set will default to .php. the second
-     * argument allows for passing variables to be available in included file. the third argument when boolean true will
-     * also make vars available in global namespace. use the fourth argument when included file output should be buffered
-     * and buffer returned
+     * setups where function will search for file first in theme folder then in child theme then in parent theme. the first
+     * argument expects a file name/path from active theme root with or without file extension that if not set will default
+     * to .php. the second argument allows for passing variables to be available in included file. the third argument when
+     * boolean true will also make vars available in global namespace. use the fourth argument when included file output
+     * should be buffered and buffer returned
      *
      * @param string $file expects the file name/path relative to theme root with or without extension
      * @param null|mixed $vars expects array with vars (key => value) pairs to make available for included file
@@ -752,9 +752,8 @@ if(!function_exists('setcooki_include'))
         $file = DIRECTORY_SEPARATOR . trim(str_replace(array('\\', '/'), DIRECTORY_SEPARATOR, (string)$file), ' \\/.');
         if(stripos($file, '.') === false)
         {
-            $file = $file . '.php';
+            $file = $file . PHP_EXT;
         }
-
         if(!empty($vars))
         {
             if(!is_array($vars))
@@ -770,19 +769,17 @@ if(!function_exists('setcooki_include'))
                 }
             }
         }
-
         if($buffer === true || !empty($buffer))
         {
             ob_start();
         }
-
-        if(file_exists(get_stylesheet_directory() . $file))
-        {
+        if(file_exists(get_theme_root() . $file)){
+            require get_theme_root() . $file;
+        }else if(file_exists(get_stylesheet_directory() . $file)){
             require get_stylesheet_directory() . $file;
         }else if(get_template_directory() . $file){
             require get_template_directory() . $file;
         }
-
         if(!empty($vars) && is_array($vars))
         {
             foreach($vars as $key => $var)
@@ -790,7 +787,6 @@ if(!function_exists('setcooki_include'))
                 unset(${$key});
             }
         }
-
         if($buffer === true || !empty($buffer))
         {
             return (string)$buffer .= trim(ob_get_clean());
