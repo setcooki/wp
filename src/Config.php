@@ -80,7 +80,7 @@ class Config
     {
         if($ns !== null && array_key_exists($ns, self::$_instances))
         {
-            return self::$_instances[$ns];
+            return self::$_instance = self::$_instances[$ns];
         }else if(self::$_instance !== null){
             return self::$_instance;
         }else{
