@@ -737,3 +737,48 @@ if(!function_exists('setcooki_basename'))
         return $path;
     }
 }
+
+
+if(!function_exists('setcooki_url'))
+{
+    /**
+     * return the full current url or a fragment of the same if first argument is a integer part flag as used in php´s
+     * parse url function. if you pass integer -1 will return all parts as array just like native function. returns boolean
+     * false on failure
+     *
+     * @since 1.1.4
+     * @see parse_url()
+     * @param null|int $part expects the part to return see php parse_url function for allowed flags
+     * @return bool|mixed|string
+     */
+    function setcooki_url($part = null)
+    {
+        $ssl        = (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) === 'on');
+        $protocol   = substr(strtolower($_SERVER['SERVER_PROTOCOL']), 0, strpos(strtolower($_SERVER['SERVER_PROTOCOL']), '/' )) . (($ssl) ? 's' : '');
+        $port       = ((!$ssl && trim($_SERVER['SERVER_PORT']) === '80') || ($ssl && trim($_SERVER['SERVER_PORT']) === '443')) ? '' : ':' . trim($_SERVER['SERVER_PORT']);
+        $host       = (isset($_SERVER['HTTP_HOST']) && !empty($_SERVER['HTTP_HOST'])) ? trim((string)$_SERVER['HTTP_HOST']) : trim($_SERVER['SERVER_NAME']) . $port;
+        $url        = $protocol . '://' . $host . '/' . trim($_SERVER['REQUEST_URI'], ' /');
+
+        if(!is_null($part))
+        {
+            $part = (int)$part;
+            if($part === -1)
+            {
+                return parse_url($url);
+            }else{
+                if(($url = parse_url($url, $part)) !== false)
+                {
+                    if($part === PHP_URL_PATH)
+                    {
+                        $url = trim($url, ' /');
+                    }
+                    return $url;
+                }else{
+                    return false;
+                }
+            }
+        }else{
+            return $url;
+        }
+    }
+}
