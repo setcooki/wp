@@ -635,7 +635,7 @@ class Router
 	 */
 	public static function redirect($url, $code = 302, $fallback = null)
 	{
-		if(filter_var($url, FILTER_VALIDATE_URL) !== false)
+		if(filter_var($url, FILTER_VALIDATE_URL) !== false || parse_url($url) !== false)
 		{
 			header('Location: ' . trim((string)$url), true, (int)$code);
 			if(!headers_sent())
