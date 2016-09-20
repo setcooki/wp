@@ -722,6 +722,41 @@ class Request
 
 
     /**
+     * get path from url or uri either by passing custom url/uri in second argument or assuming url/uri from current url
+     * @see Request::url. if you pass an integer in first argument will return the path part at this index assuming that
+     * every path part is separated by /. you can pass also -1 as value which will return the last part
+     *
+     * @param null|int $part expects path position value
+     * @param null|string $url expects optional url/uri
+     * @return string
+     */
+    public static function path($part = null, $url = null)
+    {
+        if(is_null($url))
+        {
+            $url = self::url();
+        }
+        if(($url = parse_url($url, PHP_URL_PATH)) !== false)
+        {
+            if(!is_null($part))
+            {
+                $part = (int)$part;
+                $url = array_filter(explode('/', trim($url, ' /')));
+                if($part === -1)
+                {
+                    return $url[sizeof($url) - 1];
+                }else{
+                    return (array_key_exists($part, $url)) ? $url[$part] : '';
+                }
+            }else{
+                return $url;
+            }
+        }
+        return '';
+    }
+
+
+    /**
      * redirect to url
      *
      * @param string $url expects the url to redirect to
