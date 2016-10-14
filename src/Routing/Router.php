@@ -20,6 +20,13 @@ class Router
 	 */
 	protected $_routes = array();
 
+    /**
+     * contains the found/match route from router::run
+     *
+     * @var null|Route
+     */
+    protected $_matchedRoute = null;
+
 	/**
 	 * contains the bindings which are callbacks attached to route types
 	 *
@@ -467,6 +474,7 @@ class Router
 			}
 			if($i === sizeof($route->route))
 			{
+                $this->_matchedRoute = $route;
 				return $this->execute($route, $request);
 			}
 		}
@@ -758,6 +766,17 @@ class Router
 		}
 		return $regex;
 	}
+
+
+    /**
+     * returns the matched route, the route that is found/matches e.g. if url pattern matches, from router::run
+     *
+     * @return null|Route
+     */
+	public function getMatchedRoute()
+    {
+        return $this->_matchedRoute;
+    }
 
 
 	/**
