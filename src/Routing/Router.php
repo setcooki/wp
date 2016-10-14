@@ -733,7 +733,7 @@ class Router
 			 * match url by server request uri value
 			 */
 			case 'url':
-				if(isset($_SERVER['REQUEST_URI']) && !empty($_SERVER['REQUEST_URI']) && preg_match($this->regex($route->route), trim($_SERVER['REQUEST_URI'], ' /')))
+				if(isset($_SERVER['REQUEST_URI']) && !empty($_SERVER['REQUEST_URI']) && preg_match($this->regex($route->route), rtrim($_SERVER['REQUEST_URI'], ' /')))
 				{
 					return true;
 				}
