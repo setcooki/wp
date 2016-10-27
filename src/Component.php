@@ -126,6 +126,28 @@ abstract class Component implements Renderable
 
 
     /**
+     * get a component by id or get all components
+     *
+     * @param null|string $id expects the optional component id
+     * @param null|mixed $default expects optional default return value
+     * @return array|Component|null
+     */
+    public static function get($id = null, $default = null)
+    {
+        if(!is_null($id))
+        {
+            if(array_key_exists($id, self::$_components))
+            {
+                return self::$_components[$id];
+            }
+            return $default;
+        }else{
+            return self::$_components;
+        }
+    }
+
+
+    /**
      * execute = render components with optional passed params in second argument. components can be passed as single
      * component id or instance or array of the same. if first argument is null will render all registered components
      *
