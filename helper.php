@@ -34,6 +34,10 @@ if(!function_exists('setcooki_object_get'))
                     return setcooki_default($default);
                 }
                 $object = $object[$v];
+                if(is_object($object))
+                {
+                    $object = setcooki_object_to_array($object);
+                }
             }
         }
         return ($o) ? setcooki_array_to_object($object) : $object;
