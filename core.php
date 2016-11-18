@@ -846,10 +846,11 @@ if(!function_exists('setcooki_filter'))
      * @param string $tag expects the filter tag name
      * @param mixed $filter expects filter/chain object, callable or filter chain name
      * @param null|mixed $params expects optional params to pass
-     * @param int $priority expects filter priority
+     * @param int $priority expects optional filter priority
+     * @param int $args expects optional filter argument count
      * @return mixed
      */
-    function setcooki_filter($tag, $filter, $params = null, $priority = 10)
+    function setcooki_filter($tag, $filter, $params = null, $priority = 10, $args = 1)
     {
         $wp = setcooki_wp(null, null);
 
@@ -872,7 +873,7 @@ if(!function_exists('setcooki_filter'))
             }else{
                 return $value;
             }
-        }, (int)$priority);
+        }, (int)$priority, (int)$args);
     }
 }
 
