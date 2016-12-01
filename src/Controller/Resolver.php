@@ -212,7 +212,7 @@ class Resolver
 				foreach($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method)
 				{
 					if(
-						$method->getDeclaringClass()->getName() === get_class($controller)
+                        $method->getDeclaringClass()->getNamespaceName() !== __NAMESPACE__
 						&&
 						!$method->isConstructor()
 						&&
