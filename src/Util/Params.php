@@ -72,8 +72,10 @@ class Params
     {
         $name = trim((string)$name);
 
-        if(property_exists($this, $name))
+        if(stristr($name, '.') !== false)
         {
+            return setcooki_object_get($this, $name, $default);
+        }else if(property_exists($this, $name)) {
             return $this->$name;
         }else{
             return setcooki_default($default);
@@ -107,7 +109,12 @@ class Params
      */
     public function has($name)
     {
-        return (property_exists($this, trim((string)$name))) ? true : false;
+        if(stristr($name, '.') !== false)
+        {
+            return setcooki_object_isset($this, $name, false);
+        }else{
+            return (property_exists($this, trim((string)$name))) ? true : false;
+        }
     }
 
 
@@ -119,7 +126,12 @@ class Params
      */
     public function is($name)
     {
-        return (property_exists($this, trim((string)$name)) && !empty($this->{trim((string)$name)})) ? true : false;
+        if(stristr($name, '.') !== false)
+        {
+            return setcooki_object_isset($this, $name, true);
+        }else{
+            return (property_exists($this, trim((string)$name)) && !empty($this->{trim((string)$name)})) ? true : false;
+        }
     }
 
 
