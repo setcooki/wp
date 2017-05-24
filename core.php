@@ -996,7 +996,7 @@ if(!function_exists('setcooki_shortcode'))
      * is thrown when nothing can be called: the second argument can be:
      * - void = null if you want to remove a shortcode
      * - boolean value to do a shortcode
-     * - callable, closure or action to add a shortcode
+     * - callable, closure, class that implements render method or controller action to add a shortcode
      *
      * @since 1.1.3
      * @param string $tag expects the shortcode tag
@@ -1018,6 +1018,11 @@ if(!function_exists('setcooki_shortcode'))
                     add_shortcode($tag, function($params, $content) use ($wp, $mixed)
                     {
                         return (string)$wp->store('resolver')->handle($mixed, $params, null, null, null, null, $content);
+                    });
+                }else if(is_object($mixed) && method_exists($mixed, 'render') && is_callable(array($mixed, 'render'))){
+                    add_shortcode($tag, function($params, $content) use ($mixed)
+                    {
+                        return $mixed->render($params, $content);
                     });
                 }else if(is_callable($mixed)){
                     add_shortcode($tag, $mixed);
