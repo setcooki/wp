@@ -105,6 +105,10 @@ if(!function_exists('setcooki_boot'))
     function setcooki_boot($config, $logger = null)
     {
         $ns = setcooki_ns();
+        if(isset($GLOBALS[SETCOOKI_NS]) && isset($GLOBALS[SETCOOKI_NS][$ns]))
+        {
+            setcooki_die(sprintf("plugin/theme namespace: %s is already in use", $ns));
+        }
         $wp = array
         (
             SETCOOKI_WP_LOG                 => false,
