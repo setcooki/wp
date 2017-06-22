@@ -13,6 +13,42 @@ use Setcooki\Wp\Request;
 class Route
 {
     /**
+     * const for route type: include
+     */
+    const TYPE_INCLUDE                  = 'include';
+
+    /**
+     * const for route type: action
+     */
+    const TYPE_ACTION                   = 'action';
+
+    /**
+     * const for route type: route
+     */
+    const TYPE_ROUTE                    = 'route';
+
+    /**
+     * const for route type: url
+     */
+    const TYPE_URL                      = 'url';
+
+    /**
+     * const for route type: callable
+     */
+    const TYPE_CALLABLE                 = 'callable';
+
+    /**
+     * const for route type: closure
+     */
+    const TYPE_CLOSURE                  = 'closure';
+
+    /**
+     * const for route type: renderable
+     */
+    const TYPE_RENDERABLE               = 'renderable';
+
+
+    /**
      * contains the route items
      *
      * @var null|array
@@ -103,24 +139,24 @@ class Route
 		    {
 			    $target = trim((string)$target);
 			    if(preg_match('=\.(php|inc|tpl|phtml|xhtml|html|htm)$=i', $target) && is_file($target)){
-				    $type = 'include';
+				    $type = static::TYPE_INCLUDE;
 			    }else if(filter_var($target, FILTER_VALIDATE_URL) !== false) {
-					$type = 'url';
+					$type = static::TYPE_URL;
 				}else if(preg_match('=^([a-z]{1,})\:(.*)=', $target, $m) && in_array($m[1], $types)){
-					$type = 'route';
+					$type = static::TYPE_ROUTE;
 				}else if(preg_match('=(\.|\:\:?)([a-z0-9\_]{1,})$=i', $target, $m) && !is_callable($target)){
-					$type = 'action';
+					$type = static::TYPE_ACTION;
 			    }else if(is_callable($target)){
-				    $type = 'callable';
+				    $type = static::TYPE_CALLABLE;
 				}else{
 					throw new Exception(setcooki_sprintf("route target: %s is not a valid value", $target));
 				}
 		    }else if(is_object($target) && $target instanceof \Closure){
-			    $type = 'closure';
+			    $type = static::TYPE_CLOSURE;
 		    }else if(is_array($target) && is_callable($target)){
-				$type = 'callable';
+				$type = static::TYPE_CALLABLE;
 		    }else if(is_object($target) && ($target instanceof Renderable)){
-			    $type = 'renderable';
+			    $type = static::TYPE_RENDERABLE;
 		    }else{
 				throw new Exception("route target is not resolvable");
 		    }
