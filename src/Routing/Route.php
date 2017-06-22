@@ -144,12 +144,22 @@ class Route
 					$type = static::TYPE_URL;
 				}else if(preg_match('=^([a-z]{1,})\:(.*)=', $target, $m) && in_array($m[1], $types)){
 					$type = static::TYPE_ROUTE;
-				}else if(preg_match('=^([^:.]*)(\.|\:\:?)([a-z0-9\_]{1,})$=i', $target, $m)){
-				    if(is_subclass_of($m[1], '\Setcooki\Wp\Controller\Controller'))
-                    {
-                        $type = static::TYPE_ACTION;
+				}else if(preg_match('=^([^:.]*)?(\.|\:\:?)([a-z0-9\_]{1,})$=i', $target, $m)){
+				    if(stristr($m[1], NAMESPACE_SEPARATOR) !== false)
+				    {
+				        if(is_subclass_of($m[1], '\Setcooki\Wp\Controller\Controller'))
+                        {
+                            $type = static::TYPE_ACTION;
+                        }else{
+                            $type = static::TYPE_CALLABLE;
+                        }
                     }else{
-                        $type = static::TYPE_CALLABLE;
+				        if(!is_callable($m[0]))
+				        {
+                            $type = static::TYPE_ACTION;
+                        }else{
+                            $type = static::TYPE_CALLABLE;
+                        }
                     }
 			    }else if(is_callable($target)){
 				    $type = static::TYPE_CALLABLE;
