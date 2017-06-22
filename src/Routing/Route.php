@@ -138,14 +138,20 @@ class Route
 		    if(!is_array($target) && !is_object($target))
 		    {
 			    $target = trim((string)$target);
+
 			    if(preg_match('=\.(php|inc|tpl|phtml|xhtml|html|htm)$=i', $target) && is_file($target)){
 				    $type = static::TYPE_INCLUDE;
 			    }else if(filter_var($target, FILTER_VALIDATE_URL) !== false) {
 					$type = static::TYPE_URL;
 				}else if(preg_match('=^([a-z]{1,})\:(.*)=', $target, $m) && in_array($m[1], $types)){
 					$type = static::TYPE_ROUTE;
-				}else if(preg_match('=(\.|\:\:?)([a-z0-9\_]{1,})$=i', $target, $m) && !is_callable($target)){
-					$type = static::TYPE_ACTION;
+				}else if(preg_match('=^([^:.]*)(\.|\:\:?)([a-z0-9\_]{1,})$=i', $target, $m)){
+				    if(is_subclass_of($m[1], '\Setcooki\Wp\Controller\Controller'))
+                    {
+                        $type = static::TYPE_ACTION;
+                    }else{
+                        $type = static::TYPE_CALLABLE;
+                    }
 			    }else if(is_callable($target)){
 				    $type = static::TYPE_CALLABLE;
 				}else{
