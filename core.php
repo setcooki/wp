@@ -151,6 +151,11 @@ if(!function_exists('setcooki_boot'))
         {
             $wp[SETCOOKI_WP_LOGGER] = $logger = \Setcooki\Wp\Logger::create();
         }
+        if(!empty($wp[SETCOOKI_WP_LOGGER]) && $wp[SETCOOKI_WP_LOGGER] instanceof \Setcooki\Wp\Logger)
+        {
+            setcooki_set_option(\Setcooki\Wp\Logger::LOG, $wp[SETCOOKI_WP_LOG], $wp[SETCOOKI_WP_LOGGER]);
+            setcooki_set_option(\Setcooki\Wp\Logger::OUTPUT, $wp[SETCOOKI_WP_DEBUG], $wp[SETCOOKI_WP_LOGGER]);
+        }
         $config->set('wp', $wp);
         if(!isset($GLOBALS[SETCOOKI_NS]))
         {

@@ -19,6 +19,8 @@ class Logger implements Logable
     const INFO              = LOG_NOTICE;
     const DEBUG             = LOG_DEBUG;
 
+    const LOG               = 'LOG';
+    const OUTPUT            = 'OUTPUT';
     const LOG_DIR           = 'LOG_DIR';
     const LOG_LEVEL         = 'LOG_LEVEL';
     const EXTENSION         = 'EXTENSION';
@@ -73,6 +75,8 @@ class Logger implements Logable
      */
     public $options = array
     (
+        self::LOG           => false,
+        self::OUTPUT        => false,
         self::LOG_LEVEL     => 0,
         self::EXTENSION     => 'log',
         self::FILE_NAME     => null,
@@ -370,13 +374,13 @@ class Logger implements Logable
         $this->_logs[trim(md5($data))] = $data;
 
         //if in wp log mode log message to log file
-        if(setcooki_conf(SETCOOKI_WP_LOG))
+        if(setcooki_get_option(self::LOG, $this))
         {
             $this->write($data);
         }
 
         //if in wp debug mode return log message to be send to output stream
-        if(setcooki_conf(SETCOOKI_WP_DEBUG))
+        if(setcooki_get_option(self::OUTPUT, $this))
         {
             return $data;
         }else{
