@@ -6,7 +6,6 @@
  *
  * @since 1.1.4
  */
-
 call_user_func(function()
 {
     if(!isset($GLOBALS['SETCOOKI_WP_LOADED']) || $GLOBALS['SETCOOKI_WP_LOADED'] === false)

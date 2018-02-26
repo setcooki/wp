@@ -2,9 +2,15 @@
 
 namespace Setcooki\Wp;
 
+use Setcooki\Wp\Exception;
+
 /**
  * Class Option
- * @package Setcooki\Wp
+ *
+ * @package     Setcooki\Wp
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 class Option
 {
@@ -84,7 +90,7 @@ class Option
     {
         if(stripos($name, '*') !== false)
         {
-            $tmp = array();
+            $tmp = [];
             $options = wp_load_alloptions();
             foreach($options as $k => $v)
             {
@@ -111,9 +117,9 @@ class Option
 
 
     /**
-     * get an option by path - see Setcooki\Wp\Option::get
+     * get an option by path - see Setcooki\Wp\Option::get()
      *
-     * @see Setcooki\Wp\Option::get
+     * @see \Setcooki\Wp\Option::get()
      * @param string $name expects the option name
      * @param string $path expects "." dot syntax path
      * @param bool|mixed $default expects the optional return default value
@@ -153,6 +159,7 @@ class Option
      *
      * @param string $name expects the option name
      * @param mixed $value expects the value to set
+     * @param string $path expects the path
      * @return bool|mixed
      */
     public static function setByPath($name, $value, $path)
@@ -222,7 +229,7 @@ class Option
 
 
     /**
-     * shortcut function for Setcooki\Wp\Option::has in strict mode true
+     * shortcut function for Setcooki\Wp\Option::has() in strict mode true
      *
      * @param string $name expects the option name
      * @return bool|mixed
@@ -234,9 +241,9 @@ class Option
 
 
     /**
-     * reset a option to default value which is a empty string using Setcooki\Wp\Option::set function
+     * reset a option to default value which is a empty string using Setcooki\Wp\Option::set() function
      *
-     * @see Setcooki\Wp\Option::set
+     * @see \Setcooki\Wp\Option::set()
      * @param string $name expects the option name
      * @return bool|mixed
      */

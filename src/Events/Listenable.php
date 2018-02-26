@@ -4,8 +4,12 @@ namespace Setcooki\Wp\Events;
 
 /**
  * Interface Listenable
- * @since 1.1.2
- * @package Setcooki\Wp\Events
+ *
+ * @since       1.1.2
+ * @package     Setcooki\Wp\Events
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 interface Listenable
 {

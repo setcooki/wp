@@ -1,0 +1,158 @@
+#!/usr/bin/env bash
+#title              :dev
+#description        :skeleton switch - run this script to reroute dev themes/plugins root to skeleton folder in order to test skeleton in wordpress
+#author		        :setcooki
+#date               :20172705
+#version            :0.0.1
+#usage		        :bash ./dev
+#notes              :tested on >= osx 10.10
+#bash_version       :>=3.2.57#!/usr/bin/env bash
+
+#================================================================
+# HEADER
+#================================================================
+#% SYNOPSIS
+#+      ${SCRIPT_NAME} on|off
+#%
+#% DESCRIPTION
+#%      To develop/test and extend setcooki-wp framework you need a theme or plugin to test against. the test theme/plugin
+#%      is found under /dev/skeletons. By running bash ./setup from repo root you copy the skeleton to wordpress install.
+#%      Once copied the theme/plugin is detached and changes in the theme/plugin in wordpress folder are not tracked nor
+#%      reflected in skeleton. In order to extend/update skeleton you need the wordpress install though. This script
+#%      symlinks the theme/plugin folder from wordpress install to skeleton folder. In order to go into dev mode (symlink
+#%      to skeleton) run $bash ./dev on or exit dev mode with $bash ./dev off
+#%
+#% OPTIONS
+#%      --php=[path]                Specify custom PHP executable path if not "php" env variable will be used. NOTE: that
+#%                                  under certain conditions (e.g. PHP 7.1 under OSX) its possible that wp-cli will fail
+#%                                  running certain commands such as wp core install|update. In this case you must run this
+#%                                  script with PHP < 7.1 by passing the path to executable with this argument
+#%      -h, --help                  Print this help
+#%      -v, --version               Print script information
+#%
+#% EXAMPLES
+#%      ${SCRIPT_NAME} on
+#%
+#================================================================
+#- IMPLEMENTATION
+#-      version         ${SCRIPT_NAME} 0.0.1
+#-      author          Frank Mueller (setcooki)
+#-      copyright       Copyright (c) http://set.cooki.me
+#-      license         MIT License
+#-
+#================================================================
+#  HISTORY
+#       2017/06/15 : setcooki : Script creation
+#       2017/06/17 : setcooki : adds double execution lock
+#
+#================================================================
+# END_OF_HEADER
+#================================================================
+
+SCRIPT_HEADSIZE=$(head -200 ${0} |grep -n "^# END_OF_HEADER" | cut -f1 -d:)
+SCRIPT_NAME="$(basename ${0})"
+
+USAGE() { printf "Usage: "; head -${SCRIPT_HEADSIZE:-99} ${0} | grep -e "^#+" | sed -e "s/^#+[ ]*//g" -e "s/\${SCRIPT_NAME}/${SCRIPT_NAME}/g" ; }
+HELP() { head -${SCRIPT_HEADSIZE:-99} ${0} | grep -e "^#[%+-]" | sed -e "s/^#[%+-]//g" -e "s/\${SCRIPT_NAME}/${SCRIPT_NAME}/g" ; }
+INFO() { head -${SCRIPT_HEADSIZE:-99} ${0} | grep -e "^#-" | sed -e "s/^#-//g" -e "s/\${SCRIPT_NAME}/${SCRIPT_NAME}/g"; }
+
+if [[ ( $@ == "--help") ||  $@ == "-h" ]]
+then
+    HELP
+	exit 0
+fi;
+
+if [[ ( $@ == "--version") ||  $@ == "-v" ]]
+then
+    INFO
+	exit 0
+fi;
+
+if ! [ -x "$(command -v wp)" ];
+then
+    echo -e "> Need \"wp\" command to run. Aborting now!"
+    exit 1
+fi;
+
+PHP="PHP"
+WP_CLI="./wp-cli.phar"
+MODE="$1"
+DIR="$( cd "$( dirname "$0" )" && pwd )"
+DIR="$(dirname "$DIR")"
+DEV=$DIR/dev
+WORDPRESS=$DIR/wordpress
+
+for i in "$@"
+do
+case $i in
+    --php=*)
+    PHP="${i#*=}"
+    shift # past argument=value
+    ;;
+    *)
+    # unknown option
+    ;;
+esac
+done
+
+if [ $# -lt 1 ]
+then
+    echo "Usage: $0 (on|off)"
+    exit 1
+fi;
+
+if ! [ -f $WORDPRESS/wp-config.php  ];
+then
+    echo -e "> Wordpress not installed. Please run setup from project root first!"
+    exit 1
+fi;
+
+if [ $MODE = "on" ];
+then
+    if ! [ -d "$WORDPRESS/wp-content/themes/.theme1" ];
+    then
+        #theme
+        mv $WORDPRESS/wp-content/themes/theme1 $WORDPRESS/wp-content/themes/.theme1
+        ln -sf $DEV/skeletons/themes/theme1 $WORDPRESS/wp-content/themes
+    fi;
+    if ! [ -d "$WORDPRESS/wp-content/plugins/.plugin1" ];
+    then
+        #plugin
+        cd $WORDPRESS
+        $PHP $WP_CLI plugin deactivate plugin1 --quiet
+        cd -
+        mv $WORDPRESS/wp-content/plugins/plugin1 $WORDPRESS/wp-content/plugins/.plugin1
+        cd $WORDPRESS
+        $PHP $WP_CLI plugin activate plugin1 --quiet
+        cd -
+        ln -sf $DEV/skeletons/plugins/plugin1 $WORDPRESS/wp-content/plugins
+    fi;
+elif [ $MODE = "off" ];
+then
+    if [ -d "$WORDPRESS/wp-content/themes/.theme1" ];
+    then
+        #theme
+        rm -rf $WORDPRESS/wp-content/themes/theme1
+        mv $WORDPRESS/wp-content/themes/.theme1 $WORDPRESS/wp-content/themes/theme1
+        rsync -ax --exclude 'src' $DEV/skeletons/themes/theme1 $WORDPRESS/wp-content/themes/theme1
+    fi;
+    if [ -d "$WORDPRESS/wp-content/plugins/.plugin1" ];
+    then
+        #plugin
+        cd $WORDPRESS
+        $PHP $WP_CLI plugin deactivate plugin1 --quiet
+        cd -
+        rm -rf $WORDPRESS/wp-content/plugins/plugin1
+        mv $WORDPRESS/wp-content/plugins/.plugin1 $WORDPRESS/wp-content/plugins/plugin1
+        rsync -ax --exclude 'src' $DEV/skeletons/plugins/plugin1 $WORDPRESS/wp-content/plugins/plugin1
+        cd $WORDPRESS
+        $PHP $WP_CLI plugin activate plugin1 --quiet
+        cd -
+    fi;
+else
+    echo -e "> Unknown mode. Aborting now!"
+    exit 1
+fi;
+
+echo -e "> dev mode switched to: $MODE!"
+exit 0

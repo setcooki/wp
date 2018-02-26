@@ -2,9 +2,15 @@
 
 namespace Setcooki\Wp\Traits;
 
+use Setcooki\Wp\Exception;
+
 /**
- * Class Singleton
- * @package Setcooki\Wp\Traits
+ * Trait Singleton
+ *
+ * @package     Setcooki\Wp\Traits
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 trait Singleton
 {
@@ -22,11 +28,11 @@ trait Singleton
      */
     public static function instance($options = null)
     {
-        if(self::$_instance === null)
+        if(static::$_instance === null)
         {
-            self::$_instance = new self($options);
+            static::$_instance = new static($options);
         }
-        return self::$_instance;
+        return static::$_instance;
     }
 
 
@@ -37,6 +43,6 @@ trait Singleton
      */
     public static function instantiated()
     {
-        return (self::$_instance !== null) ? true : false;
+        return (static::$_instance !== null) ? true : false;
     }
 }

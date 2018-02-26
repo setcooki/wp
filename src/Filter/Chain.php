@@ -2,24 +2,27 @@
 
 namespace Setcooki\Wp\Filter;
 
-use Setcooki\Wp\Filter;
-use Setcooki\Wp\Request;
+use Setcooki\Wp\Exception;
 
 /**
  * Class Chain
- * @package Setcooki\Wp\Filter
+ *
+ * @package     Setcooki\Wp\Filter
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 class Chain
 {
     /**
      * @var array
      */
-    private $_filters = array();
+    private $_filters = [];
 
     /**
      * @var array
      */
-    private static $_chains = array();
+    private static $_chains = [];
 
 
     /**
@@ -52,10 +55,12 @@ class Chain
      * adds filter to chain
      *
      * @param Filter $filter
+     * @return Chain
      */
     public function add(Filter $filter)
     {
         $this->_filters[] = $filter;
+        return $this;
     }
 
 
@@ -64,51 +69,45 @@ class Chain
      */
     public function reset()
     {
-        $this->_filters = array();
+        $this->_filters = [];
     }
 
 
     /**
      * execute the filter chain
      *
-     * @param array $args expects array of arguments passed from wp´s apply_filter function
-     * @param null|mixed $params expects optional parameters
-     * @param Request|null $request expects optional request
+     * @since 1.2 removed request parameter
+     * @param mixed $params expects variable list of arguments to pass to filter
      * @return mixed
      */
-    public function execute($args, $params = null, Request $request = null)
+    public function execute(...$params)
     {
-        if(is_null($request))
-        {
-            $request = new Request();
-        }
         foreach($this->_filters as $filter)
         {
-           $args[0] = $filter->execute($args, $params, $request);
+            $params[0] = call_user_func_array([$filter, 'execute'], $params);
         }
-        return $args[0];
+        return $params[0];
     }
 
 
     /**
      * execute a filter chain by name instantiated with filter chain name. if no filter chain was registered with this
-     * name will return filter value in $args
+     * name will return filter value in $params
      *
+     * @since 1.2 removed request parameter
      * @param mixed $name expects the filter chain name
-     * @param array $args expects array of arguments passed from wp´s apply_filter function
-     * @param null|mixed $params expects optional parameters
-     * @param Request|null $request expects optional request
+     * @param mixed $params expects variable list of arguments to pass to filter
      * @return mixed
      */
-    public static function e($name, $args, $params = null, Request $request = null)
+    public static function e($name, ...$params)
     {
         $name = trim((string)$name);
 
         if(array_key_exists($name, self::$_chains))
         {
-            return self::$_chains[$name]->execute($args, $params, $request);
+            return call_user_func_array([self::$_chains[$name], 'execute'], $params);
         }else{
-            return $args[0];
+            return $params[0];
         }
     }
 

@@ -2,12 +2,17 @@
 
 namespace Setcooki\Wp;
 
+use Setcooki\Wp\Exception;
 use Setcooki\Wp\Traits\Factory;
 use Setcooki\Wp\Traits\Data;
 
 /**
  * Class Response
- * @package Setcooki\Wp
+ *
+ * @package     Setcooki\Wp
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 class Response
 {
@@ -99,7 +104,7 @@ class Response
 	 *
 	 * @var array
 	 */
-	public $headers = array();
+	public $headers = [];
 
 
 	/**
@@ -114,11 +119,12 @@ class Response
 	);
 
 
-	/**
-	 * creates instance with optional options
-	 *
-	 * @param null|mixed $options expects optional class options
-	 */
+    /**
+     * creates instance with optional options
+     *
+     * @param null|mixed $options expects optional class options
+     * @throws \Exception
+     */
 	public function __construct($options = null)
 	{
 		setcooki_init_options($options, $this);
@@ -147,7 +153,7 @@ class Response
 	 * @param array $header expects the the response headers
 	 * @return array
 	 */
-	protected function header(&$header = array())
+	protected function header(&$header = [])
 	{
 		return $header;
 	}
@@ -159,7 +165,7 @@ class Response
 	 * @param array $headers expects response headers
 	 * @return $this
 	 */
-	public function headers($headers = array())
+	public function headers($headers = [])
 	{
 		foreach($headers as $key => $val)
 		{
@@ -180,8 +186,8 @@ class Response
 	 *
 	 * @param null|mixed $data expects data as explained in method signature
 	 * @param null|string $buffer expects options return buffer
-	 * @throws Exception
 	 * @return $this|null|string
+     * @throws Exception
 	 */
 	public function flush($data = null, &$buffer = null)
 	{
@@ -198,7 +204,7 @@ class Response
 		{
 			$data = (string)$data;
 		}else{
-			throw new Exception("response data is not a string data type value");
+			throw new Exception(__("Response data is not a string data type value", SETCOOKI_WP_DOMAIN));
 		}
 
 		//TODO: allow for response filters to manipulate response data
@@ -256,26 +262,26 @@ class Response
 	}
 
 
-	/**
-	 * send http response according to method arguments where first argument is the response data value which can be any
-	 * value that is valid - see Response::flush method. the second argument defines the http response status value. the
-	 * third argument can be any array of response header key => value pairs. NOTE: there are three options that headers
-	 * value are set - the order is:
-	 * - see Response::header function where header values come from concrete response class
-	 * - the header values set with Response::headers
-	 * - the headers passed in third argument
-	 *
-	 * @see Response::flush
-	 * @param null|mixed $data expects data - see Response::flush
-	 * @param int $status expects the http response status code
-	 * @param array $headers expects optional response header key => value pairs
-	 * @return $this
-	 * @throws Exception
-	 */
-	public function send($data = null, $status = 200, $headers = array())
+    /**
+     * send http response according to method arguments where first argument is the response data value which can be any
+     * value that is valid - see Response::flush() method. the second argument defines the http response status value. the
+     * third argument can be any array of response header key => value pairs. NOTE: there are three options that headers
+     * value are set - the order is:
+     * - see Response::header function where header values come from concrete response class
+     * - the header values set with Response::headers
+     * - the headers passed in third argument
+     *
+     * @see Response::flush()
+     * @param null|mixed $data expects data - see Response::flush
+     * @param int $status expects the http response status code
+     * @param array $headers expects optional response header key => value pairs
+     * @return $this
+     * @throws \Setcooki\Wp\Exception
+     */
+	public function send($data = null, $status = 200, $headers = [])
 	{
 		$buffer = '';
-		$cache = array();
+		$cache = [];
 
 		$this->flush($data, $buffer);
 
@@ -290,17 +296,18 @@ class Response
 			{
 				$key = trim((string)$key, ' :');
 				$cache[] = strtolower(trim($key));
-				header($key . ': ' . (string)$val, false, (int)$status);
+				$replace = (preg_match('=^Content\-Type$=i', $key)) ? true : false;
+				header($key . ': ' . (string)$val, $replace, (int)$status);
 			}
-			header(vsprintf('HTTP/%s %s %s', array(
+			header(vsprintf('HTTP/%s %s %s', [
 				(string)$version,
 				(string)$status,
 				(string)$status_text
-			)), true, (int)$status);
+			]), true, (int)$status);
 
 			if(ob_get_contents() === '' && (!in_array('content-length', $cache) || !in_array('transfer-encoding', $cache)))
 			{
-				header("Content-Length: " . strlen($buffer));
+				header("Content-Length: " . strlen($buffer), true);
 			}
 		}
 
@@ -321,21 +328,21 @@ class Response
 	}
 
 
-	/**
-	 * send response to string instead of outputting response. see Response::send for further explanation
-	 *
-	 * @see Response::send
-	 * @param null|mixed $data expects data - see Response::flush
-	 * @param int $status expects the http response status code
-	 * @param array $headers expects optional response header key => value pairs
-	 * @return string
-	 * @throws Exception
-	 */
-	public function sendToString($data = null, $status = 200, $headers = array())
+    /**
+     * send response to string instead of outputting response. see Response::send() for further explanation
+     *
+     * @see Response::send()
+     * @param null|mixed $data expects data - see Response::flush
+     * @param int $status expects the http response status code
+     * @param array $headers expects optional response header key => value pairs
+     * @return string
+     * @throws \Setcooki\Wp\Exception
+     */
+	public function sendToString($data = null, $status = 200, $headers = [])
 	{
 	    $header = '';
 	    $buffer = '';
-	    $cache = array();
+	    $cache = [];
 
 	    $this->request();
 
@@ -365,16 +372,40 @@ class Response
     }
 
 
+    /**
+     * handle errors through concrete response class if implements error method
+     *
+     * @since 1.2
+     * @param \Exception|string $error expects error object or message
+     * @return string
+     */
+    public function handleError($error)
+    {
+        if($error instanceof \Exception)
+        {
+            $error = $error->getMessage();
+        }else{
+            $error = (string)$error;
+        }
+        if(method_exists($this, 'error'))
+        {
+            return $this->error($error);
+        }else{
+            return $error;
+        }
+    }
+
+
 	/**
-	 * static function to send a response on one shot. see Response::send for further explanation
+	 * static function to send a response on one shot. see Response::send() for further explanation
 	 *
-	 * @see Response::send
+	 * @see Response::send()
 	 * @param null|mixed $data expects data - see Response::flush
 	 * @param int $status expects the http response status code
 	 * @param array $headers expects optional response header key => value pairs
 	 * @return $this
 	 */
-	public static function s($data, $status = 200, $headers = array())
+	public static function s($data, $status = 200, $headers = [])
 	{
 		return (new Response())->send($data, $status, $headers);
 	}

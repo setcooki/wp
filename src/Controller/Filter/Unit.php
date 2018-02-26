@@ -10,7 +10,12 @@ use Setcooki\Wp\Response;
 
 /**
  * Class Unit
- * @package Setcooki\Wp\Controller\Filter
+ *
+ * @package     Setcooki\Wp\Controller
+ * @subpackage  Setcooki\Wp\Controller\Filter
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 class Unit
 {
@@ -56,7 +61,7 @@ class Unit
 	 *
 	 * @param mixed $filter expects the filter object
 	 * @param null|array $options expects optional filter unit options
-	 * @throws Exception
+     * @throws Exception
 	 */
 	public function __construct($filter, $options = null)
 	{
@@ -69,7 +74,7 @@ class Unit
 			$name = $filter;
 			$filter = new $name();
 		}else{
-			throw new Exception("filter in first argument is not a valid filter value");
+			throw new Exception(__("Filter in first argument is not a valid filter value", SETCOOKI_WP_DOMAIN));
 		}
 
 		$this->name = $name;
@@ -102,7 +107,7 @@ class Unit
 			$filter = $this->filter;
 			return $filter($resolver, $request, $response, (array)$params);
 		}else if(is_callable($this->filter)){
-			return call_user_func_array($this->filter, array($resolver, $request, $response, (array)$params));
+			return call_user_func_array($this->filter, [$resolver, $request, $response, (array)$params]);
 		}else{
 			return $this->filter->execute($resolver, $request, $response, $params);
 		}
@@ -111,7 +116,7 @@ class Unit
 
 	/**
 	 * match controller::action name to filter unit options to determine if filter is executable for the given controller
-	 * action or not - see Unit::__constructor for allowed match patterns
+	 * action or not - see Unit::__construct() for allowed match patterns
 	 *
 	 * @param string|array $match expects value to match
 	 * @return bool
@@ -120,7 +125,7 @@ class Unit
 	{
 		if(!is_array($match))
 		{
-			$match = array($match);
+			$match = [$match];
 		}
 		if(!empty($this->options['on']))
 		{
@@ -163,7 +168,7 @@ class Unit
 	{
 		if(!is_array($expr))
 		{
-			$expr = array($expr);
+			$expr = [$expr];
 		}
 		foreach($expr as &$e)
 		{
@@ -197,9 +202,9 @@ class Unit
 		$options = $options + [
 			'before'    => false,
 			'after'     => false,
-			'only'      => array(),
-			'except'    => array(),
-			'on'        => array()
+			'only'      => [],
+			'except'    => [],
+			'on'        => []
 		];
 		foreach($options as $k => &$v)
 		{
@@ -234,7 +239,7 @@ class Unit
 	 */
 	public function __toArray()
 	{
-		return array('name' => $this->name, 'filter' => $this->filter, 'options' => $this->options);
+		return ['name' => $this->name, 'filter' => $this->filter, 'options' => $this->options];
 	}
 
 
@@ -245,6 +250,6 @@ class Unit
 	 */
 	public function __sleep()
 	{
-		return array('name', 'filter', 'options');
+		return ['name', 'filter', 'options'];
 	}
 }

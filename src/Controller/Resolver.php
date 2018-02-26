@@ -2,23 +2,29 @@
 
 namespace Setcooki\Wp\Controller;
 
-use Setcooki\Wp\Wp;
+use Setcooki\Wp\Controller\Filter\Filterable;
 use Setcooki\Wp\Exception;
 use Setcooki\Wp\Request;
 use Setcooki\Wp\Response;
-use Setcooki\Wp\Template;
+use Setcooki\Wp\Content\Template;
+use Setcooki\Wp\Traits\Wp;
 use Setcooki\Wp\Util\Params;
 use Setcooki\Wp\Routing\Router;
-
 use Setcooki\Wp\Controller\Filter\Unit;
 use Setcooki\Wp\Controller\View\View;
 
 /**
  * Class Resolver
- * @package Setcooki\Wp\Controller
+ *
+ * @package     Setcooki\Wp\Controller
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 class Resolver
 {
+    use Wp;
+
 	/**
 	 * const to be used when setting filter to before execution
 	 */
@@ -45,21 +51,21 @@ class Resolver
 	 *
 	 * @var array
 	 */
-	private $_controllers = array();
+	private $_controllers = [];
 
 	/**
 	 * contains all attached global filters
 	 *
 	 * @var array
 	 */
-	protected $_filters = array();
+	protected $_filters = [];
 
 	/**
 	 * contain the controller:action map
 	 *
 	 * @var array
 	 */
-	protected $_map = array();
+	protected $_map = [];
 
 	/**
 	 * can contain the controller actions return buffered
@@ -83,30 +89,21 @@ class Resolver
 	public $request = null;
 
 	/**
-	 * contains theme/plugin instance
-	 *
-	 * @var null|WP
-	 */
-	public $wp = null;
-
-	/**
 	 * contains optional class options
 	 *
 	 * @var array
 	 */
-	public $options = array();
+	public $options = [];
 
 
-	/**
-	 * resolver constructor expects instance of theme or plugin an optional options
-	 *
-	 * @param Wp $wp expects wp theme/plugin instance
-	 * @param null|mixed $options expects optional options
-	 */
-	public function __construct(Wp $wp, $options = null)
+    /**
+     * resolver constructor expects instance of theme or plugin an optional options
+     *
+     * @param null|mixed $options expects optional options
+     * @throws \Exception
+     */
+	public function __construct($options = null)
 	{
-		$this->wp = $wp;
-
 		setcooki_init_options($options, $this);
 		if(setcooki_has_option(self::REQUEST, $this))
 		{
@@ -117,20 +114,19 @@ class Resolver
 			$this->response(setcooki_get_option(self::RESPONSE, $this));
 		}
 
-		$this->wp->store('resolver', $this);
+        static::wp()->store('resolver', $this);
 	}
 
 
 	/**
 	 * create router instance statically
 	 *
-	 * @param Wp $wp expects wp theme/plugin instance
 	 * @param null|mixed $options expects optional options
 	 * @return Resolver
 	 */
-	public static function create(Wp $wp, $options = null)
+	public static function create($options = null)
 	{
-		return new self($wp, $options);
+		return new self($options);
 	}
 
 
@@ -184,7 +180,6 @@ class Resolver
 
 
 	/**
-	 * TODO: exclude all magic methods that start with "__"
 	 *
 	 * register controller actions = methods by passing the controller instance as object or string in first argument.
 	 * all public and non-static methods that are not abstract, constructor and destructor are considered to be public
@@ -195,7 +190,7 @@ class Resolver
 	 * @param Controller|string $controller expects controller class instance or string name
 	 * @param null|array $options expects optional options
 	 * @return $this
-	 * @throws Exception
+     * @throws Exception
 	 */
 	public function register($controller, $options = null)
 	{
@@ -209,7 +204,13 @@ class Resolver
 			try
 			{
 				$reflection = new \ReflectionClass($controller);
-				foreach($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method)
+				if($reflection->isSubclassOf('Setcooki\Wp\Controller\Ajax'))
+                {
+                    $filter = \ReflectionMethod::IS_PUBLIC | \ReflectionMethod::IS_PROTECTED;
+                }else{
+				    $filter = \ReflectionMethod::IS_PUBLIC;
+                }
+				foreach($reflection->getMethods($filter) as $method)
 				{
 					if(
                         $method->getDeclaringClass()->getNamespaceName() !== __NAMESPACE__
@@ -221,6 +222,8 @@ class Resolver
 						!$method->isStatic()
 						&&
 					    !$method->isAbstract()
+                        &&
+                        substr($method->getName(), 0, 2) !== '__'
 					)
 					{
 						if($options->is('excludes'))
@@ -233,9 +236,9 @@ class Resolver
 								}
 							}
 						}
-						$key = str_replace(array('\\', NAMESPACE_SEPARATOR), array('.'), strtolower(get_class($controller)));
-						$ref = setcooki_sprintf("%s::%s", array($key, strtolower($method->getName())));
-						$this->_map[$ref] = array($key, $method->getName());
+						$key = str_replace(['\\', NAMESPACE_SEPARATOR], ['.'], strtolower(get_class($controller)));
+						$ref = setcooki_sprintf("%s::%s", [$key, strtolower($method->getName())]);
+						$this->_map[$ref] = [$key, $method->getName()];
 						$this->_controllers[$key] = $controller;
 					}
 				}
@@ -256,11 +259,11 @@ class Resolver
 			}
 			catch(\ReflectionException $e)
 			{
-				throw new Exception(setcooki_sprintf("unable to capture controller methods due to reflection error: %s", $e->getMessage()));
+				throw new Exception(setcooki_sprintf(__("Unable to capture controller methods due to reflection error: %s", SETCOOKI_WP_DOMAIN), $e->getMessage()));
 			}
 			return $this;
 		}else{
-			throw new Exception("passed controller object/string is not a instance of controller");
+			throw new Exception(__("Passed controller object/string is not a instance of controller", SETCOOKI_WP_DOMAIN));
 		}
 	}
 
@@ -295,8 +298,8 @@ class Resolver
 				}
 			}
 		}else{
-			$this->_controllers = array();
-			$this->_map = array();
+			$this->_controllers = [];
+			$this->_map = [];
 		}
 		return $this;
 	}
@@ -305,9 +308,10 @@ class Resolver
 	/**
 	 * check if a controller or controller.method is already registered which will return boolean value (true|false). if
 	 * checking for controller method use the appropriate syntax: "{$controller}::{$action}". the controller in first
-	 * argument can be a controller class name as string or class instance as object
+	 * argument can be a controller class name as string or class instance as object or a callable in form of array with
+     * first argument being the controller class and second the action name.
 	 *
-	 * @param string|Controller $controller expects controller class name as string or class instance
+	 * @param string|Controller|array|callable $controller expects controller class name as string or class instance
 	 * @param null|string $method expects options method/action name
 	 * @return bool
 	 */
@@ -316,7 +320,13 @@ class Resolver
 		if(is_object($controller))
 		{
 			$controller = get_class($controller);
-		}
+		}else if(is_array($controller) && isset($controller[0]) && !empty($controller[0]) && is_callable($controller)){
+            if($method === null && isset($controller[1]))
+            {
+                $method = (string)$controller[1];
+            }
+            $controller = get_class($controller[0]);
+        }
 		$key = self::normalize($controller);
 		if(stripos($controller, '::') !== false)
 		{
@@ -324,7 +334,7 @@ class Resolver
 		}else{
 			if(!is_null($method))
 			{
-				return (array_key_exists(setcooki_sprintf("%s::%s", array($key, strtolower((string)$method))), $this->_map)) ? true : false;
+				return (array_key_exists(setcooki_sprintf("%s::%s", [$key, strtolower((string)$method)]), $this->_map)) ? true : false;
 			}else{
 				return (array_key_exists($key, $this->_controllers)) ? true : false;
 			}
@@ -332,38 +342,39 @@ class Resolver
 	}
 
 
-	/**
-	 * bind wordpress hook to controller action. wordpress hooks supported are shortcode, action, filter. pass th hook
-	 * as "{$type}:{$value}" e.g "action::admin_init" or "shortcode:myshortcode". the execution of hook will be passed
-	 * to setcooki_* shortcut methods like setcooki_shortcode, setcooki_action, setcooki_filter. the second argument is
-	 * expected to be a valid controller action. you can also pass multiple bindings in encapsulated array. NOTE! that
-	 * you can overload this method to pass additional arguments to respective shortcut functions. e.g. action hook
-	 * can receive more arguments like priority etc. in this case call this method like:
-	 *
-	 * ```php
-	 * $resolver->bind('action:admin_init', 'controller::init', null, 1)
-	 * ```
-	 * which will pass priority value to add_action()
-	 *
-	 * @since 1.1.3
-	 * @see setcooki_shortcode
-	 * @see setcooki_action
-	 * @see setcooki_filter
-	 * @param string|array $hook expects hook value as string or multiple bindings as array
-	 * @param null|string $action expectt controller action
-	 * @return $this
-	 * @throws Exception
-	 */
+    /**
+     * bind wordpress hook to controller action. wordpress hooks supported are shortcode, action, filter. pass th hook
+     * as "{$type}:{$value}" e.g "action::admin_init" or "shortcode:myshortcode". the execution of hook will be passed
+     * to setcooki_* shortcut methods like setcooki_shortcode, setcooki_action, setcooki_filter. the second argument is
+     * expected to be a valid controller action. you can also pass multiple bindings in encapsulated array. NOTE! that
+     * you can overload this method to pass additional arguments to respective shortcut functions. e.g. action hook
+     * can receive more arguments like priority etc. in this case call this method like:
+     *
+     * ```php
+     * $resolver->bind('action:admin_init', 'controller::init', null, 1)
+     * ```
+     * which will pass priority value to add_action()
+     *
+     * @since 1.1.3
+     * @see setcooki_shortcode()
+     * @see setcooki_action()
+     * @see setcooki_filter()
+     * @param string|array $hook expects hook value as string or multiple bindings as array
+     * @param null|string $action expect controller action
+     * @return $this
+     * @throws Exception
+     * @throws \Exception
+     */
 	public function bind($hook, $action = null)
 	{
 		if(!is_array($hook))
 		{
-			$hook = array(func_get_args());
+			$hook = [func_get_args()];
 		}else{
 			$hook = array_values($hook);
 			if(!is_array($hook[0]))
 			{
-				$hook = array($hook);
+				$hook = [$hook];
 			}
 		}
 		foreach($hook as $h)
@@ -381,19 +392,19 @@ class Resolver
 							setcooki_shortcode($tag, $h[1]);
 							break;
 						case 'action':
-							call_user_func_array('setcooki_action', array_merge(array($tag, $h[1]), array_slice($h, 2)));
+							call_user_func_array('setcooki_action', array_merge([$tag, $h[1]], array_slice($h, 2)));
 							break;
 						case 'filter':
-							call_user_func_array('setcooki_filter', array_merge(array($tag, $h[1]), array_slice($h, 2)));
+							call_user_func_array('setcooki_filter', array_merge([$tag, $h[1]], array_slice($h, 2)));
 							break;
 						default:
-							throw new Exception(setcooki_sprintf("hook type: %s not known", array($type)));
+							throw new Exception(setcooki_sprintf(__("Hook type: %s not known", SETCOOKI_WP_DOMAIN), [$type]));
 					}
 				}else{
-					throw new Exception(setcooki_sprintf("unable to bind: %s since value does not resolve to any known hook", array($hook)));
+					throw new Exception(setcooki_sprintf(__("Unable to bind: %s since value does not resolve to any known hook", SETCOOKI_WP_DOMAIN), [$hook]));
 				}
 			}else{
-				throw new Exception("need bindings with at least hook and action");
+				throw new Exception(__("Need bindings with at least hook and action", SETCOOKI_WP_DOMAIN));
 			}
 		}
 
@@ -401,22 +412,22 @@ class Resolver
 	}
 
 
-	/**
-	 * attach filter objects to controller or controller actions or even too multiple controllers depending on filter options
-	 * which if empty = null will attach a filter that will be called on each controller.action on before. see filter
-	 * unit for more details on valid and accepted options. the first argument can be a filter class as string, filter
-	 * object or closure. if the filter object in first argument is not recognized will throw exception
-	 *
-	 * @see \Setcooki\Wp\Controller\Filter\Unit::__construct
-	 * @param string|Unit|\Closure $filter expects a filter object
-	 * @param null|array $options expects optional filter options
-	 * @throws Exception
-	 */
+    /**
+     * attach filter objects to controller or controller actions or even too multiple controllers depending on filter options
+     * which if empty = null will attach a filter that will be called on each controller.action on before. see filter
+     * unit for more details on valid and accepted options. the first argument can be a filter class as string, filter
+     * object or closure. if the filter object in first argument is not recognized will throw exception
+     *
+     * @see \Setcooki\Wp\Controller\Filter\Unit::__construct()
+     * @param string|Unit|\Closure $filter expects a filter object
+     * @param null|array $options expects optional filter options
+     * @throws Exception
+     */
 	public function attachFilter($filter, $options = null)
 	{
 		if(!is_array($filter))
 		{
-			$filter = array($filter);
+			$filter = [$filter];
 		}
 		foreach($filter as &$f)
 		{
@@ -465,9 +476,9 @@ class Resolver
 	 */
 	public function getFilter($type = null)
 	{
-		$tmp = array();
+		$tmp = [];
 
-		if(!is_null($type) && in_array(strtolower((string)$type), array(self::BEFORE, self::AFTER)))
+		if(!is_null($type) && in_array(strtolower((string)$type), [self::BEFORE, self::AFTER]))
 		{
 			foreach($this->_filters as $filter)
 			{
@@ -507,12 +518,14 @@ class Resolver
 	 * @param null|mixed $callback expects optional callback - see Resolver::callback
 	 * @param null|string $buffer expects optional string buffer
 	 * @return mixed
-	 * @throws \Exception
+     * @throws Exception
+     * @throws \Exception
+     * @throws \Throwable
 	 */
 	public function handle($action = null, $params = null, Request $request = null, Response $response = null, $fallback = null, $callback = null, &$buffer = null)
 	{
 		$return = null;
-		$actions = array();
+		$actions = [];
 
 		if(is_null($params))
 		{
@@ -532,13 +545,13 @@ class Resolver
 		{
 			if(is_object($action) && $action instanceof Router)
 			{
-				$return = $action->bind('action', array($this, 'handle'))->run($fallback, $request);
+				$return = $action->bind('action', [$this, 'handle'])->run($fallback, $request);
 			}else if(is_object($action) && $action instanceof \Closure){
 				$return = $action($params, $request, $response);
 			}else if(is_array($action) && is_callable($action)){
-				$return = $this->callback($action, array($params, $request, $response));
+				$return = $this->callback($action, [$params, $request, $response]);
 			}else{
-				if(!is_null($action))
+			    if(!is_null($action))
 				{
 					foreach((array)$action as $a)
 					{
@@ -567,7 +580,7 @@ class Resolver
 						return $return;
 					}
 				}else{
-					throw new Exception("no action found to handle");
+					throw new Exception(__("No action found to handle", SETCOOKI_WP_DOMAIN));
 				}
 			}
 		}
@@ -582,7 +595,7 @@ class Resolver
 		}
 		if(!is_null($callback))
 		{
-			$return = $this->callback($callback, array($return, $this));
+			$return = $this->callback($callback, [$return, $this]);
 		}
 		if(!is_null($buffer) && is_string($buffer))
 		{
@@ -597,73 +610,89 @@ class Resolver
 		{
 			return $return->flush();
 		}else{
-			return (string)$return;
+			return $return;
 		}
 	}
 
 
 	/**
-	 * check if action can be handled by resolver where action can be a callable or controller action
+	 * check if action can be handled by resolver where action can be a callable or controller action. since 1.2 its possible
+     * to check if action is a controller action and not any callable
 	 *
+     * @since 1.2 adds strict parameter
 	 * @param mixed $action expects action to check
+     * @param bool $strict
 	 * @since 1.1.3
 	 * @return bool
 	 */
-	public function handleable($action)
+	public function handleable($action, $strict = false)
 	{
-		if(is_callable($action))
-		{
-			return true;
-		}else{
-			try
-			{
-				$actions = (array)$this->lookup($action);
-				if(!empty($actions) && preg_match("@$action$@i", "{$actions[0][0]}::{$actions[0][1]}"))
-				{
-					return true;
-				}
-			}
-			catch(Exception $e){}
-		}
+	    if(!(bool)$strict && is_callable($action))
+        {
+            return true;
+        }
+        try
+     	{
+     	    if((bool)$strict && is_object($action) && $action instanceof \Closure)
+     	    {
+                return false;
+     	    }
+     	    $actions = (array)$this->lookup($action);
+     		if(!empty($actions) && preg_match("@$action$@i", "{$actions[0][0]}::{$actions[0][1]}"))
+     		{
+     		    return true;
+     		}
+     	}
+     	catch(Exception $e){}
 		return false;
 	}
 
 
-	/**
-	 * execute a controller action running pre/post filters registered with resolver or controller
-	 *
-	 * @param string $controller expects the controller path/name
-	 * @param string $action expects the action/method name
-	 * @param null|mixed $params expects optional parameters
-	 * @param Request $request expects the request instance
-	 * @param Response $response expects the response instance
-	 * @return mixed
-	 * @throws \Exception
-	 */
+    /**
+     * execute a controller action running pre/post filters registered with resolver or controller
+     *
+     * @param string $controller expects the controller path/name
+     * @param string $action expects the action/method name
+     * @param null|mixed $params expects optional parameters
+     * @param Request $request expects the request instance
+     * @param Response $response expects the response instance
+     * @return mixed
+     * @throws Exception
+     * @throws \Exception
+     * @throws \Throwable
+     */
 	protected function execute($controller, $action, $params = null, $request, $response)
 	{
 		if(array_key_exists($controller, $this->_controllers))
 		{
 			foreach(array_merge($this->getFilter('before'), $this->_controllers[$controller]->before()) as $filter)
 			{
-				if($filter->match("$controller::$action"))
+				if($filter instanceof Unit && $filter->match("$controller::$action"))
 				{
 					$filter->execute($this, $request, $response, $params);
-				}
+				}else if(is_object($filter) && $filter instanceof Filterable){
+                    $filter->execute($this, $request, $response, $params);
+                }else if(is_callable($filter)){
+				    call_user_func_array($filter, [$this, $request, $response, $params]);
+                }
 			}
 
-			$return = $this->resolve($this->callback(array($this->_controllers[$controller], $action), array($params, $request, $response)));
+			$return = $this->resolve($this->callback([$this->_controllers[$controller], $action], [$params, $request, $response]), $this->_controllers[$controller]);
 
 			foreach(array_merge($this->getFilter('after'), $this->_controllers[$controller]->after()) as $filter)
 			{
-				if($filter->match("$controller::$action"))
-				{
-					$filter->execute($this, $request, $response, $params);
-				}
+                if($filter instanceof Unit && $filter->match("$controller::$action"))
+                {
+                    $filter->execute($this, $request, $response, $params);
+                }else if(is_object($filter) && $filter instanceof Filterable){
+                    $filter->execute($this, $request, $response, $params);
+                }else if(is_callable($filter)){
+                    call_user_func_array($filter, [$this, $request, $response, $params]);
+                }
 			}
 			return $return;
 		}else{
-			throw new Exception(setcooki_sprintf("controller: %s is not registered", $controller));
+			throw new Exception(setcooki_sprintf(__("Controller: %s is not registered", SETCOOKI_WP_DOMAIN), $controller));
 		}
 	}
 
@@ -678,13 +707,16 @@ class Resolver
 	 * - instance of Response will return the response for further handling
 	 * - instance of Closure will execute the closure and stringify and return the result!
 	 * - boolean false or null will return NULL
+     * - and other data type if controller is ajax controller
 	 * any other value will throw exception since its not valid
 	 *
 	 * @param mixed $return expects the return value from controller action
-	 * @return null|string
-	 * @throws \Exception|\Throwable
+     * @param Controller $controller expects the controller hint
+	 * @return null|mixed
+     * @throws \Exception
+     * @throws \Throwable
 	 */
-	protected function resolve($return)
+	protected function resolve($return, $controller)
 	{
 		if($return instanceof \Exception || $return instanceof \Throwable)
 		{
@@ -702,21 +734,47 @@ class Resolver
 		}else if(setcooki_stringable($return)){
 			return (string)$return;
 		}else{
-			throw new Exception("controller action returns non interpretable value");
+		    if(is_object($controller) && is_subclass_of($controller, 'Setcooki\Wp\Controller\Ajax'))
+            {
+                return $return;
+            }else{
+                throw new Exception(__("Controller action returns non interpretable value", SETCOOKI_WP_DOMAIN));
+            }
 		}
 	}
 
 
 	/**
-	 * execute a callable
+	 * execute a callable. if the callable is a ajax controller class and method to invoke is protected will remove
+     * protection for this call.
 	 *
 	 * @param callable $callable expects the callable
 	 * @param array $params expects optional parameters
 	 * @return mixed
+     * @throws Exception
 	 */
 	protected function callback(callable $callable, Array $params = [])
 	{
-		return call_user_func_array($callable, $params);
+	    if(is_array($callable) && sizeof($callable) === 2 && is_object($callable[0]) && $callable[0] instanceof Ajax)
+        {
+            try
+            {
+                $method = new \ReflectionMethod($callable[0], $callable[1]);
+                if($method->isProtected())
+                {
+                    $method->setAccessible(true);
+                    return $method->invokeArgs($callable[0], $params);
+                }else{
+                    return call_user_func_array($callable, $params);
+                }
+            }
+            catch(\ReflectionException $e)
+            {
+                throw new Exception(setcooki_sprintf(__("Unable to invoke protected method: %s in ajax controller class: %s", SETCOOKI_WP_DOMAIN), $callable[1], $e->getMessage()));
+            }
+        }else{
+            return call_user_func_array($callable, $params);
+        }
 	}
 
 
@@ -729,11 +787,11 @@ class Resolver
 	 *
 	 * @param string $action expects the action to lookup
 	 * @return array
-	 * @throws Exception
+     * @throws Exception
 	 */
 	protected function lookup($action)
 	{
-		$return = array();
+		$return = [];
 		$action = self::normalize($action);
 
 		if(stripos($action, '%') !== false)
@@ -779,19 +837,21 @@ class Resolver
 		$return = array_filter(array_unique($return));
 		if(stripos($action, '::') !== false && sizeof($return) > 1)
 		{
-			throw new Exception(setcooki_sprintf("action: %s is ambiguous and not resolvable", $action));
+			throw new Exception(setcooki_sprintf(__("Action: %s is ambiguous and not resolvable", SETCOOKI_WP_DOMAIN), $action));
 		}
 		return $return;
 	}
 
 
-	/**
-	 * flush the resolver which will execute all actions and return result as string. NOTE: this method should only
-	 * be used for debugging purposes
-	 *
-	 * @param null|object|array|Params $params expects optional params
-	 * @throws \Exception
-	 */
+    /**
+     * flush the resolver which will execute all actions and return result as string. NOTE: this method should only
+     * be used for debugging purposes
+     *
+     * @param null|object|array|Params $params expects optional params
+     * @throws Exception
+     * @throws \Exception
+     * @throws \Throwable
+     */
 	public function flush($params = null)
 	{
 		echo (string)$this->handle(null, $params);
@@ -806,9 +866,9 @@ class Resolver
 	 */
 	public function reset()
 	{
-		$this->_controllers = array();
-		$this->_filters = array();
-		$this->_map = array();
+		$this->_controllers = [];
+		$this->_filters = [];
+		$this->_map = [];
 		$this->buffer = null;
 		return $this;
 	}
@@ -825,8 +885,10 @@ class Resolver
 		$action = (string)$action;
 		$action = trim($action, ' \\\\');
 		$action = trim($action, ' \\');
+        $action = trim($action, ' /');
 		$action = trim($action, NAMESPACE_SEPARATOR);
-		$action = str_replace(array('\\\\', '\\', NAMESPACE_SEPARATOR), '.', strtolower($action));
+		$action = str_replace(['/'], NAMESPACE_SEPARATOR, $action);
+		$action = str_replace(['\\\\', '\\', NAMESPACE_SEPARATOR], '.', strtolower($action));
 		return $action;
 	}
 
@@ -836,22 +898,22 @@ class Resolver
 	 *
 	 * @param string $name expects method name
 	 * @param array $arguments contains passed arguments
-	 * @throws Exception
+     * @throws Exception
 	 */
 	public function __call($name, $arguments)
 	{
-		throw new Exception("overloading methods not allowed - use handle method instead");
+		throw new Exception(__("Overloading methods not allowed - use handle method instead", SETCOOKI_WP_DOMAIN));
 	}
 
 
 	/**
 	 * prevent cloning
-	 *
-	 * @throws Exception
+     *
+     * @throws Exception
 	 */
 	public function __clone()
 	{
-		throw new Exception("cloning not allowed since there should be only one resolver");
+		throw new Exception(__("Cloning not allowed since there should be only one resolver", SETCOOKI_WP_DOMAIN));
 	}
 
 

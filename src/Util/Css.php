@@ -2,22 +2,29 @@
 
 namespace Setcooki\Wp\Util;
 
+use Setcooki\Wp\Exception;
+
 /**
  * Class Css
- * @package Setcooki\Wp
+ *
+ * @package     Setcooki\Wp
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 class Css
 {
     /**
      * @var array
      */
-    public $options = array();
+    public $options = [];
 
 
     /**
      * class constructor sets class options
      *
      * @param null|array $options expects optional class options
+     * @throws \Exception
      */
     public function __construct($options = null)
     {
@@ -113,7 +120,7 @@ class Css
         //remove single comments
         $string = preg_replace('=^\s*//.*$=im', '', $string);
         //remove spaces, tabs and co
-        $string = str_replace(array("\r\n", "\r", "\n", "\t"), '', $string);
+        $string = str_replace(["\r\n", "\r", "\n", "\t"], '', $string);
         //remove double, triple spaces and co
         $string = preg_replace('=\s{2,}=i', '', $string);
         //trim

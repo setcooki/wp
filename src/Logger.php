@@ -2,11 +2,16 @@
 
 namespace Setcooki\Wp;
 
+use Setcooki\Wp\Exception;
 use Setcooki\Wp\Interfaces\Logable;
 
 /**
  * Class Logger
- * @package Setcooki\Wp
+ *
+ * @package     Setcooki\Wp
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 class Logger implements Logable
 {
@@ -43,7 +48,7 @@ class Logger implements Logable
     /**
      * @var array
      */
-    private $_logs = array();
+    private $_logs = [];
 
     /**
      * @var null|string
@@ -91,7 +96,8 @@ class Logger implements Logable
      * class constructor expects optional class options
      *
      * @param null|array $options optional options
-     * @throws Exception
+     * @throws \Exception
+     * @throws \Setcooki\Wp\Exception
      */
     public function __construct($options = null)
     {
@@ -113,7 +119,7 @@ class Logger implements Logable
                 }
                 $this->file = $this->_dir . $name . '.' . trim(setcooki_get_option(self::EXTENSION, $this), ' .');
             }else{
-                throw new Exception(setcooki_sprintf("log directory: %s is not writable", $this->_dir));
+                throw new Exception(setcooki_sprintf(__("Log directory: %s is not writable", SETCOOKI_WP_DOMAIN), $this->_dir));
             }
         }
     }
@@ -122,9 +128,10 @@ class Logger implements Logable
     /**
      * shortcut function to create a logger instance
      *
-     * @see Setcooki\Wp\Logger::instance
+     * @see \Setcooki\Wp\Logger::instance()
      * @param null|array $options optional options
      * @return null|Logger
+     * @throws \Setcooki\Wp\Exception
      */
     public static function create($options = null)
     {
@@ -135,9 +142,10 @@ class Logger implements Logable
     /**
      * static singleton setter/getter function
      *
-     * @see Setcooki\Wp\Logger::__construct
+     * @see \Setcooki\Wp\Logger::__construct()
      * @param null|array $options optional options
      * @return null|Logger
+     * @throws \Setcooki\Wp\Exception
      */
     public static function instance($options = null)
     {
@@ -163,10 +171,11 @@ class Logger implements Logable
     /**
      * method to log emergency messages
      *
-     * @see Setcooki\Wp\Logger::log
+     * @see \Setcooki\Wp\Logger::log()
      * @param mixed $message expects a valid logger message object
      * @param null|array $args expects optional additional arguments
      * @return void
+     * @throws \Setcooki\Wp\Exception
      */
     public function emergency($message, $args = null)
     {
@@ -177,10 +186,11 @@ class Logger implements Logable
     /**
      * method to log alert messages
      *
-     * @see Setcooki\Wp\Logger::log
+     * @see \Setcooki\Wp\Logger::log()
      * @param mixed $message expects a valid logger message object
      * @param null|array $args expects optional additional arguments
      * @return void
+     * @throws \Setcooki\Wp\Exception
      */
     public function alert($message, $args = null)
     {
@@ -191,10 +201,11 @@ class Logger implements Logable
     /**
      * method to log critical messages
      *
-     * @see Setcooki\Wp\Logger::log
+     * @see \Setcooki\Wp\Logger::log()
      * @param mixed $message expects a valid logger message object
      * @param null|array $args expects optional additional arguments
      * @return void
+     * @throws \Setcooki\Wp\Exception
      */
     public function critical($message, $args = null)
     {
@@ -205,10 +216,11 @@ class Logger implements Logable
     /**
      * method to log error messages
      *
-     * @see Setcooki\Wp\Logger::log
+     * @see \Setcooki\Wp\Logger::log()
      * @param mixed $message expects a valid logger message object
      * @param null|array $args expects optional additional arguments
      * @return void
+     * @throws \Setcooki\Wp\Exception
      */
     public function error($message, $args = null)
     {
@@ -219,10 +231,11 @@ class Logger implements Logable
     /**
      * method to log warning messages
      *
-     * @see Setcooki\Wp\Logger::log
+     * @see \Setcooki\Wp\Logger::log()
      * @param mixed $message expects a valid logger message object
      * @param null|array $args expects optional additional arguments
      * @return void
+     * @throws \Setcooki\Wp\Exception
      */
     public function warning($message, $args = null)
     {
@@ -233,10 +246,11 @@ class Logger implements Logable
     /**
      * method to log notice messages
      *
-     * @see Setcooki\Wp\Logger::log
+     * @see \Setcooki\Wp\Logger::log()
      * @param mixed $message expects a valid logger message object
      * @param null|array $args expects optional additional arguments
      * @return void
+     * @throws \Setcooki\Wp\Exception
      */
     public function notice($message, $args = null)
     {
@@ -247,10 +261,11 @@ class Logger implements Logable
     /**
      * method to log info messages
      *
-     * @see Setcooki\Wp\Logger::log
+     * @see \Setcooki\Wp\Logger::log()
      * @param mixed $message expects a valid logger message object
      * @param null|array $args expects optional additional arguments
      * @return void
+     * @throws \Setcooki\Wp\Exception
      */
     public function info($message, $args = null)
     {
@@ -261,10 +276,11 @@ class Logger implements Logable
     /**
      * method to log debug messages
      *
-     * @see Setcooki\Wp\Logger::log
+     * @see \Setcooki\Wp\Logger::log()
      * @param mixed $message expects a valid logger message object
      * @param null|array $args expects optional additional arguments
      * @return void
+     * @throws \Setcooki\Wp\Exception
      */
     public function debug($message, $args = null)
     {
@@ -284,7 +300,7 @@ class Logger implements Logable
      * @return null
      * @throws Exception
      */
-    public function log($level, $message, array $context = array())
+    public function log($level, $message, array $context = [])
     {
         $object = $message;
         $levels = setcooki_get_option(self::LOG_LEVEL, $this);
@@ -306,15 +322,15 @@ class Logger implements Logable
 
         if(!array_key_exists($level, $this->_levelMap))
         {
-            return;
+            return null;
         }
         if(is_array($levels) && !in_array($level, $levels))
         {
-            return;
+            return null;
         }else if(is_int($levels) && ($level < $levels || $levels === -1)){
-            return;
+            return null;
         }else if(is_bool($levels) && !$levels){
-            return;
+            return null;
         }
 
         if(!is_null($this->file))
@@ -323,7 +339,7 @@ class Logger implements Logable
             {
                 if(($this->handle = fopen($this->file, 'a')) === false)
                 {
-                    throw new Exception(setcooki_sprintf('unable to create log file: %s', $this->file));
+                    throw new Exception(setcooki_sprintf(__("Unable to create log file: %s", SETCOOKI_WP_DOMAIN), $this->file));
                 }
             }
         }
@@ -342,7 +358,7 @@ class Logger implements Logable
 
         if(!empty($context))
         {
-            $tmp = array();
+            $tmp = [];
             foreach((array)$context as $k => $v)
             {
                 if(is_numeric($k))
@@ -384,7 +400,7 @@ class Logger implements Logable
         {
             return $data;
         }else{
-            return;
+            return null;
         }
     }
 
@@ -392,14 +408,14 @@ class Logger implements Logable
     /**
      * static logger method assuming logger class has been initialized as singleton
      *
-     * @see Setcooki\Wp\Logger::log
+     * @see \Setcooki\Wp\Logger::log()
      * @param int|string $level expects the log level
      * @param string|mixed|Exception $message expects a log message
      * @param null|array $context expects a optional argument array
      * @return null
-     * @throws Exception
+     * @throws \Setcooki\Wp\Exception
      */
-    public static function l($level, $message, array $context = array())
+    public static function l($level, $message, array $context = [])
     {
         if(self::hasInstance())
         {
@@ -424,7 +440,7 @@ class Logger implements Logable
             {
                 @clearstatcache();
             }else{
-                throw new Exception('unable to write to log file - check permissions');
+                throw new Exception(__("Unable to write to log file - check permissions", SETCOOKI_WP_DOMAIN));
             }
         }
     }
@@ -442,7 +458,7 @@ class Logger implements Logable
             @fclose($this->handle);
         }
         unset($this->_logs);
-        $this->_logs = array();
+        $this->_logs = [];
     }
 
 
@@ -501,7 +517,7 @@ class Logger implements Logable
             $this->flush();
         }
         unset($this->_logs);
-        $this->_logs = array();
+        $this->_logs = [];
         @clearstatcache();
     }
 }

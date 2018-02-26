@@ -2,10 +2,16 @@
 
 namespace Setcooki\Wp\Traits;
 
+use Setcooki\Wp\Exception;
+
 /**
- * Class Setget
- * @since 1.1.3
- * @package Setcooki\Wp\Traits
+ * Trait Setget
+ *
+ * @since       1.1.3
+ * @package     Setcooki\Wp\Traits
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 trait Setget
 {
@@ -28,6 +34,7 @@ trait Setget
 				$this->set($key, $val);
 			}
 		}else{
+
 			if((bool)$strict)
 			{
 				if(array_key_exists((string)$name, get_object_vars($this))) $this->{(string)$name} = $value;
@@ -40,9 +47,9 @@ trait Setget
 
 
 	/**
-	 * setter method with overloading capacities - see Setget::set
+	 * setter method with overloading capacities - see Setget::set()
 	 *
-	 * @see Setget::set
+	 * @see Setget::set()
 	 * @param string|array $name expects property name or array of name => value pairs
 	 * @param string|mixed $value expects value to set
 	 * @return $this
@@ -53,13 +60,14 @@ trait Setget
 	}
 
 
-	/**
-	 * getter method
-	 *
-	 * @param string $name expects name of property
-	 * @param null|mixed $default expects default return value
-	 * @return mixed
-	 */
+    /**
+     * getter method
+     *
+     * @param string $name expects name of property
+     * @param null|mixed $default expects default return value
+     * @return mixed
+     * @throws \Exception
+     */
 	public function get($name, $default = null)
 	{
 		if($this->has($name))
@@ -114,7 +122,7 @@ trait Setget
 	/**
 	 * adds a property by overloading
 	 *
-	 * @see Setget::add
+	 * @see Setget::add()
 	 * @param string $name expects property name
 	 * @param mixed $value expects value to set
 	 * @return $this
@@ -128,7 +136,7 @@ trait Setget
 	/**
 	 * gets a property by overloading
 	 *
-	 * @see Setget::get
+	 * @see Setget::get()
 	 * @param string $name expects property name
 	 * @return mixed
 	 */
@@ -141,7 +149,7 @@ trait Setget
 	/**
 	 * checks if a property exists by overloading
 	 *
-	 * @see Setget::has
+	 * @see Setget::has()
 	 * @param string $name expects property name
 	 * @return bool
 	 */
@@ -154,7 +162,7 @@ trait Setget
 	/**
 	 * removes a property by overloading
 	 *
-	 * @see Setget::remove
+	 * @see Setget::remove()
 	 * @param string $name expects property name
 	 * @return $this
 	 */

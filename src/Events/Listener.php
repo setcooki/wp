@@ -6,8 +6,12 @@ use Setcooki\Wp\Exception;
 
 /**
  * Class Listener
- * @since 1.1.2
- * @package Setcooki\Wp\Events
+ *
+ * @since       1.1.2
+ * @package     Setcooki\Wp\Events
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 class Listener
 {
@@ -33,14 +37,15 @@ class Listener
 	public $subject = null;
 
 
-	/**
-	 * create a listener for a event name passed in first argument in a callback passed in second argument that gets
-	 * executed when listener is executed
-	 *
-	 * @param string $name expects event name to listen to
-	 * @param callable|\Closure $callback expects a valid callback value
-	 * @param null|mixed $subject expects optional subject/target object
-	 */
+    /**
+     * create a listener for a event name passed in first argument in a callback passed in second argument that gets
+     * executed when listener is executed
+     *
+     * @param string $name expects event name to listen to
+     * @param callable|\Closure $callback expects a valid callback value
+     * @param null|mixed $subject expects optional subject/target object
+     * @throws Exception
+     */
 	public function __construct($name, $callback, $subject = null)
 	{
 		$this->name = $name;
@@ -79,13 +84,13 @@ class Listener
 	}
 
 
-	/**
-	 * callback setter/getter
-	 *
-	 * @param callable|\Closure $callback expects callback
-	 * @return null|callable|\Closure
-	 * @throws Exception
-	 */
+    /**
+     * callback setter/getter
+     *
+     * @param callable|\Closure $callback expects callback
+     * @return null|callable|\Closure
+     * @throws Exception
+     */
 	public function callback($callback = null)
 	{
 		if(!is_null($callback))
@@ -134,7 +139,7 @@ class Listener
 	 *
 	 * @param mixed $callback expects callback value
 	 * @return mixed
-	 * @throws Exception
+     * @throws Exception
 	 */
 	protected function isCallable($callback)
 	{
@@ -142,7 +147,7 @@ class Listener
 		{
 			return $callback;
 		}else{
-			throw new Exception('callback is not a callable or closure');
+			throw new Exception(__("Callback is not a callable or closure", SETCOOKI_WP_DOMAIN));
 		}
 	}
 

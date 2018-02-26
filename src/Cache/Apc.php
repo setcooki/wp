@@ -6,7 +6,11 @@ use Setcooki\Wp\Exception;
 
 /**
  * Class Apc
- * @package Setcooki\Wp\Cache
+ *
+ * @package     Setcooki\Wp\Cache
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 class Apc extends Cache
 {
@@ -33,6 +37,7 @@ class Apc extends Cache
 
     /**
      * @param null $options
+     * @throws Exception
      */
     public function __construct($options = null)
     {
@@ -43,7 +48,7 @@ class Apc extends Cache
 
     /**
      * @param null $options
-     * @return null|File
+     * @return Apc
      */
     public static function create($options = null)
     {
@@ -58,7 +63,7 @@ class Apc extends Cache
     {
         if(!extension_loaded('apc'))
         {
-            throw new Exception("apc extension is not supported by this system");
+            throw new Exception(__("Apc extension is not supported by this system", SETCOOKI_WP_DOMAIN));
         }
     }
 

@@ -2,9 +2,15 @@
 
 namespace Setcooki\Wp;
 
+use Setcooki\Wp\Exception;
+
 /**
  * Class Plugin
- * @package Setcooki\Wp
+ *
+ * @package     Setcooki\Wp
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 abstract class Plugin extends Wp
 {
@@ -16,13 +22,14 @@ abstract class Plugin extends Wp
     /**
      * @var array
      */
-    protected static $_instances = array();
+    protected static $_instances = [];
 
 
     /**
      * init plugin and register activation and deactivation hooks
      *
-     * @param null⁄mixed $options expects optional class options
+     * @param null|mixed $options expects optional class options
+     * @throws \Exception
      */
     protected function __construct($options = null)
     {
@@ -39,7 +46,7 @@ abstract class Plugin extends Wp
         {
             $self->_deactivate();
         });
-        register_uninstall_hook($plugin, array(__CLASS__, '_uninstall'));
+        register_uninstall_hook($plugin, [__CLASS__, '_uninstall']);
 
         parent::__construct();
     }
@@ -72,7 +79,7 @@ abstract class Plugin extends Wp
             {
                 return self::$_instance;
             }else{
-                throw new Exception('no plugin instance has been created yet');
+                throw new Exception(__("No plugin instance has been created yet", SETCOOKI_WP_DOMAIN));
             }
         }
     }
@@ -110,7 +117,7 @@ abstract class Plugin extends Wp
         {
             return self::instance($id);
         }else{
-            throw new Exception(setcooki_sprintf('no instance found for id: %s', $id));
+            throw new Exception(setcooki_sprintf(__("No instance found for id: %s", SETCOOKI_WP_DOMAIN), $id));
         }
     }
 
@@ -119,7 +126,6 @@ abstract class Plugin extends Wp
      * internal plugin activation hook
      *
      * @return void
-     * @throws Exception
      */
     protected function _activate()
     {
@@ -135,7 +141,6 @@ abstract class Plugin extends Wp
      * internal plugin deactivation hook
      *
      * @return void
-     * @throws Exception
      */
     protected function _deactivate()
     {
@@ -169,7 +174,7 @@ abstract class Plugin extends Wp
         }else if(($wp = parent::wp()) !== null){
             $wp->uninstall();
         }else{
-            throw new Exception('unable to get plugin instance for uninstall');
+            throw new Exception(__("Unable to get plugin instance for uninstall", SETCOOKI_WP_DOMAIN));
         }
     }
 

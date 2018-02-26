@@ -2,11 +2,17 @@
 
 namespace Setcooki\Wp;
 
+use Setcooki\Wp\Exception;
+use Setcooki\Wp\Routing\Route;
 use Setcooki\Wp\Traits\Singleton;
 
 /**
  * Class Request
- * @package Setcooki\Wp
+ *
+ * @package     Setcooki\Wp
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 class Request
 {
@@ -68,7 +74,7 @@ class Request
      *
      * @var array
      */
-    protected $_params = array();
+    protected $_params = [];
 
     /**
      * contains the charset found in header
@@ -92,6 +98,15 @@ class Request
     protected $_contentLength = null;
 
 
+    /**
+     * contains a route object if request has been resolved by resolver matching a route
+     *
+     * @since 1.2
+     * @var null|Route
+     */
+    protected $_route = null;
+
+
 
     /**
      * class constructor must be called from child class to initialize request setting
@@ -110,6 +125,7 @@ class Request
      * content length from headers as well as setting request url
      *
      * @return void
+     * @throws \Setcooki\Wp\Exception
      */
     protected function init()
     {
@@ -150,6 +166,17 @@ class Request
      *
      * @return string
      */
+    public function getUrl()
+    {
+        return $this->_url;
+    }
+
+
+    /**
+     * get raw php post input string
+     *
+     * @return string
+     */
     public function getRaw()
     {
         if($this->_raw === null)
@@ -168,6 +195,7 @@ class Request
      * @param string $name expects parameter name
      * @param null|mixed $default expects default return value
      * @return array|mixed|null
+     * @throws \Exception
      */
     public function getParam($name, $default = null)
     {
@@ -222,7 +250,7 @@ class Request
     /**
      * checks if a parameter exist in post get merged param array with strict mode
      *
-     * @see Setcooki\Wp\Request::hasParam
+     * @see \Setcooki\Wp\Request::hasParam()
      * @param null|string $name expects the optional parameter name
      * @return bool
      */
@@ -248,7 +276,8 @@ class Request
      * @param string $from expects
      * @param null $default expects default return value
      * @return null|mixed
-     * @throws Exception
+     * @throws \Exception
+     * @throws \Setcooki\Wp\Exception
      */
     public function getFrom($name, $from = self::PARAMS, $default = null)
     {
@@ -272,23 +301,25 @@ class Request
                 $return = ((array_key_exists($name, $_SERVER)) ? $_SERVER[$name] : setcooki_default($default));
                 break;
             default:
-                throw new Exception(setcooki_sprintf(_("request variable scope: %s does not exist"), $from));
+                throw new Exception(setcooki_sprintf(__("Request variable scope: %s does not exist", SETCOOKI_WP_DOMAIN), $from));
         }
         return $return;
     }
 
 
     /**
-     * get value from global variable scopes as defined in Setcooki\Wp\Request::getFrom will
+     * get value from global variable scopes as defined in Setcooki\Wp\Request::getFrom() will
      * look in each scope / global array and if not found in any of them will return default
      * value defined in third parameter. if second parameter is not null but variable scope
      * constant name will redirect to getFrom function to get value
      *
-     * @see Setcooki\Wp\Request::getFrom
+     * @see \Setcooki\Wp\Request::getFrom()
      * @param string $name expects parameter name
      * @param string $from expects
      * @param null $default expects default return value
      * @return null|mixed
+     * @throws \Exception
+     * @throws \Setcooki\Wp\Exception
      */
     public function get($name, $from = null, $default = null)
     {
@@ -371,7 +402,7 @@ class Request
     /**
      * does the same as has method but always checking in strict mode
      *
-     * @see Setcooki\Wp\Request::has
+     * @see \Setcooki\Wp\Request::has()
      * @param string $name expects the parameter name
      * @param null|string $from expects optional scope value like "POST"
      * @return bool
@@ -412,7 +443,7 @@ class Request
                 $_COOKIE[$name] = $value;
                 break;
             default:
-                throw new Exception(setcooki_sprintf(_("request variable scope: %s does not exist"), $to));
+                throw new Exception(setcooki_sprintf(__("Request variable scope: %s does not exist", SETCOOKI_WP_DOMAIN), $to));
         }
         return $this;
     }
@@ -673,7 +704,7 @@ class Request
      */
     public static function url($url = null, $component = null)
     {
-        $tmp = array();
+        $tmp = [];
 
         if($url === null)
         {
@@ -713,7 +744,7 @@ class Request
             {
                 return $u;
             }else{
-                throw new Exception(setcooki_sprintf(_("url: %s is not a valid url"), $url));
+                throw new Exception(setcooki_sprintf(__("Url: %s is not a valid url", SETCOOKI_WP_DOMAIN), $url));
             }
         }else{
             return $url;
@@ -723,12 +754,13 @@ class Request
 
     /**
      * get path from url or uri either by passing custom url/uri in second argument or assuming url/uri from current url
-     * @see Request::url. if you pass an integer in first argument will return the path part at this index assuming that
+     * @see Request::url(). if you pass an integer in first argument will return the path part at this index assuming that
      * every path part is separated by /. you can pass also -1 as value which will return the last part
      *
      * @param null|int $part expects path position value
      * @param null|string $url expects optional url/uri
      * @return string
+     * @throws \Setcooki\Wp\Exception
      */
     public static function path($part = null, $url = null)
     {
@@ -773,7 +805,7 @@ class Request
    				die();
    			}
    		}else{
-            throw new Exception(setcooki_sprintf(_("url: %s is not a valid url"), $url));
+            throw new Exception(setcooki_sprintf(__("Url: %s is not a valid url", SETCOOKI_WP_DOMAIN), $url));
    		}
    	}
 
@@ -808,6 +840,73 @@ class Request
     public function getContentLength()
     {
         return $this->_contentLength;
+    }
+
+
+    /**
+     * return the accept content type in HTTP_ACCEPT header if set. returns the accepted types ordered by prio. returns
+     * empty array if not accepted content types were detected
+     *
+     * @since 1.2
+     * @return array
+     */
+    public function getAcceptedContentType()
+    {
+        $types = [];
+
+        if(isset($_SERVER['HTTP_ACCEPT']) && !empty($_SERVER['HTTP_ACCEPT']))
+        {
+            $type = preg_split('=\s*,\s*=i', trim($_SERVER['HTTP_ACCEPT']));
+            foreach($type as $t)
+            {
+                if(stripos($t, ';') !== false && preg_match('=^([a-z\-\/\*]+)\;\s*(?:q\=([0-9\.]+))$=i', $t, $m))
+                {
+                    $types[strtolower(trim($m[1]))] = (float)$m[2];
+                }else{
+                    $types[strtolower($t)] = 1;
+                }
+            }
+            arsort($types);
+            $types = array_keys($types);
+        }
+
+        return $types;
+    }
+
+
+    /**
+     * set route object if request is create from resolver matching route
+     *
+     * @since 1.2
+     * @param Route $route
+     */
+    public function setRoute(Route $route)
+    {
+        $this->_route = $route;
+    }
+
+
+    /**
+     * get route object that exists if request is create from resolver matching route
+     *
+     * @since 1.2
+     * @return null|Route
+     */
+    public function getRoute()
+    {
+        return $this->_route;
+    }
+
+
+    /**
+     * check if request has route object = if request is create from resolver matching route
+     *
+     * @since 1.2
+     * @return bool
+     */
+    public function hasRoute()
+    {
+        return ($this->_route) ? true : false;
     }
 
 

@@ -2,6 +2,7 @@
 
 namespace Setcooki\Wp\Events;
 
+use Setcooki\Wp\Exception;
 use Setcooki\Wp\Traits\Data;
 
 /**

@@ -1,13 +1,19 @@
 <?php
 
-namespace Setcooki\Wp;
+namespace Setcooki\Wp\Content;
 
+use Setcooki\Wp\Exception;
+use Setcooki\Wp\Wp;
 use Setcooki\Wp\Traits\Cache;
 use Setcooki\Wp\Util\Params;
 
 /**
  * Class Template
- * @package Setcooki\Wp
+ *
+ * @package     Setcooki\Wp\Content
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 class Template
 {
@@ -34,8 +40,8 @@ class Template
      * class constructor expects a template file as first argument and optional view instance as second
      *
      * @param string $template expects absolute or relative template file
-     * @param null|mixed expects optional vars to set
-     * @param null|array|Params
+     * @param null $vars
+     * @throws Exception
      */
     public function __construct($template, $vars = null)
     {
@@ -49,9 +55,9 @@ class Template
 
 
     /**
-     * shortcut function to create a template see Setcooki\Wp\Template::__construct
+     * shortcut function to create a template see \Setcooki\Wp\Content\Template::__construct()
      *
-     * @see Setcooki\Wp\Template::__construct
+     * @see \Setcooki\Wp\Content\Template::__construct()
      * @param string $template expects absolute or relative template file
      * @param null|mixed expects optional vars to set
      * @return Template
@@ -158,7 +164,7 @@ class Template
         }else if(is_object($vars)){
             $this->_vars = (object)$vars;
         }else{
-            throw new Exception("vars passed in first argument are not allowed in this context");
+            throw new Exception(__("Vars passed in first argument are not allowed in this context", SETCOOKI_WP_DOMAIN));
         }
     }
 
@@ -188,18 +194,6 @@ class Template
         $this->_vars = new \stdClass();
         $this->_buffer = '';
     }
-
-
-    /**
-     * render the template by loading template file and parsing template placeholders filling them with variable values
-     * if variables can be matched. the second argument can receive more runtime variables which are only use for the
-     * current to render template
-     *
-     * @param null|string $template expects optional overwrite template file location
-     * @param null|mixed $vars expects optional variables to apply
-     * @return mixed
-     * @throws Exception
-     */
 
 
     /**
@@ -234,8 +228,8 @@ class Template
                 @extract((array)$this->get(), EXTR_SKIP);
                 require $template;
                 $buffer = ob_get_clean();
-                $buffer = preg_replace_callback('/\{(\()([^)}]{2,})\)\}/i', array($this, 'parse'), $buffer);
-                $buffer = preg_replace_callback('/\{(\$|\%)([^\}]{2,})\}/i', array($this, 'parse'), $buffer);
+                $buffer = preg_replace_callback('/\{(\()([^)}]{2,})\)\}/i', [$this, 'parse'], $buffer);
+                $buffer = preg_replace_callback('/\{(\$|\%)([^\}]{2,})\}/i', [$this, 'parse'], $buffer);
                 if($cache >= 0)
                 {
                     $this->cache($key, $template, $cache);
@@ -244,20 +238,20 @@ class Template
             @clearstatcache();
             if(!is_null($callback))
             {
-                $buffer = call_user_func($callback, array($buffer, $this));
+                $buffer = call_user_func($callback, [$buffer, $this]);
             }
             return $this->_buffer = $buffer;
         }else{
-            throw new Exception(setcooki_sprintf("template file: %s not found or not readable", $template));
+            throw new Exception(setcooki_sprintf(__("Template file: %s not found or not readable", SETCOOKI_WP_DOMAIN), $template));
         }
     }
 
 
     /**
-     * static function to render a template file see Template::render
+     * static function to render a template file see Template::render()
      *
-     * @see Template::create
-     * @see Template::render
+     * @see Template::create()
+     * @see Template::render()
      * @param string $template expects tempalte absolute or relative file
      * @param null|mixed $vars expects variables to set
      * @param callable|null $callback expects optional buffer callback
@@ -287,7 +281,7 @@ class Template
             require $file;
             return ob_get_clean();
         }else{
-            throw new Exception(setcooki_sprintf("unable to include file: %s", $file));
+            throw new Exception(setcooki_sprintf(__("Unable to include file: %s", SETCOOKI_WP_DOMAIN), $file));
         }
     }
 
@@ -373,9 +367,8 @@ class Template
         if((bool)$echo)
         {
             echo $buffer;
-        }else{
-            return $buffer;
         }
+        return $buffer;
     }
 
 
@@ -458,6 +451,6 @@ class Template
      */
     public function __sleep()
     {
-        return array('vars', 'template');
+        return ['vars', 'template'];
     }
 }

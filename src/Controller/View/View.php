@@ -2,16 +2,21 @@
 
 namespace Setcooki\Wp\Controller\View;
 
+use Setcooki\Wp\Wp;
 use Setcooki\Wp\Traits\Cache;
 use Setcooki\Wp\Util\Params;
 use Setcooki\Wp\Controller\Controller;
-use Setcooki\Wp\Template;
+use Setcooki\Wp\Content\Template;
 use Setcooki\Wp\Exception;
-use Setcooki\Wp\Wp;
 
 /**
  * Class View
- * @package Setcooki\Wp\Controller\View
+ *
+ * @package     Setcooki\Wp\Controller
+ * @subpackage  Setcooki\Wp\Controller\View
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 class View
 {
@@ -30,7 +35,7 @@ class View
      *
      * @var array
      */
-    protected $_vars = array();
+    protected $_vars = [];
 
     /**
      * contains controller instance
@@ -46,6 +51,7 @@ class View
      * @param Controller $controller expects controller instance
      * @param string|Template $view expects view template file or template instance
      * @param null|mixed $vars expects optional vars to assign to view
+     * @throws Exception
      */
     public function __construct(Controller $controller, $view, $vars = null)
     {
@@ -61,7 +67,7 @@ class View
     /**
      * static function to create view instance
      *
-     * @see View::__constructor
+     * @see View::__construct()
      * @param Controller $controller expects controller instance
      * @param string|Template $view expects view template file or template instance
      * @param null|mixed $vars expects optional vars to assign to view
@@ -92,7 +98,7 @@ class View
     /**
      * set and if already set override all previously set vars and return them
      *
-     * @see View::assign
+     * @see View::assign()
      * @param null|mixed $vars expects optional vars to set and override
      * @return array
      * @throws Exception
@@ -141,7 +147,7 @@ class View
                 $this->_vars[$key] = $value;
             }
         }else{
-            throw new Exception("can not assign key passed in first argument");
+            throw new Exception(__("Can not assign key passed in first argument", SETCOOKI_WP_DOMAIN));
         }
         return $this;
     }
@@ -166,7 +172,7 @@ class View
             }
             return $this;
         }else{
-            throw new Exception("can not unassign by key passed in first argument");
+            throw new Exception(__("Can not unassign by key passed in first argument", SETCOOKI_WP_DOMAIN));
         }
     }
 
@@ -176,7 +182,7 @@ class View
      */
     public function reset()
     {
-        $this->_vars = array();
+        $this->_vars = [];
     }
 
 
@@ -227,7 +233,7 @@ class View
     {
         if(!isset($this->_vars[$name]))
         {
-            throw new Exception(setcooki_sprintf("unable to __get: %s from view", $name));
+            throw new Exception(setcooki_sprintf(__("Unable to __get: %s from view", SETCOOKI_WP_DOMAIN), $name));
         }
         $var = $this->_vars[$name];
         return ($var instanceof \Closure) ? $var($this) : $var;
@@ -257,7 +263,7 @@ class View
     {
         if(!isset($this->_vars[$name]))
         {
-            throw new Exception(setcooki_sprintf("unable to __unset: %s from view", $name));
+            throw new Exception(setcooki_sprintf(__("Unable to __unset: %s from view", SETCOOKI_WP_DOMAIN), $name));
         }
         unset($this->_vars[$name]);
         return $this;
@@ -321,12 +327,12 @@ class View
                 }
             }
         }else{
-            throw new Exception("unable to render view since view data type or value not supported");
+            throw new Exception(__("Unable to render view since view data type or value not supported", SETCOOKI_WP_DOMAIN));
         }
 
         if(!is_null($callback))
         {
-            return call_user_func_array($callback, array($view, $this));
+            return call_user_func_array($callback, [$view, $this]);
         }else{
             return $view;
         }
@@ -350,7 +356,7 @@ class View
             require $file;
             return ob_get_clean();
         }else{
-            throw new Exception(setcooki_sprintf("unable to include file: %s", $file));
+            throw new Exception(setcooki_sprintf(__("Unable to include file: %s", SETCOOKI_WP_DOMAIN), $file));
         }
     }
 
@@ -405,6 +411,6 @@ class View
      */
     public function __sleep()
     {
-        return array('view', 'vars', 'controller');
+        return ['view', 'vars', 'controller'];
     }
 }

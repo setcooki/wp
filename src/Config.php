@@ -2,16 +2,22 @@
 
 namespace Setcooki\Wp;
 
+use Setcooki\Wp\Exception;
+
 /**
  * Class Config
- * @package Setcooki\Wp
+ *
+ * @package     Setcooki\Wp
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 class Config
 {
     /**
      * @var array
      */
-    private $_config = array();
+    private $_config = [];
 
     /**
      * @var null
@@ -21,7 +27,7 @@ class Config
     /**
      * @var array
      */
-    protected static $_instances = array();
+    protected static $_instances = [];
 
 
     /**
@@ -29,7 +35,7 @@ class Config
      * files which are merge to one config object
      *
      * @param string|mixed $config expects either a string file name or an array of config files
-     * @throws Exception
+     * @throws \Setcooki\Wp\Exception
      */
     public function __construct($config)
     {
@@ -54,7 +60,7 @@ class Config
      * static class creator which is the expected way to use config class. pass config file or files in first argument and
      * set namespace identifier in second argument. that way multiple config namespaces/instances can be maintained
      *
-     * @see Cache::__construct
+     * @see Cache::__construct()
      * @param string|mixed $config expects either a string file name or an array of config files
      * @param string $ns expects config namespace identifier
      * @return mixed
@@ -84,7 +90,7 @@ class Config
         }else if(self::$_instance !== null){
             return self::$_instance;
         }else{
-            throw new Exception(setcooki_sprintf('config instance under: %s not set', $ns));
+            throw new Exception(setcooki_sprintf(__("Config instance under: %s not set", SETCOOKI_WP_DOMAIN), $ns));
         }
     }
 
@@ -126,7 +132,7 @@ class Config
                 unset(self::$_instances[$ns]);
                 return self::$_instances[$new];
             }else{
-                throw new Exception(setcooki_sprintf('no register config ns found with: %s', $ns));
+                throw new Exception(setcooki_sprintf(__("No registered config ns found with: %s", SETCOOKI_WP_DOMAIN), $ns));
             }
         }else if($ns !== null && $new === null){
             return self::instance($ns);
@@ -157,9 +163,9 @@ class Config
                 }
             }else{
                 if((bool)$throw){
-                    throw new Exception(sprintf(_("unable to load php config file: %s"), $file));
+                    throw new Exception(sprintf(__("Unable to load php config file: %s", SETCOOKI_WP_DOMAIN), $file));
                 }else{
-                    return array();
+                    return [];
                 }
             }
         }
@@ -168,13 +174,14 @@ class Config
 
 
     /**
-     * static shortcut function for Setcooki\Wp\Config::set
+     * static shortcut function for Setcooki\Wp\Config::set()
      *
-     * @see Setcooki\Wp\Config::set
+     * @see \Setcooki\Wp\Config::set()
      * @param null|string $key expects the config key
      * @param null|mixed $value expects the config value
      * @param null|string $ns expects the optional namespace of the config store
      * @return void
+     * @throws \Setcooki\Wp\Exception
      */
     public static function s($key = null, $value = null, $ns = null)
     {
@@ -190,6 +197,7 @@ class Config
      * @param null|mixed $value expects the config value
      * @param null|string $ns expects the optional namespace of the config store
      * @return void
+     * @throws \Setcooki\Wp\Exception
      */
     public function set($key = null, $value = null, $ns = null)
     {
@@ -198,14 +206,15 @@ class Config
 
 
     /**
-     * static shortcut function for Setcooki\Wp\Config::get
+     * static shortcut function for Setcooki\Wp\Config::get()
      *
-     * @see Setcooki\Wp\Config::get
+     * @see \Setcooki\Wp\Config::get()
      * @param null|string $key expects the config key
      * @param null|mixed $default expects a default return value
      * @param null|string $ns expects the optional namespace of the config store
      * @return mixed
      * @throws \Exception
+     * @throws \Setcooki\Wp\Exception
      */
     public static function g($key = null, $default = null, $ns = null)
     {
@@ -222,6 +231,7 @@ class Config
      * @param null|string $ns expects the optional namespace of the config store
      * @return mixed
      * @throws \Exception
+     * @throws \Setcooki\Wp\Exception
      */
     public function get($key = null, $default = null, $ns = null)
     {
@@ -240,7 +250,7 @@ class Config
      * @param null|string $key expects the config key
      * @param null|string $ns expects the optional namespace of the config store
      * @return bool
-     * @throws Exception
+     * @throws \Setcooki\Wp\Exception
      */
     public static function h($key = null, $ns = null)
     {
@@ -272,7 +282,7 @@ class Config
     {
         if(isset(self::$_instances[$ns]))
         {
-           self::$_instances[$ns]->_config = array();
+           self::$_instances[$ns]->_config = [];
         }
     }
 }

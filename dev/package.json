@@ -1,0 +1,25 @@
+{
+  "name": "setcooki-wp-template",
+  "description": "setcooki-wp dev template",
+  "main": "gulpfile.js",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-autoprefixer": "^4.1.0",
+    "gulp-load-plugins": "^1.5.0",
+    "gulp-sass": "^3.1.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-util": "^3.0.8",
+    "gulp-uglify": "^3.0.0"
+  },
+  "scripts": {
+    "start": "gulp",
+    "build": "gulp sass"
+  },
+  "bugs": {
+    "url": "https://github.com/setcooki/wp/issues",
+    "email": "set@cooki.me"
+  },
+  "author": "setcooki <set@cooki.me>",
+  "license": "MIT",
+  "private": true
+}

@@ -1,0 +1,21 @@
+@charset 'utf-8';
+
+$wp-unit: 10;
+$wp-unit-x1: $wp-unit;
+$wp-unit-x2: $wp-unit * 2;
+$wp-unit-x3: $wp-unit * 3;
+$wp-unit-x4: $wp-unit * 4;
+$wp-unit-x5: $wp-unit * 5;
+
+$wp-unit-px: #{$wp-unit}px;
+$wp-unit-px-x1: #{$wp-unit-x1}px;
+$wp-unit-px-x2: #{$wp-unit-x2}px;
+$wp-unit-px-x3: #{$wp-unit-x3}px;
+$wp-unit-px-x4: #{$wp-unit-x4}px;
+$wp-unit-px-x5: #{$wp-unit-x5}px;
+
+$wp-colors: (
+  black: #0a0a0a,
+  white: #fff,
+  turquoise: #6b8ccb
+);

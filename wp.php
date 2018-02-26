@@ -12,7 +12,7 @@ if(!function_exists('setcooki_dropdown'))
      */
     function setcooki_dropdown($options, $selected = null, $exclude = null)
     {
-        $html = array();
+        $html = [];
     
         foreach((array)$options as $key => $value)
         {
@@ -42,7 +42,7 @@ if(!function_exists('setcooki_excerpt'))
      * @param null|string|callable $wrap expects a string, a string with sprintf % placeholder or a callable
      * @param bool|false $html expects boolean flag for whether strip html or not
      * @param bool|null|string $return expects a flag for whether to return or echo output or reference to a string object
-     * @return string|void
+     * @return string
      */
     function setcooki_excerpt($mixed, $length = null, $wrap = null, $html = false, &$return = null)
     {
@@ -75,9 +75,9 @@ if(!function_exists('setcooki_excerpt'))
         {
             if(is_callable($wrap))
             {
-                $excerpt = call_user_func_array($wrap, array($excerpt));
+                $excerpt = call_user_func_array($wrap, [$excerpt]);
             }else if(is_string($wrap) && preg_match('=\%(s|d)=i', $wrap)){
-                $excerpt = vsprintf($wrap, array($excerpt));
+                $excerpt = vsprintf($wrap, [$excerpt]);
             }else{
                 $excerpt = $excerpt . (string)$wrap;
             }
@@ -118,7 +118,7 @@ if(!function_exists('setcooki_loop'))
         }else if(is_array($query)){
             $GLOBALS['wp_query'] = new \WP_Query($query);
         }else if(is_callable($query)){
-            $GLOBALS['wp_query'] = call_user_func_array($query, array($params));
+            $GLOBALS['wp_query'] = call_user_func_array($query, [$params]);
         }else{
             //do nothing query is set already
         }
@@ -130,7 +130,7 @@ if(!function_exists('setcooki_loop'))
                 global $post;
                 if(is_callable($partial))
                 {
-                    echo call_user_func_array($partial, array($post, $params));
+                    echo call_user_func_array($partial, [$post, $params]);
                 }else if(!is_null($partial)){
                     setcooki_include($partial, $params);
                 }else{

@@ -1,0 +1,18 @@
+{
+  "name": "setcooki-wp-template",
+  "description": "setcooki-wp dev template",
+  "license": "MIT",
+  "homepage": "set@cooki.me",
+  "dependencies": {
+    "foundation-sites": "~6.3.1",
+    "motion-ui": "~1.2.2"
+  },
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "private": true
+}

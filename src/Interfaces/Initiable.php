@@ -6,7 +6,11 @@ use Setcooki\Wp\Wp;
 
 /**
  * Interface Initiable
- * @package Setcooki\Wp\Interfaces
+ *
+ * @package     Setcooki\Wp\Interfaces
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 interface Initiable
 {

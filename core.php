@@ -9,7 +9,7 @@ if(!defined('SETCOOKI_WP_START'))
 }
 if(!defined('SETCOOKI_WP_PHP_VERSION'))
 {
-    define('SETCOOKI_WP_PHP_VERSION', '5.4.4');
+    define('SETCOOKI_WP_PHP_VERSION', '5.6');
 }
 
 /**
@@ -27,6 +27,26 @@ define('SETCOOKI_WP_CHARSET', 'CHARSET');
 define('SETCOOKI_WP_ERROR_HANDLER', 'ERROR_HANDLER');
 define('SETCOOKI_WP_EXCEPTION_HANDLER', 'EXCEPTION_HANDLER');
 define('SETCOOKI_WP_AUTOLOAD_DIRS', 'AUTOLOAD_DIRS');
+
+/**
+ * define text domain
+ */
+if(!defined('SETCOOKI_WP_DOMAIN'))
+{
+    define('SETCOOKI_WP_DOMAIN', 'setcooki');
+}
+
+/**
+ * define global format constants
+ */
+if(!defined('SETCOOKI_WP_DATE_FORMAT'))
+{
+    define('SETCOOKI_WP_DATE_FORMAT', '%Y-%m-%d');
+}
+if(!defined('SETCOOKI_WP_DATE_FORMAT'))
+{
+    define('SETCOOKI_WP_DATETIME_FORMAT', '%Y-%m-%d %H:%M:%S');
+}
 
 /**
  * set global constants
@@ -47,6 +67,105 @@ if(!defined('PHP_EXT'))
 {
     define('PHP_EXT', '.php');
 }
+
+/**
+ * define variable types
+ */
+/**
+ * data type constant for type mixed
+ * @const SETCOOKI_TYPE_MIXED
+ */
+define('SETCOOKI_TYPE_MIXED',               'mixed');
+/**
+ * data type constant for type string
+ * @const SETCOOKI_TYPE_STRING
+ */
+define('SETCOOKI_TYPE_STRING',              'string');
+/**
+ * data type constant for type array
+ * @const SETCOOKI_TYPE_ARRAY
+ */
+define('SETCOOKI_TYPE_ARRAY',               'array');
+/**
+ * data type constant for type bool
+ * @const SETCOOKI_TYPE_BOOL
+ */
+define('SETCOOKI_TYPE_BOOL',                'bool');
+/**
+ * data type constant for type double
+ * @const SETCOOKI_TYPE_DOUBLE
+ */
+define('SETCOOKI_TYPE_DOUBLE',              'double');
+/**
+ * data type constant for type float
+ * @const SETCOOKI_TYPE_FLOAT
+ */
+define('SETCOOKI_TYPE_FLOAT',               'float');
+/**
+ * data type constant for type scalar
+ * @const SETCOOKI_TYPE_SCALAR
+ */
+define('SETCOOKI_TYPE_SCALAR',              'scalar');
+/**
+ * data type constant for type int
+ * @const SETCOOKI_TYPE_INT
+ */
+define('SETCOOKI_TYPE_INT',                 'int');
+/**
+ * data type constant for type integer
+ * @const SETCOOKI_TYPE_INTEGER
+ */
+define('SETCOOKI_TYPE_INTEGER',             'integer');
+/**
+ * data type constant for type null
+ * @const SETCOOKI_TYPE_NULL
+ */
+define('SETCOOKI_TYPE_NULL',                'null');
+/**
+ * data type constant for type numeric
+ * @const SETCOOKI_TYPE_NUMERIC
+ */
+define('SETCOOKI_TYPE_NUMERIC',             'numeric');
+/**
+ * data type constant for type object
+ * @const SETCOOKI_TYPE_OBJECT
+ */
+define('SETCOOKI_TYPE_OBJECT',              'object');
+/**
+ * data type constant for type file
+ * @const SETCOOKI_TYPE_FILE
+ */
+define('SETCOOKI_TYPE_FILE',                'file');
+/**
+ * data type constant for type dir
+ * @const SETCOOKI_TYPE_DIR
+ */
+define('SETCOOKI_TYPE_DIR',                 'dir');
+/**
+ * data type constant for type resource
+ * @const SETCOOKI_TYPE_RESOURCE
+ */
+define('SETCOOKI_TYPE_RESOURCE',            'resource');
+/**
+ * data type constant for type callable
+ * @const SETCOOKI_TYPE_CALLABLE
+ */
+define('SETCOOKI_TYPE_CALLABLE',            'callable');
+/**
+ * data type constant for type class
+ * @const SETCOOKI_TYPE_CLASS
+ */
+define('SETCOOKI_TYPE_CLASS',               'class');
+/**
+ * data type constant for type date
+ * @const SETCOOKI_TYPE_DATE
+ */
+define('SETCOOKI_TYPE_DATE',                'date');
+/**
+ * data type constant for type date
+ * @const SETCOOKI_TYPE_DATETIME
+ */
+define('SETCOOKI_TYPE_DATETIME',            'datetime');
 
 /**
  * test php version
@@ -86,7 +205,7 @@ if(!class_exists('Setcooki\\Wp\\Config'))
  */
 if(defined('SETCOOKI_WP_AUTOLOAD') && (bool)constant('SETCOOKI_WP_AUTOLOAD'))
 {
-    @spl_autoload_register(array('\Setcooki\Wp\Wp', 'autoload'), false);
+    @spl_autoload_register(['\Setcooki\Wp\Wp', 'autoload'], false);
 }
 
 /**
@@ -107,7 +226,7 @@ if(!function_exists('setcooki_boot'))
         $ns = setcooki_ns();
         if(isset($GLOBALS[SETCOOKI_NS]) && isset($GLOBALS[SETCOOKI_NS][$ns]))
         {
-            setcooki_die(sprintf("plugin/theme namespace: %s is already in use", $ns));
+            setcooki_die(sprintf(__("Plugin/theme namespace: %s is already in use", SETCOOKI_WP_DOMAIN), $ns));
         }
         $wp = array
         (
@@ -128,7 +247,7 @@ if(!function_exists('setcooki_boot'))
         {
             if(!defined('SETCOOKI_WP_AUTOLOAD') || (defined('SETCOOKI_WP_AUTOLOAD') && !(bool)constant('SETCOOKI_WP_AUTOLOAD')))
             {
-                @spl_autoload_register(array('\Setcooki\Wp\Wp', 'autoload'), false);
+                @spl_autoload_register(['\Setcooki\Wp\Wp', 'autoload'], false);
             }
         }
         if(SETCOOKI_DEV)
@@ -159,11 +278,11 @@ if(!function_exists('setcooki_boot'))
         $config->set('wp', $wp);
         if(!isset($GLOBALS[SETCOOKI_NS]))
         {
-            $GLOBALS[SETCOOKI_NS] = array();
+            $GLOBALS[SETCOOKI_NS] = [];
         }
         if(!isset($GLOBALS[SETCOOKI_NS][$ns]))
         {
-            $GLOBALS[SETCOOKI_NS][$ns] = array();
+            $GLOBALS[SETCOOKI_NS][$ns] = [];
         }
         foreach($wp as $k => $v)
         {
@@ -212,7 +331,6 @@ if(!function_exists('setcooki_conf'))
      * @param string|mixed $value expects the config value
      * @param null|mixed $default expects optional default return value
      * @return mixed
-     * @throws Exception
      */
     function setcooki_conf($key = null, $value = '_NIL_', $default = null)
     {
@@ -220,18 +338,18 @@ if(!function_exists('setcooki_conf'))
         {
             if(is_null($key) && $value === '_NIL_')
             {
-                return (isset($GLOBALS[SETCOOKI_NS][$ns])) ? $GLOBALS[SETCOOKI_NS][$ns] : array();
+                return (isset($GLOBALS[SETCOOKI_NS][$ns])) ? $GLOBALS[SETCOOKI_NS][$ns] : [];
             }
             $key = strtoupper(trim($key));
             if($value !== '_NIL_')
             {
                 if(!isset($GLOBALS[SETCOOKI_NS]))
                 {
-                    $GLOBALS[SETCOOKI_NS] = array();
+                    $GLOBALS[SETCOOKI_NS] = [];
                 }
                 if(!isset($GLOBALS[SETCOOKI_NS][$ns]))
                 {
-                    $GLOBALS[SETCOOKI_NS][$ns] = array();
+                    $GLOBALS[SETCOOKI_NS][$ns] = [];
                 }
                 if(\Setcooki\Wp\Config::hasInstance($ns) && \Setcooki\Wp\Config::h("wp.$key", $ns))
                 {
@@ -481,7 +599,7 @@ if(!function_exists('setcooki_die'))
             {
                 wp_die($message);
             }else{
-                //do nothing since rest of application should not be broken
+                return false;
             }
         }else{
             if((bool)$log)
@@ -519,11 +637,10 @@ if(!function_exists('setcooki_ns'))
         {
             return strtolower(trim((string)$base));
         }else{
-            return setcooki_die('unable to get ns from installation - please make sure plugin or theme is running inside /wp-content', false, false);
+            return setcooki_die(__("Unable to get ns from installation - please make sure plugin or theme is running inside /wp-content", SETCOOKI_WP_DOMAIN), false, false);
         }
     }
 }
-
 
 if(!function_exists('setcooki_config'))
 {
@@ -535,7 +652,6 @@ if(!function_exists('setcooki_config'))
      * @param null|mixed $default expects optional return value
      * @param null|string $ns expects the optional namespace prior set with config class
      * @return mixed
-     * @throws Exception
      */
     function setcooki_config($key = null, $default = null, $ns = null)
     {
@@ -592,9 +708,32 @@ if(!function_exists('setcooki_wp'))
     {
         if(is_null($default))
         {
-            $default = new \Exception("sorry! no clue who i am!");
+            $default = new Exception("sorry! no clue who i am!");
         }
         if(($id = \Setcooki\Wp\Wp::wp($id, false)) !== false)
+        {
+            return $id;
+        }else{
+            return setcooki_default($default);
+        }
+    }
+}
+
+
+if(!function_exists('setcooki_id'))
+{
+    /**
+     * get setcooki wp instance id which is a string made of $scope:$name where $scope can be 'plugin' or 'theme' and
+     * $name is the theme or plugin folder name. if the first argument is true will return the id hashed
+     *
+     * @since 1.2
+     * @param bool $hashed expects optional hash flag
+     * @param null|mixed $default expects optional default return value
+     * @return mixed|null|string
+     */
+    function setcooki_id($hashed = false, $default = null)
+    {
+        if(($id = \Setcooki\Wp\Wp::id($hashed, false)) !== false)
         {
             return $id;
         }else{
@@ -682,7 +821,7 @@ if(!function_exists('setcooki_log'))
     {
         if(($logger = setcooki_conf(SETCOOKI_WP_LOGGER)) !== null)
         {
-            return call_user_func_array(array($logger, 'log'), array($type, $message, ((func_num_args() > 2) ? (array)func_get_arg(2) : array())));
+            return call_user_func_array([$logger, 'log'], [$type, $message, ((func_num_args() > 2) ? (array)func_get_arg(2) : [])]);
         }
         if($message instanceof \Exception || $message instanceof \Throwable)
         {
@@ -723,7 +862,7 @@ if(!function_exists('setcooki_event'))
         {
             if(!is_array($event))
             {
-                $event = array($event);
+                $event = [$event];
             }
             if(!empty($event))
             {
@@ -758,7 +897,7 @@ if(!function_exists('setcooki_include'))
      */
     function setcooki_include($file, $vars = null, $global = false, &$buffer = null)
     {
-        $file = DIRECTORY_SEPARATOR . trim(str_replace(array('\\', '/'), DIRECTORY_SEPARATOR, (string)$file), ' \\/.');
+        $file = DIRECTORY_SEPARATOR . trim(str_replace(['\\', '/'], DIRECTORY_SEPARATOR, (string)$file), ' \\/.');
         if(stripos($file, '.') === false)
         {
             $file = $file . PHP_EXT;
@@ -772,7 +911,7 @@ if(!function_exists('setcooki_include'))
             extract((array)$vars);
             if((bool)$global)
             {
-                while(list($key , $val) = each($vars))
+                foreach($vars as $key => $val)
                 {
                     $GLOBALS[$key] = $val;
                 }
@@ -815,6 +954,7 @@ if(!function_exists('setcooki_component'))
      * the component output to string. the function can also be used to register components when first argument is a component
      * id and second is an instance of component
      *
+     * @see \Setcooki\Wp\Content\Component
      * @param string|mixed $component expects component instance or id
      * @param null|mixed $mixed expects optional params to pass or instance of component when using function to register components
      * @param null $return
@@ -822,22 +962,23 @@ if(!function_exists('setcooki_component'))
      */
     function setcooki_component($component, $mixed = null, &$return = null)
     {
-        if((is_int($component) || is_string($component)) && (is_object($mixed) && is_subclass_of($mixed, 'Setcooki\Wp\Component')))
+        if((is_int($component) || is_string($component)) && (is_object($mixed) && is_subclass_of($mixed, 'Setcooki\Wp\Content\Component')))
         {
-            return \Setcooki\Wp\Component::register($component, $mixed);
+            return \Setcooki\Wp\Content\Component::register($component, $mixed);
         }
-        if(!is_object($component) && !\Setcooki\Wp\Component::isRegistered($component))
+        if(!is_object($component) && !\Setcooki\Wp\Content\Component::isRegistered($component))
         {
             return null;
         }else{
             if($return === true){
-                return \Setcooki\Wp\Component::execute($component, $mixed);
+                return \Setcooki\Wp\Content\Component::execute($component, $mixed);
             }else if(is_string($return)){
-                $return .= \Setcooki\Wp\Component::execute($component, $mixed);
+                $return .= \Setcooki\Wp\Content\Component::execute($component, $mixed);
             }else{
-                echo \Setcooki\Wp\Component::execute($component, $mixed);
+                echo \Setcooki\Wp\Content\Component::execute($component, $mixed);
             }
         }
+        return null;
     }
 }
 
@@ -845,44 +986,89 @@ if(!function_exists('setcooki_component'))
 if(!function_exists('setcooki_filter'))
 {
     /**
-     * shortcut function for wp´s add_filter function to use with setcooki/wp filter classes. the function works much like
-     * the default add_filter function except that instead of expecting a callable will also except instances of \Setcooki\Wp\Filter
-     * and strings that define registered filter chains. also passing a third argument $params allows for passing any type
-     * of parameter to the filter action so that its no longer necessary storing needed variables in global namespace. see
-     * wp´s add_filter for more
+     * shortcut function for wp´s add_filter() and co functions extended with the possibility to pass additional parameters to
+     * callback function so no need to globalize parameters anymore since default wordpress implementation does not allow
+     * to pass parameter to add_filter() which are available in apply_filter() call. also will accept instance of \Setcooki\Wp\Filter\Filter
+     * as first or second argument or a controller string "controller::method" previously registered with resolver class.
+     * since 1.2 its possible to remove and do/execute filters also - pass -1|false in second argument
+     * to remove the filter previously added. pass 1|true in second argument to do/execute the filter.
      *
-     * @see add_filter
-     * @param string $tag expects the filter tag name
-     * @param mixed $filter expects filter/chain object, callable or filter chain name
-     * @param null|mixed $params expects optional params to pass
-     * @param int $priority expects optional filter priority
-     * @param int $args expects optional filter argument count
+     * @since 1.2 allows to remove filter by passing second argument as integer -1 or boolean false
+     * @since 1.2 allows to apply/execute filters by passing second argument as 1 or true
+     * @see add_filter()
+     * @see remove_filter()
+     * @see apply_filter()
+     * @param string|\Setcooki\Wp\Filter\Filter $tag expects the filter tag name or instance of \Setcooki\Wp\Filter\Filter
+     * @param callable|\Setcooki\Wp\Filter\Filter $filter expects callable or instance of \Setcooki\Wp\Filter
+     * @param null|mixed $params expects optional additional parameters
+     * @param int $priority expects the filter priority value
+     * @param int $args expects the argument count
      * @return mixed
      */
-    function setcooki_filter($tag, $filter, $params = null, $priority = 10, $args = 1)
+    function setcooki_filter($tag, $filter = null, $params = null, $priority = 10, $args = 1)
     {
-        $wp = setcooki_wp(null, null);
+        $callback = null;
+        $wp = setcooki_wp(null, new Exception(__("Unable to get wp instance - You need to add filters via add_filter()", SETCOOKI_WP_DOMAIN)));
 
-        return add_filter((string)$tag, function($value) use ($wp, $filter, $params)
+        if($tag instanceof \Setcooki\Wp\Filter\Filter)
         {
-            //filter chain or bundle
-            if(($filter instanceof \Setcooki\Wp\Filter\Chain) || ($filter instanceof \Setcooki\Wp\Filter))
+            $_tag = $tag->tag;
+            $params = ($filter === 1 || $filter === true) ? $params : $tag->params;
+            $priority = $tag->priority;
+            $args = $tag->args;
+        }else{
+            $_tag = $tag;
+        }
+
+        if(!in_array($filter, [-1, 1, false, true], true))
+        {
+            $callback = function($arguments) use($wp, $tag, $filter, $params, $args)
             {
-                return $filter->execute(func_get_args(), $params);
-            //filter is controller action
-            }else if(!empty($wp) && $wp->stored('resolver') && $wp->store('resolver')->handleable($filter)){
-                return $wp->store('resolver')->handle($filter, array(func_get_args(), $params));
-            //filter is a callable
-            }else if(is_callable($filter)){
-                return call_user_func_array($filter, array(func_get_args(), $params));
-            //else try filter chain by name
-            }else if(is_string($filter) || is_numeric($filter)){
-                return \Setcooki\Wp\Filter\Chain::e($filter, func_get_args(), $params);
-            //else return value unaltered
-            }else{
-                return $value;
+                if(is_array($params) || is_object($params))
+                {
+                    $params = [$params];
+                }
+
+                //filter hook instance in $tag
+                if($tag instanceof \Setcooki\Wp\Filter\Filter) {
+                    return call_user_func_array([$tag, 'execute'], array_merge($arguments, $params));
+                //filter hook instance in $filter
+                }else if($filter instanceof \Setcooki\Wp\Filter\Filter) {
+                    return call_user_func_array([$filter, 'execute'], array_merge($arguments, $params));
+                //filter is filter chain
+                }else if($filter instanceof \Setcooki\Wp\Filter\Chain) {
+                    return $filter->execute(func_get_args(), $params);
+                //filter is controller action
+                }else if(!empty($wp) && $wp->stored('resolver') && $wp->store('resolver')->handleable($filter, true)){
+                    return $wp->store('resolver')->handle($filter, array_merge($arguments, $params));
+                //filter is a callable
+                }else if(is_callable($filter)){
+                    return call_user_func_array($filter, [func_get_args(), $params]);
+                //else try filter chain by name
+                }else if(is_string($filter) || is_numeric($filter)){
+                    return \Setcooki\Wp\Filter\Chain::e($filter, func_get_args(), $params);
+                //else return value unaltered
+                }else{
+                    return func_get_args();
+                }
+            };
+
+            if($tag instanceof \Setcooki\Wp\Hook)
+            {
+                $tag->callback = $callback;
             }
-        }, (int)$priority, (int)$args);
+        }
+
+        //remove
+        if($filter === -1 || $filter === false){
+           return remove_filter($_tag, (($tag instanceof \Setcooki\Wp\Hook && isset($tag->callback)) ? $tag->callback : $filter), $priority);
+        //do
+        }else if($filter === 1 || $filter === true){
+            return call_user_func_array('apply_filter', [$_tag, $params]);
+        //add
+        }else{
+            return add_filter($_tag, $callback, $priority, $args);
+        }
     }
 }
 
@@ -890,54 +1076,106 @@ if(!function_exists('setcooki_filter'))
 if(!function_exists('setcooki_action'))
 {
     /**
-     * shortcut function for wp´s add_action function extended with the possibility to pass additional parameters to
-     * callback function so no need to globalize parameters anymore. also will accept instance of \Setcooki\Wp\Action as
-     * callback which will then execute instances execute method passing callback args in first arg and additional parameters
-     * in second argument
+     * shortcut function for wp´s add_action()|remove_action()|do_action() functions extended with the possibility to pass
+     * additional parameters to callback function so no need to globalize parameters anymore since default wordpress implementation
+     * does not allow to pass parameter to add_action() which are available in do_action() call. also will accept instance
+     * of \Setcooki\Wp\Action\Action as first of second argument or a controller string "controller::method" previously registered
+     * with resolver class. since 1.2 its possible to remove and do/execute actions also - pass -1|false in second argument
+     * to remove the action previously added. pass 1|true in second argument to do/execute the action.
      *
-     * @see add_action
-     * @param string $tag expects the action tag name
-     * @param callable|\Setcooki\Wp\Action $action expects callable or instance of \Setcooki\Wp\Action
+     * @since 1.2 allows to remove action by passing second argument as integer -1 or boolean false
+     * @since 1.2 allows to do/execute actions by passing second argument as 1 or true
+     * @see add_action()
+     * @see remove_action()
+     * @see do_action()
+     * @param string|\Setcooki\Wp\Action\Action $tag expects the action tag name or instance of \Setcooki\Wp\Action\Action
+     * @param callable|\Setcooki\Wp\Action\Action $action expects callable or instance of \Setcooki\Wp\Action\Action
      * @param null|mixed $params expects optional additional parameters
      * @param int $priority expects the action priority value
      * @param int $args expects the argument count
      * @return mixed
      */
-    function setcooki_action($tag, $action, $params = null, $priority = 10, $args = 1)
+    function setcooki_action($tag, $action = null, $params = null, $priority = 10, $args = 1)
     {
-        $wp = setcooki_wp(null, null);
+        $callback = null;
+        $wp = setcooki_wp(null, new Exception(__("Unable to get wp instance - You need to add actions via add_action()", SETCOOKI_WP_DOMAIN)));
 
-        return add_action($tag, function($arg) use($wp, $action, $params, $args)
+        if($tag instanceof \Setcooki\Wp\Action\Action)
         {
-            if((int)$args === 1 && (is_array($arg) || is_object($arg)))
+            $_tag = $tag->tag;
+            $params = ($action === 1 || $action === true) ? $params : $tag->params;
+            $priority = $tag->priority;
+            $args = $tag->args;
+        }else{
+            $_tag = $tag;
+        }
+
+        if(!in_array($action, [-1, 1, false, true], true))
+        {
+            $callback = function($arguments) use($wp, $tag, $action, $params, $args)
             {
-                $arg = array($arg);
-            }else if((int)$args === 1){
-                $arg = (array)$arg;
-            }else{
-                $arg = func_get_args();
-            }
-            if(is_array($params) || is_object($params))
+                if(is_array($params) || is_object($params))
+                {
+                    $params = [$params];
+                }
+                //action hook instance in $tag
+                if($tag instanceof \Setcooki\Wp\Action\Action) {
+                    return call_user_func_array([$tag, 'execute'], array_merge($arguments, $params));
+                //action hook instance in $action
+                }else if($action instanceof \Setcooki\Wp\Action\Action) {
+                    return call_user_func_array([$action, 'execute'], array_merge($arguments, $params));
+                //action is controller action
+                }else if(!empty($wp) && $wp->stored('resolver') && $wp->store('resolver')->handleable($action, true)){
+                    return $wp->store('resolver')->handle($action, array_merge($arguments, $params));
+                //action is callable
+                }else if(is_callable($action)){
+                    return call_user_func_array($action, array_merge(func_get_args(), (array)$params));
+                //else return unaltered
+                }else{
+                    return func_get_args();
+                }
+            };
+
+            if($tag instanceof \Setcooki\Wp\Hook)
             {
-                $params = array($params);
-            }else{
-                $params = (array)$params;
+                $tag->callback = $callback;
             }
-            //action instance
-            if($action instanceof \Setcooki\Wp\Action)
-            {
-                return $action->execute(func_get_args(), $params);
-            //action is controller action
-            }else if(!empty($wp) && $wp->stored('resolver') && $wp->store('resolver')->handleable($action)){
-                return $wp->store('resolver')->handle($action, array_merge($arg, $params));
-            //action is callable
-            }else if(is_callable($action)){
-                return call_user_func_array($action, array_merge($arg, $params));
-            //else return unaltered
-            }else{
-                return func_get_args();
-            }
-        }, $priority, $args);
+        }
+
+        //remove
+        if($action === -1 || $action === false){
+           return remove_action($_tag, (($tag instanceof \Setcooki\Wp\Hook && isset($tag->callback)) ? $tag->callback : $action), $priority);
+        //do
+        }else if($action === 1 || $action === true){
+            return call_user_func_array('do_action', [$_tag, $params]);
+        //add
+        }else{
+            return add_action($_tag, $callback, $priority, $args);
+        }
+    }
+}
+
+if(!function_exists('setcooki_hook'))
+{
+    /**
+     * shortcut method for \Setcooki\Wp\Hook actions
+     *
+     * @since 1.2
+     * @see setcooki_action()
+     * @see setcooki_filter()
+     * @param \Setcooki\Wp\Hook $hook expects a hook instance
+     * @param null|int|bool $action the action command as -1|1|true|false|null value
+     * @param mixed $params expects optional additional parameters
+     * @return mixed
+     */
+    function setcooki_hook(\Setcooki\Wp\Hook $hook, $action = null, $params = null)
+    {
+        if($hook instanceof \Setcooki\Wp\Action\Action)
+        {
+            return setcooki_action($hook, $action, $params);
+        }else{
+            return setcooki_filter($hook, $action, $params);
+        }
     }
 }
 
@@ -945,6 +1183,8 @@ if(!function_exists('setcooki_action'))
 if(!function_exists('setcooki_handle'))
 {
     /**
+     * TODO: needs default return value
+     *
      * if theme/plugin uses a controllers and a controller resolver in theme/plugin init context calling/handling controller
      * action can also be done from any location inside the plugin/theme architecture. suppose you want to handle a specific
      * action inside a custom post template you can use this shortcode method to execute/handle the action.
@@ -954,7 +1194,6 @@ if(!function_exists('setcooki_handle'))
    	 * @param null|object|array|\Setcooki\Wp\Util\Params $params expects optional params
      * @param null|mixed $fallback expects optional fallback - see Router::fail
      * @return string
-     * @throws \Setcooki\Wp\Exception
      */
     function setcooki_handle($action, $params = null, $fallback = null)
     {
@@ -978,7 +1217,6 @@ if(!function_exists('setcooki_router'))
      *
      * @param null|mixed $fallback expects optional fallback - see Router::fail
      * @return bool|mixed
-     * @throws \Setcooki\Wp\Exception
      */
     function setcooki_router($fallback = null)
     {
@@ -1028,7 +1266,7 @@ if(!function_exists('setcooki_shortcode'))
                     {
                         return (string)$wp->store('resolver')->handle($mixed, $params, null, null, null, null, $content);
                     });
-                }else if(is_object($mixed) && method_exists($mixed, 'render') && is_callable(array($mixed, 'render'))){
+                }else if(is_object($mixed) && method_exists($mixed, 'render') && is_callable([$mixed, 'render'])){
                     add_shortcode($tag, function($params, $content) use ($mixed)
                     {
                         return $mixed->render($params, $content);
@@ -1041,12 +1279,42 @@ if(!function_exists('setcooki_shortcode'))
                         return $mixed($params, $content);
                     });
                 }else{
-                    throw new \Exception(setcooki_sprintf("callable for shortcode tag: %s is not a callable", $tag));
+                    throw new Exception(setcooki_sprintf("callable for shortcode tag: %s is not a callable", $tag));
                 }
             }
         }else{
             remove_shortcode($tag);
         }
         return null;
+    }
+}
+
+
+if(!function_exists('setcooki_document'))
+{
+    /**
+     * shortcut function to get a previously stored value by key from document store if a document has been stored/registered
+     * with wp instance.
+     *
+     * @since 1.2
+     * @see \Setcooki\Wp\Content\Document::render
+     * @param string $key expects the key
+     * @param bool $echo defines whether to echo or return the return value
+     * @param null|mixed $default expects the optional default return value
+     * @return string|mixed
+     */
+    function setcooki_document($key, $echo = true, $default = null)
+    {
+        $wp = setcooki_wp();
+        if($wp->stored('document'))
+        {
+            if((bool)$echo)
+            {
+                echo $wp->store('document')->render($key, $default);
+            }else{
+                return $wp->store('document')->render($key, $default);
+            }
+        }
+        return $default;
     }
 }

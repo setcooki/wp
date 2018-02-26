@@ -1,0 +1,7 @@
+.editorconfig export-ignore
+.gitattributes export-ignore
+.gitignore export-ignore
+/tests export-ignore
+setup export-ignore
+CHANGELOG.md export-ignore
+/dev export-ignore

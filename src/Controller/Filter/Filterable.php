@@ -8,7 +8,12 @@ use Setcooki\Wp\Response;
 
 /**
  * Interface Filterable
- * @package Setcooki\Wp\Controller\Filter
+ *
+ * @package     Setcooki\Wp\Controller
+ * @subpackage  Setcooki\Wp\Controller\Filter
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 Interface Filterable
 {

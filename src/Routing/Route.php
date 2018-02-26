@@ -8,7 +8,11 @@ use Setcooki\Wp\Request;
 
 /**
  * Class Route
- * @package Setcooki\Wp\Routing
+ *
+ * @package     Setcooki\Wp\Routing
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 class Route
 {
@@ -53,21 +57,21 @@ class Route
      *
      * @var null|array
      */
-    public $route = array();
+    public $route = [];
 
     /**
      * contains the routes target value
      *
      * @var null|array
      */
-    public $target = array();
+    public $target = [];
 
 	/**
 	 * contains optional parameters
 	 *
 	 * @var array
 	 */
-	public $params = array();
+	public $params = [];
 
 
 	/**
@@ -97,7 +101,7 @@ class Route
 	 * @param string|array $route expects 1+n route strings
 	 * @param null|mixed $target expects a target value
 	 * @param null|array|object $params expects optional parameters
-	 * @throws Exception
+     * @throws Exception
 	 */
     public function __construct($route, $target = null, $params = null)
     {
@@ -118,7 +122,7 @@ class Route
 	    }
 	    if(!is_array($route))
 	    {
-		    $route = array($route);
+		    $route = [$route];
 	    }
 	    foreach($route as &$r)
 	    {
@@ -130,7 +134,7 @@ class Route
 				    'type'  => strtolower(trim($m[1]))
 			    ]);
 		    }else{
-			    throw new Exception(setcooki_sprintf("route: %s has missing or not recognized route type identifier", $r));
+			    throw new Exception(setcooki_sprintf(__("Route: %s has missing or not recognized route type identifier", SETCOOKI_WP_DOMAIN), $r));
 		    }
 	    }
 	    if(!is_null($target))
@@ -164,7 +168,7 @@ class Route
 			    }else if(is_callable($target)){
 				    $type = static::TYPE_CALLABLE;
 				}else{
-					throw new Exception(setcooki_sprintf("route target: %s is not a valid value", $target));
+					throw new Exception(setcooki_sprintf(__("Route target: %s is not a valid value", SETCOOKI_WP_DOMAIN), $target));
 				}
 		    }else if(is_object($target) && $target instanceof \Closure){
 			    $type = static::TYPE_CLOSURE;
@@ -173,7 +177,7 @@ class Route
 		    }else if(is_object($target) && ($target instanceof Renderable)){
 			    $type = static::TYPE_RENDERABLE;
 		    }else{
-				throw new Exception("route target is not resolvable");
+				throw new Exception(__("Route target is not resolvable", SETCOOKI_WP_DOMAIN));
 		    }
 	    }
         $this->target = (object)
@@ -184,15 +188,16 @@ class Route
     }
 
 
-	/**
-	 * create new route instance by static access - see Route::__construct
-	 *
-	 * @see Route::__construct
-	 * @param string|array $route expects 1+n route strings
-	 * @param mixed $target expects a target value
-	 * @param null|array|object $params expects optional parameters
-	 * @return Route
-	 */
+    /**
+     * create new route instance by static access - see Route::__construct()
+     *
+     * @see Route::__construct()
+     * @param string|array $route expects 1+n route strings
+     * @param mixed $target expects a target value
+     * @param null|array|object $params expects optional parameters
+     * @return Route
+     * @throws Exception
+     */
 	public static function create($route, $target, $params = null)
 	{
 		return new self($route, $target, $params);
@@ -210,15 +215,15 @@ class Route
 	}
 
 
-	/**
-	 * execute the route once route matches by processing target with additional params. the concrete implementation can
-	 * be overriden in custom route class and if not will be handled in Router::exec method
-	 *
-	 * @see Router::exec
-	 * @param Request $request expects request object
-	 * @return mixed
-	 * @throws Exception
-	 */
+    /**
+     * execute the route once route matches by processing target with additional params. the concrete implementation can
+     * be overriden in custom route class and if not will be handled in Router::exec() method
+     *
+     * @see Router::exec()
+     * @param Request $request expects request object
+     * @return mixed
+     * @throws Exception
+     */
 	public function execute(Request $request)
 	{
 		return Router::exec($this, $request);

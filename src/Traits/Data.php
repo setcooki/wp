@@ -2,9 +2,15 @@
 
 namespace Setcooki\Wp\Traits;
 
+use Setcooki\Wp\Exception;
+
 /**
- * Class Data
- * @package Setcooki\Wp\Traits
+ * Trait Data
+ *
+ * @package     Setcooki\Wp\Traits
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 trait Data
 {
@@ -55,11 +61,11 @@ trait Data
 
 
 	/**
-	 * see Data::set for basic behaviour. the difference is that the value in second argument will be added to the value
+	 * see Data::set() for basic behaviour. the difference is that the value in second argument will be added to the value
 	 * found at key/path whichin case of array found at key/path will do an array merge and in case of a string will do
 	 * a string concat
 	 *
-	 * @see Data::set
+	 * @see Data::set()
 	 * @param null|string $key expects key/path where to set the value or no value
 	 * @param mixed $value expects value to add
 	 * @return $this
@@ -90,14 +96,15 @@ trait Data
 	}
 
 
-	/**
-	 * get data container value or get data values at key/path passing a default value in second argument in case key/path
-	 * can not be resolved
-	 *
-	 * @param null|string $key expects key/path where to set the value or no value
-	 * @param null|mixed $default expects default return value
-	 * @return mixed|null
-	 */
+    /**
+     * get data container value or get data values at key/path passing a default value in second argument in case key/path
+     * can not be resolved
+     *
+     * @param null|string $key expects key/path where to set the value or no value
+     * @param null|mixed $default expects default return value
+     * @return mixed|null
+     * @throws \Exception
+     */
 	public function get($key = null, $default = null)
 	{
 		if(!empty($key))

@@ -2,11 +2,16 @@
 
 namespace Setcooki\Wp;
 
+use Setcooki\Wp\Exception;
 use Setcooki\Wp\Events\Dispatcher;
 
 /**
  * Class Wp
- * @package Setcooki\Wp
+ *
+ * @package     Setcooki\Wp
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 abstract class Wp
 {
@@ -15,14 +20,21 @@ abstract class Wp
      *
      * @var array
      */
-    private static $_wp = array();
+    private static $_wp = [];
+
+    /**
+     * contains the hashed keys of wp instance id´s
+     *
+     * @var array
+     */
+    private static $_id = [];
 
     /**
      * contains all unique objects stored with this instance of the framework
      *
      * @var array
      */
-    private $_store = array();
+    private $_store = [];
 
     /**
      * contains the themes/plugins base path
@@ -53,6 +65,7 @@ abstract class Wp
     public $scope = null;
 
 
+
     /**
      * class constructor initializes base wp class and set instance options
      */
@@ -65,12 +78,19 @@ abstract class Wp
 
         if(!empty($this->scope) && !empty($this->name))
         {
-            self::$_wp["$this->scope:$this->name"] = $this;
-        }
+            $id = sprintf("%s:%s", $this->scope, $this->name);
+            if(!array_key_exists($id, self::$_wp))
+            {
+                self::$_wp[$id] = $this;
+                self::$_id[md5($id)] = $id;
 
-        $this->store('dispatcher', new Dispatcher(), null, true);
-        setcooki_event('trigger:setcooki.wp.start', $this);
-        register_shutdown_function(array($this, 'shutdown'));
+                $this->store('dispatcher', new Dispatcher(), null, true);
+                setcooki_event('trigger:setcooki.wp.start', $this);
+                register_shutdown_function([$this, 'shutdown']);
+            }
+        }else{
+            setcooki_die(__("Could not detect theme or plugin´s scope and/or name", SETCOOKI_WP_DOMAIN));
+        }
     }
 
 
@@ -92,6 +112,7 @@ abstract class Wp
      * @param null|mixed $default expects the default return value in getter mode
      * @param boolean $lock expects boolean flag on whether to prevent overwriting already set object under same name
      * @return $this|array|mixed
+     * @throws \Exception
      */
     public function store($name = null, $value = null, $default = null, $lock = false)
     {
@@ -193,7 +214,7 @@ abstract class Wp
      * instance and with last pass assuming framework installed inside theme or plugin folder
      *
      * @experimental
-     * @see setcooki_base
+     * @see setcooki_base()
      * @param string $path expects optional path addition
      * @return string
      */
@@ -311,6 +332,7 @@ abstract class Wp
      * @param string|null $id expects the id like {$scope}:{$name}
      * @param null|mixed $default expects default return value
      * @return mixed
+     * @throws \Exception
      */
     public static function wp($id = null, $default = null)
     {
@@ -330,6 +352,39 @@ abstract class Wp
         if(array_key_exists($id, self::$_wp))
         {
             return self::$_wp[$id];
+        }else if(array_key_exists($id, self::$_id)){
+            return self::$_wp[self::$_id[$id]];
+        }else{
+            return setcooki_default($default);
+        }
+    }
+
+
+    /**
+     * get setcooki wp instance id which is a string made of $scope:$name where $scope can be 'plugin' or 'theme' and
+     * $name is the theme or plugin folder name. if the first argument is true will return the id hashed
+     *
+     * @since 1.2
+     * @param bool $hashed expects optional hash flag
+     * @param null|mixed $default expects optional default return value
+     * @return mixed|null|string
+     * @throws \Exception
+     */
+    public static function id($hashed = false, $default = null)
+    {
+        $id = null;
+        $path = self::b();
+        if(!empty($path))
+        {
+            $path = array_values(array_filter(explode(DIRECTORY_SEPARATOR, $path)));
+            if(sizeof($path) >= 2)
+            {
+                $id = trim(strtolower(substr($path[sizeof($path)-2], 0, -1)) . ':' . trim($path[sizeof($path)-1]), ' ' . DIRECTORY_SEPARATOR);
+            }
+        }
+        if(!empty($id) && array_key_exists($id, self::$_wp))
+        {
+            return ((bool)$hashed) ? md5($id) : $id;
         }else{
             return setcooki_default($default);
         }
@@ -344,10 +399,11 @@ abstract class Wp
      */
     public static function autoload($class)
     {
-        if(!setcooki_base())
+        if((!defined('SETCOOKI_WP_DEV') || (defined('SETCOOKI_WP_DEV') && !SETCOOKI_WP_DEV)) && !setcooki_base())
         {
             return false;
         }
+
         $ext = '.php';
         $src = rtrim(realpath(dirname(__FILE__)), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
         $class = trim((string)$class, ' \\');
@@ -356,7 +412,7 @@ abstract class Wp
         if(stripos(trim($class, NAMESPACE_SEPARATOR . ' \\/') . NAMESPACE_SEPARATOR, __NAMESPACE__ . NAMESPACE_SEPARATOR) !== false)
         {
             $file = trim(str_ireplace(__NAMESPACE__, '', $class), ' \\');
-            $file = str_replace(array('\\'), DIRECTORY_SEPARATOR, $file);
+            $file = str_replace('\\', DIRECTORY_SEPARATOR, $file);
             require_once $src . $file . $ext;
         //others dirs/ns set with global options
         }else if(setcooki_conf(SETCOOKI_WP_AUTOLOAD_DIRS)){
@@ -370,7 +426,7 @@ abstract class Wp
                     }
                     $dir = (array_key_exists(0, $dir)) ? $dir[0] : '';
                 }
-                $class = str_replace(array('\\'), DIRECTORY_SEPARATOR, $class);
+                $class = str_replace('\\', DIRECTORY_SEPARATOR, $class);
                 $file = DIRECTORY_SEPARATOR . trim((string)$dir, ' \\/') . DIRECTORY_SEPARATOR . $class . $ext;
                 if(file_exists($file))
                 {
@@ -409,7 +465,7 @@ abstract class Wp
         {
             return $this->store($name);
         }else{
-            throw new Exception(vsprintf("nothing under: %s stored in wp base class", array($name)));
+            throw new Exception(vsprintf(__("Nothing under: %s stored in wp base class", SETCOOKI_WP_DOMAIN), [$name]));
         }
     }
 

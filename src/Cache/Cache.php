@@ -6,7 +6,11 @@ use Setcooki\Wp\Exception;
 
 /**
  * Class Cache
- * @package Setcooki\Wp\Cache
+ *
+ * @package     Setcooki\Wp\Cache
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 abstract class Cache
 {
@@ -22,13 +26,14 @@ abstract class Cache
      *
      * @var array
      */
-    protected static $_instances = array();
+    protected static $_instances = [];
 
 
     /**
      * class constructor set options and init´s cache class
      *
      * @param null|array $options expects optional options
+     * @throws \Exception
      */
     protected function __construct($options = null)
     {
@@ -62,7 +67,7 @@ abstract class Cache
                 {
                     return self::$_instances[trim((string)$ns)];
                 }else{
-                    throw new Exception(setcooki_sprintf("no cache instance under ns: %s registered", $ns));
+                    throw new Exception(setcooki_sprintf(__("No cache instance under ns: %s registered", SETCOOKI_WP_DOMAIN), $ns));
                 }
             }else{
                 return self::$_instance;
@@ -73,7 +78,7 @@ abstract class Cache
             {
                 return self::$_instance;
             }else{
-                throw new Exception("can not get current cache class instance since no instance has been set yet");
+                throw new Exception(__("Can not get current cache class instance since no instance has been set yet", SETCOOKI_WP_DOMAIN));
             }
         }
     }
@@ -101,7 +106,7 @@ abstract class Cache
                 return self::$_instance = new $class($options);
             }
         }else{
-            throw new Exception(setcooki_sprintf("cache driver: %s does not exist", $driver));
+            throw new Exception(setcooki_sprintf(__("Cache driver: %s does not exist", SETCOOKI_WP_DOMAIN), $driver));
         }
     }
 

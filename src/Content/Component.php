@@ -1,61 +1,63 @@
 <?php
 
-namespace Setcooki\Wp;
+namespace Setcooki\Wp\Content;
 
+use Setcooki\Wp\Exception;
 use Setcooki\Wp\Interfaces\Renderable;
+use Setcooki\Wp\Traits\Wp;
 use Setcooki\Wp\Util\Params;
 
 /**
  * Class Component
- * @package Setcooki\Wp
+ *
+ * @package     Setcooki\Wp\Content
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 abstract class Component implements Renderable
 {
-    /**
-     * @var null
-     */
-    public $wp = null;
+    use Wp;
+
 
     /**
      * @var array
      */
-    public $options = array();
+    public $options = [];
 
     /**
      * @var array
      */
-    private static $_cache = array();
+    private static $_cache = [];
 
     /**
      * @var array
      */
-    protected static $_components = array();
+    protected static $_components = [];
 
 
     /**
-     * class constructor passes wp instance and sets options
+     * class constructor
      *
-     * @param Wp $wp expects the wp instance
      * @param null|array $options optional options
+     * @throws \Exception
      */
-    public function __construct(Wp $wp, $options = null)
+    public function __construct($options = null)
     {
         setcooki_init_options($options, $this);
-        $this->wp = $wp;
     }
 
 
     /**
      * shortcut method to create a new component instance
      *
-     * @param Wp $wp expects the wp instance
      * @param null|array $options optional options
      * @return mixed
      */
-    public static function create(Wp $wp, $options = null)
+    public static function create($options = null)
     {
         $class = get_called_class();
-        return new $class($wp, $options);
+        return new $class($options);
     }
 
 
@@ -90,8 +92,8 @@ abstract class Component implements Renderable
             }
             return false;
         }else{
-            self::$_components = array();
-            self::$_cache = array();
+            self::$_components = [];
+            self::$_cache = [];
             return true;
         }
     }

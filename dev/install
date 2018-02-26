@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+#================================================================
+# HEADER
+#================================================================
+#% SYNOPSIS
+#+      ${SCRIPT_NAME} args ...
+#%
+#% DESCRIPTION
+#%      Install bower/npm dev dependencies
+#%
+#% OPTIONS
+#%      -h, --help                  Print this help
+#%      -v, --version               Print script information
+#%
+#% EXAMPLES
+#%      ${SCRIPT_NAME}
+#%
+#================================================================
+#- IMPLEMENTATION
+#-      version         ${SCRIPT_NAME} 0.0.1
+#-      author          Frank Mueller (setcooki)
+#-      copyright       Copyright (c) http://set.cooki.me
+#-      license         MIT License
+#-
+#================================================================
+#  HISTORY
+#       2017/06/15 : setcooki : Script creation
+#
+#================================================================
+# END_OF_HEADER
+#================================================================
+
+SCRIPT_HEADSIZE=$(head -200 ${0} |grep -n "^# END_OF_HEADER" | cut -f1 -d:)
+SCRIPT_NAME="$(basename ${0})"
+
+USAGE() { printf "Usage: "; head -${SCRIPT_HEADSIZE:-99} ${0} | grep -e "^#+" | sed -e "s/^#+[ ]*//g" -e "s/\${SCRIPT_NAME}/${SCRIPT_NAME}/g" ; }
+HELP() { head -${SCRIPT_HEADSIZE:-99} ${0} | grep -e "^#[%+-]" | sed -e "s/^#[%+-]//g" -e "s/\${SCRIPT_NAME}/${SCRIPT_NAME}/g" ; }
+INFO() { head -${SCRIPT_HEADSIZE:-99} ${0} | grep -e "^#-" | sed -e "s/^#-//g" -e "s/\${SCRIPT_NAME}/${SCRIPT_NAME}/g"; }
+
+if [[ ( $@ == "--help") ||  $@ == "-h" ]]
+then
+    HELP
+	exit 0
+fi;
+
+if [[ ( $@ == "--version") ||  $@ == "-v" ]]
+then
+    INFO
+	exit 0
+fi;
+
+NPM=$(which npm)
+BOWER=$(which bower)
+
+if [[ -x "$NPM" ]] && [[ -x "$BOWER" ]]
+then
+    echo -e "> running node (npm) and bower install";
+    $NPM install
+    $BOWER install
+    echo -e "> running gulp default";
+    gulp default
+    echo -e "> All done, good bye!";
+    exit 0
+else
+    echo -e "> node (nmp) or bower not installed";
+    exit 1
+fi;

@@ -6,8 +6,12 @@ use Setcooki\Wp\Exception;
 
 /**
  * Class Dispatcher
- * @since 1.1.2
- * @package Setcooki\Wp\Events
+ *
+ * @since       1.1.2
+ * @package     Setcooki\Wp\Events
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 class Dispatcher
 {
@@ -23,21 +27,22 @@ class Dispatcher
 	 *
 	 * @var array
 	 */
-	protected $_triggering = array();
+	protected $_triggering = [];
 
 	/**
 	 * contains optional class options
 	 *
 	 * @var array
 	 */
-	public $options = array();
+	public $options = [];
 
 
-	/**
-	 * class constructor sets class options and initialized priority queue
-	 *
-	 * @param null|mixed $options expects optional options
-	 */
+    /**
+     * class constructor sets class options and initialized priority queue
+     *
+     * @param null|mixed $options expects optional options
+     * @throws \Exception
+     */
 	public function __construct($options = null)
 	{
 		setcooki_init_options($options, $this);
@@ -59,20 +64,20 @@ class Dispatcher
 	 * @param null|callable|\Closure $listener expects optional callable/closure
 	 * @param int $priority expects optional priority which defaults to 0 = no priority
 	 * @return $this
-	 * @throws Exception
+     * @throws Exception
 	 */
 	public function listen($event, $listener = null, $priority = 0)
 	{
 		if($event instanceof Listenable){
 			$listeners = (array)$event->listen();
 		}else if($event instanceof Listener){
-			$listeners = array($event, $event->callback());
+			$listeners = [$event, $event->callback()];
 		}else{
-			$listeners = array((string)$event, $listener);
+			$listeners = [(string)$event, $listener];
 		}
 		if(array_key_exists(0, $listeners) && !is_array($listeners[0]))
 		{
-			$listeners = array($listeners);
+			$listeners = [$listeners];
 		}
 		if(ctype_digit($listener) && $priority === 0)
 		{
@@ -96,10 +101,10 @@ class Dispatcher
 						$this->_listeners->insert($l, $priority);
 					}
 				}else{
-					throw new Exception(setcooki_sprintf('no valid listener callback supplied for event: %s', array($listener[0])));
+					throw new Exception(setcooki_sprintf(__("No valid listener callback supplied for event: %s", SETCOOKI_WP_DOMAIN), [$listener[0]]));
 				}
 			}else{
-				throw new Exception('need event name and callback for valid event listener');
+				throw new Exception(__("Need event name and callback for valid event listener", SETCOOKI_WP_DOMAIN));
 			}
 		}
 		return $this;
@@ -118,7 +123,7 @@ class Dispatcher
 	 */
 	public function remove($event = null, $listener = null)
 	{
-		$tmp = array();
+		$tmp = [];
 
 		if(!is_null($event))
 		{
@@ -156,18 +161,19 @@ class Dispatcher
 	}
 
 
-	/**
-	 * get listeners. if first argument is empty will return all listeners registered with listen method. if first argument
-	 * is a string or array with event names will return all listeners registered by those names. you can also use wildcard
-	 * event names. define default return value in second argument which defaults to array
-	 *
-	 * @param null|string|array $event expects event name(s)
-	 * @param array|mixed $default expects default return value
-	 * @return array|mixed
-	 */
-	public function get($event = null, $default = array())
+    /**
+     * get listeners. if first argument is empty will return all listeners registered with listen method. if first argument
+     * is a string or array with event names will return all listeners registered by those names. you can also use wildcard
+     * event names. define default return value in second argument which defaults to array
+     *
+     * @param null|string|array $event expects event name(s)
+     * @param array|mixed $default expects default return value
+     * @return array|mixed
+     * @throws \Exception
+     */
+	public function get($event = null, $default = [])
 	{
-		$tmp = array();
+		$tmp = [];
 
 		if(!is_null($event))
 		{
@@ -196,7 +202,7 @@ class Dispatcher
 	/**
 	 * checks if any events have been registered or events by name(s) are registered
 	 *
-	 * @see Dispatcher::has
+	 * @see Dispatcher::has()
 	 * @param null|string|array $event expects event name(s)
 	 * @return bool
 	 */
@@ -250,7 +256,7 @@ class Dispatcher
 	public function trigger($event, $mixed = null, $halt = false)
 	{
 		$result = null;
-		$results = array();
+		$results = [];
 
 		if($event instanceof Event)
 		{
@@ -309,7 +315,7 @@ class Dispatcher
 	 * }
 	 * ```
 	 *
-	 * @see Subscribable::subscribe
+	 * @see Subscribable::subscribe()
 	 * @param Subscribable $subscriber expects class that implements interface
 	 * @return $this
 	 */
@@ -357,6 +363,6 @@ class Dispatcher
 	 */
 	public function __clone()
 	{
-		$this->_triggering = array();
+		$this->_triggering = [];
 	}
 }

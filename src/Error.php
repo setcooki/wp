@@ -2,11 +2,16 @@
 
 namespace Setcooki\Wp;
 
+use Setcooki\Wp\Exception;
 use Setcooki\Wp\Interfaces\Logable;
 
 /**
  * Class Error
- * @package Setcooki\Wp
+ *
+ * @package     Setcooki\Wp
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 class Error
 {
@@ -52,7 +57,7 @@ class Error
             $no = (int)$no;
             $str = trim((string)$str);
 
-            $err = array();
+            $err = [];
             $err[] = "$str, $no";
             $err[] = "in: $file";
             $err[] = "on line: $line";
@@ -60,7 +65,7 @@ class Error
             $logger->log((array_key_exists($no, self::$map)) ? self::$map[$no] : LOG_ERR, $err);
             return false;
         }else{
-            restore_error_handler();
+            return restore_error_handler();
         }
     }
 }

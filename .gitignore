@@ -1,8 +1,13 @@
 /.gitmodules
-/setup.sh
 *.iml
 .idea/
-/dev
+/wordpress
 /TODO
-/ext
+/docs
 /tmp
+/lib
+/tests
+/dev/bower_components/
+/dev/node_modules/
+/composer.lock
+/package-lock.json

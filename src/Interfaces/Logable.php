@@ -4,7 +4,11 @@ namespace Setcooki\Wp\Interfaces;
 
 /**
  * Interface Logable
- * @package Setcooki\Wp\Interfaces
+ *
+ * @package     Setcooki\Wp\Interfaces
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 interface Logable
 {
@@ -17,5 +21,5 @@ interface Logable
 	 * @param array $context expects additional args
 	 * @return null
 	 */
-	public function log($level, $message, array $context = array());
+	public function log($level, $message, array $context = []);
 }

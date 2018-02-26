@@ -5,8 +5,12 @@ namespace Setcooki\Wp\Traits;
 use Setcooki\Wp\Exception;
 
 /**
- * Class Cache
- * @package Setcooki\Wp\Traits
+ * Trait Cache
+ *
+ * @package     Setcooki\Wp\Traits
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 trait Cache
 {

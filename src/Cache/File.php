@@ -6,7 +6,11 @@ use Setcooki\Wp\Exception;
 
 /**
  * Class File
- * @package Setcooki\Wp\Cache
+ *
+ * @package     Setcooki\Wp\Cache
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 class File extends Cache
 {
@@ -37,7 +41,10 @@ class File extends Cache
 
 
     /**
+     * File constructor.
      * @param null $options
+     * @throws Exception
+     * @throws \Exception
      */
     public function __construct($options = null)
     {
@@ -48,7 +55,7 @@ class File extends Cache
 
     /**
      * @param null $options
-     * @return null|File
+     * @return File
      */
     public static function create($options = null)
     {
@@ -71,29 +78,29 @@ class File extends Cache
                 {
                     chmod($path, 0775);
                 }else{
-                    throw new Exception("unable to create cache directory");
+                    throw new Exception(__("Unable to create cache directory", SETCOOKI_WP_DOMAIN));
                 }
             }
             $path = new \SplFileInfo($path);
             if(!$path->isReadable())
             {
-                throw new Exception("cache directory is not readable");
+                throw new Exception(__("Cache directory is not readable", SETCOOKI_WP_DOMAIN));
             }
             if(!$path->isWritable())
             {
-                throw new Exception("cache directory is not writable");
+                throw new Exception(__("Cache directory is not writable"), SETCOOKI_WP_DOMAIN);
             }
             setcooki_set_option(self::PATH, rtrim($path->getRealPath(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR, $this);
       	}
         catch(Exception $e)
         {
-            throw new Exception(setcooki_sprintf("file cache directory error: %s for: %s", $e->getMessage(), $path));
+            throw new Exception(setcooki_sprintf(__("File cache directory error: %s for: %s", SETCOOKI_WP_DOMAIN), $e->getMessage(), $path));
         }
     }
 
 
     /**
-     * @param $key
+     * @param string $key
      * @param null $default
      * @return mixed
      * @throws Exception
@@ -113,7 +120,7 @@ class File extends Cache
                     return unserialize(substr(trim($value), 10));
                 }
             }else{
-                throw new Exception("unable to read content from cache file");
+                throw new Exception(__("Unable to read content from cache file", SETCOOKI_WP_DOMAIN));
             }
         }else{
             return setcooki_default($default);

@@ -5,20 +5,33 @@ namespace Setcooki\Wp\Routing;
 use Setcooki\Wp\Controller\Resolver;
 use Setcooki\Wp\Exception;
 use Setcooki\Wp\Request;
-use Setcooki\Wp\Wp;
+use Setcooki\Wp\Traits\Wp;
 
 /**
  * Class Router
- * @package Setcooki\Wp\Routing
+ *
+ * @package     Setcooki\Wp\Routing
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 class Router
 {
+    use Wp;
+
+    /**
+     * @since 1.2
+     * contains the route config as array or php file containing array
+     */
+    const ROUTE_CONFIG                  = 'ROUTE_CONFIG';
+
+
 	/**
 	 * contains all route object associated with this router
 	 *
 	 * @var array
 	 */
-	protected $_routes = array();
+	protected $_routes = [];
 
     /**
      * contains the found/match route from router::run
@@ -32,21 +45,7 @@ class Router
 	 *
 	 * @var array
 	 */
-	protected $_bindings = array();
-
-	/**
-	 * contains wp theme/plugin base class instance
-	 *
-	 * @var null|\WP
-	 */
-	public $wp = null;
-
-	/**
-	 * contains class options
-	 *
-	 * @var array
-	 */
-	public $options = array();
+	protected $_bindings = [];
 
 	/**
 	 * contains optional request object
@@ -69,33 +68,75 @@ class Router
 	 */
 	public $fallback = null;
 
+    /**
+     * the option map
+     *
+     * @var array
+     */
+    public static $optionsMap =
+    [
+        self::ROUTE_CONFIG              => [SETCOOKI_TYPE_NULL, SETCOOKI_TYPE_ARRAY, SETCOOKI_TYPE_FILE]
+    ];
 
-	/**
-	 * class constructor sets wp theme/plugin base class instance and optional options
-	 *
-	 * @param Wp $wp expects wp theme/plugin instance
-	 * @param null|mixed $options expects optional options
-	 */
-	public function __construct(Wp $wp, $options = null)
+    /**
+   	 * contains class options
+   	 *
+   	 * @var array
+   	 */
+   	public $options = [];
+
+
+    /**
+     * class constructor sets wp theme/plugin base class instance and optional options
+     *
+     * @param null|mixed $options expects optional options
+     * @throws \Exception
+     */
+	public function __construct($options = null)
 	{
-		$this->wp = $wp;
 		setcooki_init_options($options, $this);
-		$this->wp->store('router', $this);
+		$this->init();
+        static::wp()->store('router', $this);
 	}
 
 
 	/**
 	 * create router instance by calling static create method
 	 *
-	 * @see Router::__constructor
-	 * @param Wp $wp expects wp theme/plugin instance
+	 * @see Router::__construct()
 	 * @param null|mixed $options expects optional options
 	 * @return Router
 	 */
-	public static function create(Wp $wp, $options = null)
+	public static function create($options = null)
 	{
-		return new self($wp, $options);
+		return new self($options);
 	}
+
+
+    /**
+     * initialize router
+     *
+     * @since 1.2
+     */
+	protected function init()
+    {
+        if(setcooki_is_option(self::ROUTE_CONFIG, $this))
+        {
+            $config = setcooki_get_option(self::ROUTE_CONFIG, $this);
+            if(!is_array($config) && is_file($config))
+            {
+                $config = require $config;
+                if($config === 1)
+                {
+                    $config = array_slice(get_defined_vars(), 1);
+                }
+            }
+            foreach($config as $conf)
+            {
+                $this->add($conf);
+            }
+        }
+    }
 
 
 	/**
@@ -165,17 +206,17 @@ class Router
 	}
 
 
-	/**
-	 * set route(s) single or in batch resetting or removing all previously set routes. see Router::add for more details
-	 * of expected arguments and ways to pass routes
-	 *
-	 * @see Router::add
-	 * @param string|array|Route $route expects the route value
-	 * @param null|string $target expects the routes target value
-	 * @param null|array $params expects optional params as array
-	 * @return $this
-	 * @throws Exception
-	 */
+    /**
+     * set route(s) single or in batch resetting or removing all previously set routes. see Router::add() for more details
+     * of expected arguments and ways to pass routes
+     *
+     * @see Router::add()
+     * @param string|array|Route $route expects the route value
+     * @param null|string $target expects the routes target value
+     * @param null|array $params expects optional params as array
+     * @return $this
+     * @throws Exception
+     */
 	public function set($route, $target = null, $params = null)
 	{
 		$this->reset();
@@ -184,7 +225,7 @@ class Router
 
 
 	/**
-	 * add routes by passing route objects or route values which will be used to create new route objects. see Route::__construct
+	 * add routes by passing route objects or route values which will be used to create new route objects. see Route::__construct()
 	 * for more details which values are allowed and valid. routes can be passed the following ways:
 	 * - a route object in first argument and all others = null
 	 * - a route value, target value and optional parameters passed in all three arguments
@@ -192,12 +233,12 @@ class Router
 	 * - an array with numeric arrays which contain route value, target value and optional params
 	 * - an array with assoc arrays which contain route value, target value and optional params by name
 	 *
-	 * @see Route::__construct
+	 * @see Route::__construct()
 	 * @param string|array|Route $route expects the route value
 	 * @param null|string $target expects the routes target value
 	 * @param null|array $params expects optional params as array
 	 * @return $this
-	 * @throws Exception
+     * @throws Exception
 	 */
 	public function add($route, $target = null, $params = null)
 	{
@@ -216,7 +257,7 @@ class Router
 	            }else if(is_array($r) && array_key_exists('route', $r) && array_key_exists('target', $r)){
 					$this->add($r['route'], $r['target'], ((array_key_exists('params', $r)) ? $r['params'] : null));
 	            }else{
-		            throw new Exception(setcooki_sprintf('route passed at index: %d is not a valid route object', $i));
+		            throw new Exception(setcooki_sprintf(__("Route passed at index: %d is not a valid route object", SETCOOKI_WP_DOMAIN), $i));
 	            }
 	            $i++;
             }
@@ -227,16 +268,16 @@ class Router
 	}
 
 
-	/**
-	 * add routes from file which is a php file which must return array with valid routes objects/values as expected by
-	 * Router::add method. if the file does not exist will either throw exception or return false according to second
-	 * argument boolean value
-	 *
-	 * @param string $file expects routes config file absolute file location
-	 * @param bool $throw expects boolean value for whether to throw exception or return false on failure
-	 * @return bool|Router
-	 * @throws Exception
-	 */
+    /**
+     * add routes from file which is a php file which must return array with valid routes objects/values as expected by
+     * Router::add method. if the file does not exist will either throw exception or return false according to second
+     * argument boolean value
+     *
+     * @param string $file expects routes config file absolute file location
+     * @param bool $throw expects boolean value for whether to throw exception or return false on failure
+     * @return bool|Router
+     * @throws Exception
+     */
 	public function addFrom($file, $throw = true)
 	{
 		if(is_file($file))
@@ -250,7 +291,7 @@ class Router
 		}else{
 			if((bool)$throw)
 			{
-				throw new Exception(setcooki_sprintf("routes config file under: %s does not exist", $file));
+				throw new Exception(setcooki_sprintf(__("Routes config file under: %s does not exist", SETCOOKI_WP_DOMAIN), $file));
 			}else{
 				return false;
 			}
@@ -258,33 +299,34 @@ class Router
 	}
 
 
-	/**
-	 * auto add routes config file by looking for router.php file in themes or plugins base path, there where styles.css
-	 * , is located. the router.php must return array with valid routes objects/values as expected by Router::add method.
-	 * if the file does not exist will either throw exception or return false according to second argument boolean value
-	 *
-	 * @param bool $throw expects boolean value for whether to throw exception or return false on failure
-	 * @return bool|Router
-	 * @throws Exception
-	 */
+    /**
+     * auto add routes config file by looking for router.php file in themes or plugins base path, there where styles.css
+     * , is located. the router.php must return array with valid routes objects/values as expected by Router::add method.
+     * if the file does not exist will either throw exception or return false according to second argument boolean value
+     *
+     * @param bool $throw expects boolean value for whether to throw exception or return false on failure
+     * @return bool|Router
+     * @throws Exception
+     * @throws \Exception
+     */
 	public function autoAdd($throw = false)
 	{
-		return $this->addFrom($this->wp->base() . DIRECTORY_SEPARATOR . 'router.php', $throw);
+		return $this->addFrom(static::wp()->base() . DIRECTORY_SEPARATOR . 'router.php', $throw);
 	}
 
 
 	/**
 	 * get all added routes if first argument is empty or get routes by regex expression matching the routes route value
-	 * . e.g. if all routes of type url must be returned pass first argument as 'url:'. see Route::__constructor for
+	 * . e.g. if all routes of type url must be returned pass first argument as 'url:'. see Route::__construct() for
 	 * all available route types
 	 *
-	 * @see Route::__constructor
+	 * @see Route::__construct()
 	 * @param null|string $route expects regex expression to get routes by route value
 	 * @return array
 	 */
 	public function get($route = null)
 	{
-		$tmp = array();
+		$tmp = [];
 
 		if(!is_null($route))
 		{
@@ -305,17 +347,17 @@ class Router
 	/**
 	 * get routes by a combination of available route properties and values. e.g. route or target type values. the first
 	 * argument expects either "route" or "target". the second the type which depends on the first argument an can be looked
-	 * up in Route::__constructor
+	 * up in Route::__construct()
 	 *
-	 * @see Route::__constructor
+	 * @see Route::__construct()
 	 * @param string $what expects "route" or "target"
-	 * @param string $with expects the type value to match - see Route::__constructor
+	 * @param string $with expects the type value to match - see Route::__construct()
 	 * @return array
-	 * @throws Exception
+     * @throws Exception
 	 */
 	public function getBy($what, $with)
 	{
-		$tmp = array();
+		$tmp = [];
 
 		$what = strtolower(trim((string)$what));
 		if(property_exists('\Setcooki\Wp\Controller\Route', $what))
@@ -329,16 +371,16 @@ class Router
 			}
 			return $tmp;
 		}else{
-			throw new Exception(setcooki_sprintf("can not get route by unknown property: %s", $what));
+			throw new Exception(setcooki_sprintf(__("Can not get route by unknown property: %s", SETCOOKI_WP_DOMAIN), $what));
 		}
 	}
 
 
 	/**
 	 * check if instance has any routes set if first argument is not set or or check if any routes by route value passed
-	 * in first argument are set. see Router::get for what to pass in first argument
+	 * in first argument are set. see Router::get() for what to pass in first argument
 	 *
-	 * @see Router::get
+	 * @see Router::get()
 	 * @param null|string $route expects optional route value to check
 	 * @return bool
 	 */
@@ -354,15 +396,15 @@ class Router
 
 
 	/**
-	 * remove all routes if first argument is not set or remove all routes by route value as explained in Router::get
+	 * remove all routes if first argument is not set or remove all routes by route value as explained in Router::get()
 	 *
-	 * @see Router::get
+	 * @see Router::get()
 	 * @param null|string $route expects optional route value to check
 	 * @return $this
 	 */
 	public function remove($route = null)
 	{
-		$tmp = array();
+		$tmp = [];
 
 		if(!is_null($route))
 		{
@@ -384,18 +426,18 @@ class Router
 	}
 
 
-	/**
-	 * remove all routes by combination of route property which can be "route" or "target and type value. see Router::getBy
-	 *
-	 * @see Router::getBy
-	 * @param string $what expects "route" or "target"
-	 * @param string $with expects the type value to match - see Route::__constructor
-	 * @return $this
-	 * @throws Exception
-	 */
+    /**
+     * remove all routes by combination of route property which can be "route" or "target and type value. see Router::getBy()
+     *
+     * @see Router::getBy()
+     * @param string $what expects "route" or "target"
+     * @param string $with expects the type value to match - see Route::__construct()
+     * @return $this
+     * @throws Exception
+     */
 	public function removeBy($what, $with)
 	{
-		$tmp = array();
+		$tmp = [];
 
 		$what = strtolower(trim((string)$what));
 		foreach($this->getBy($what, $with) as $route)
@@ -420,36 +462,38 @@ class Router
 	 */
 	public function reset()
 	{
-		$this->_routes = array();
+		$this->_routes = [];
 		return $this;
 	}
 
 
-	/**
-	 * run the router by trying to find a route that matches and execute the found route or executing optional fallback
-	 * if no route was found. the rule on how the router class finds a match is straight forward - the first route of added
-	 * routes that matches is executed so the priority is defined by the order on how routes are added. if more then one
-	 * route matches the first in stack will be fired! the route value is a string value that needs to specify route type
-	 * and route matching string. the syntax is: "{$identifier}:{$match}" where $identifier can be of the following:
-	 * - url = match against servers request request uri value
-	 * - tpl|template = match against wordpress custom page template value
-	 * - post = match against a post value
-	 * - get = match against a get value
-	 * - session = match against a session value
-	 * $match must be a regex valid match string so that "url:/foo.*" e.g will match an url that contains "/foo". the
-	 * fallback passed in first argument can be:
-	 * - callable
-	 * - closure
-	 * - exception
-	 * - route object
-	 * - url for redirect
-	 *
-	 * @see Route::__construct
-	 * @param null|mixed $fallback expects a recognizable fallback value
-	 * @param Request|null $request expects a optional request object instance
-	 * @return bool|mixed
-	 * @throws Exception
-	 */
+    /**
+     * run the router by trying to find a route that matches and execute the found route or executing optional fallback
+     * if no route was found. the rule on how the router class finds a match is straight forward - the first route of added
+     * routes that matches is executed so the priority is defined by the order on how routes are added. if more then one
+     * route matches the first in stack will be fired! the route value is a string value that needs to specify route type
+     * and route matching string. the syntax is: "{$identifier}:{$match}" where $identifier can be of the following:
+     * - url = match against servers request request uri value
+     * - tpl|template = match against wordpress custom page template value
+     * - post = match against a post value
+     * - get = match against a get value
+     * - session = match against a session value
+     * $match must be a regex valid match string so that "url:/foo.*" e.g will match an url that contains "/foo". the
+     * fallback passed in first argument can be:
+     * - callable
+     * - closure
+     * - exception
+     * - route object
+     * - url for redirect
+     *
+     * @see Route::__construct()
+     * @param null|mixed $fallback expects a recognizable fallback value
+     * @param Request|null $request expects a optional request object instance
+     * @return bool|mixed
+     * @throws Exception
+     * @throws \Exception
+     * @throws \Throwable
+     */
 	public function run($fallback = null, Request $request = null)
 	{
 		if(is_null($fallback))
@@ -487,16 +531,16 @@ class Router
 
 
 	/**
-	 * execute a route passed as route object in first argument or passing a integer value = index of routes previousl
+	 * execute a route passed as route object in first argument or passing a integer value = index of routes previously
 	 * added to class instance or passing a route value string to let Router::get search for a valid route.before executing
 	 * route will call before and after route execution handler. a route object can contain custom execution logic by
 	 * simply overriding the Route::execute method
 	 *
-	 * @see Router::get
+	 * @see Router::get()
 	 * @param mixed $route expects recognizable route value
 	 * @param Request|null $request expects optional request instance
 	 * @return mixed
-	 * @throws Exception
+     * @throws Exception
 	 */
 	public function execute($route, Request $request = null)
 	{
@@ -519,10 +563,11 @@ class Router
 		}
 		if(!empty($route))
 		{
+            $request->setRoute($route);
 			$type = strtolower((string)$route->target->type);
 			if(array_key_exists($type, $this->_bindings))
 			{
-				return call_user_func_array($this->_bindings[$type], array($route->target->target, $route->params, $request));
+				return call_user_func_array($this->_bindings[$type], [$route->target->target, $route->params, $request]);
 			}else{
 				switch($type)
 				{
@@ -541,7 +586,7 @@ class Router
 				}
 			}
 		}else{
-			throw new Exception("route passed in first argument is not a valid route value");
+			throw new Exception(__("Route passed in first argument is not a valid route value", SETCOOKI_WP_DOMAIN));
 		}
 	}
 
@@ -554,7 +599,7 @@ class Router
 	 * @param Route $route expects route object
 	 * @param Request|null $request expects optional request instance
 	 * @return bool|mixed
-	 * @throws Exception
+     * @throws Exception
 	 */
 	public static function exec(Route $route, Request $request = null)
 	{
@@ -581,17 +626,17 @@ class Router
 				case 'url':
 					return self::redirect($target);
 				case 'route':
-					throw new Exception("route type: route is not supported with static access");
+					throw new Exception(__("Route type: route is not supported with static access", SETCOOKI_WP_DOMAIN));
 				case 'closure':
 					return $target($request, (array)$route->params);
 				case 'callable':
-					return call_user_func_array($target, array_merge(array($request), array((array)$route->params)));
+					return call_user_func_array($target, array_merge([$request], [(array)$route->params]));
 				case 'renderable':
-					return call_user_func_array(array($target, 'render'), array_merge(array($request), array((array)$route->params)));
+					return call_user_func_array([$target, 'render'], array_merge([$request], [(array)$route->params]));
 				case 'action':
-					throw new Exception("route type: action is not supported with static access");
+					throw new Exception(__("Route type: action is not supported with static access", SETCOOKI_WP_DOMAIN));
 				default:
-					throw new Exception(setcooki_sprintf("unable to execute route target type: %s", $route->target->type));
+					throw new Exception(setcooki_sprintf(__("Unable to execute route target type: %s", SETCOOKI_WP_DOMAIN), $route->target->type));
 			}
 		}
 		return false;
@@ -603,8 +648,8 @@ class Router
 	 *
 	 * @param null|mixed $fallback expects a valid fallback value
 	 * @return mixed
-	 * @throws \Exception|\Throwable
-	 * @throws null
+     * @throws \Exception
+     * @throws \Throwable
 	 */
 	public static function fail($fallback = null)
 	{
@@ -631,16 +676,17 @@ class Router
 	}
 
 
-	/**
-	 * redirect to url by php´ header location method. if url is not valid or headers can not be send will return false
-	 * or return/execute fallback value - see Router::fail for more
-	 *
-	 * @param string $url expects a url to redirect to
-	 * @param int $code expects a response code value
-	 * @param null|mixed $fallback expects a resolvable callback value
-	 * @return mixed
-	 * @throws \Exception
-	 */
+    /**
+     * redirect to url by php´ header location method. if url is not valid or headers can not be send will return false
+     * or return/execute fallback value - see Router::fail for more
+     *
+     * @param string $url expects a url to redirect to
+     * @param int $code expects a response code value
+     * @param null|mixed $fallback expects a resolvable callback value
+     * @return mixed
+     * @throws \Exception
+     * @throws \Throwable
+     */
 	public static function redirect($url, $code = 302, $fallback = null)
 	{
 		if(filter_var($url, FILTER_VALIDATE_URL) !== false || parse_url($url) !== false)
@@ -650,20 +696,21 @@ class Router
 			{
 				return self::fail($fallback);
 			}
+			exit();
 		}else{
 			return self::fail($fallback);
 		}
 	}
 
 
-	/**
-	 * redirect to another previously added route by passing route target value in first argument and
-	 *
-	 * @param string $target expects the target value to match
-	 * @param null|array $params expects optional params to overwrite in matched route object
-	 * @return bool|mixed
-	 * @throws Exception
-	 */
+    /**
+     * redirect to another previously added route by passing route target value in first argument and
+     *
+     * @param string $target expects the target value to match
+     * @param null|array $params expects optional params to overwrite in matched route object
+     * @return bool|mixed
+     * @throws Exception
+     */
 	protected function redirectToRoute($target, $params = null)
 	{
 		$target = preg_replace('=^([a-z]{1,}\:)=', '', (string)$target);
@@ -786,6 +833,6 @@ class Router
 	 */
 	public function __sleep()
     {
-        return array('wp', '_routes');
+        return ['wp', '_routes'];
     }
 }

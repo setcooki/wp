@@ -2,9 +2,15 @@
 
 namespace Setcooki\Wp;
 
+use Setcooki\Wp\Exception;
+
 /**
  * Class Theme
- * @package Setcooki\Wp
+ *
+ * @package     Setcooki\Wp
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 abstract class Theme extends Wp
 {
@@ -13,10 +19,6 @@ abstract class Theme extends Wp
      */
     const THEME_SUPPORT                 = 'THEME_SUPPORT';
 
-    /**
-     * @var array
-     */
-    public $options = array();
 
     /**
      * @var null
@@ -28,14 +30,14 @@ abstract class Theme extends Wp
      * init theme and set action hooks
      *
      * @param null|mixed $options expects optional class options
-     * @throws Exception
+     * @throws \Exception
      */
     protected function __construct($options = null)
     {
         setcooki_init_options($options, $this);
-        add_action('after_setup_theme', array($this, '_afterSetup'));
-        add_action('after_switch_theme', array($this, '_afterSwitch'));
-        add_action('switch_theme', array($this, '_switchTheme'));
+        add_action('after_setup_theme', [$this, '_afterSetup']);
+        add_action('after_switch_theme', [$this, '_afterSwitch']);
+        add_action('switch_theme', [$this, '_switchTheme']);
 
         parent::__construct();
     }
@@ -44,8 +46,8 @@ abstract class Theme extends Wp
     /**
      * static class singleton instance setter/getter.
      *
-     * @see Setcooki\Wp\Theme::__construct
-     * @param null⁄mixed $options expects optional class options
+     * @see \Setcooki\Wp\Theme::__construct()
+     * @param null|mixed $options expects optional class options
      * @return null|Theme
      */
     public static function instance($options = null)
@@ -103,7 +105,7 @@ abstract class Theme extends Wp
             {
                 if(add_theme_support((string)$option) === false)
                 {
-                    throw new Exception(setcooki_sprintf("unable to set theme support value: %s in theme init", $option));
+                    throw new Exception(setcooki_sprintf(__("Unable to set theme support value: %s in theme init", SETCOOKI_WP_DOMAIN), $option));
                 }
             }
         }

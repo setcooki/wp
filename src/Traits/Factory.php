@@ -5,8 +5,12 @@ namespace Setcooki\Wp\Traits;
 use Setcooki\Wp\Exception;
 
 /**
- * Class Factory
- * @package Setcooki\Wp\Traits
+ * Trait Factory
+ *
+ * @package     Setcooki\Wp\Traits
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 trait Factory
 {
@@ -27,7 +31,7 @@ trait Factory
         {
             return new $class($options);
         }else{
-            throw new Exception(setcooki_sprintf("factory unable to create class: %s", $class));
+            throw new Exception(setcooki_sprintf(__("Factory unable to create class: %s", SETCOOKI_WP_DOMAIN), $class));
         }
     }
 }

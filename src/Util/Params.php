@@ -2,23 +2,31 @@
 
 namespace Setcooki\Wp\Util;
 
+use Setcooki\Wp\Exception;
+
 /**
  * Class Params
- * @package Setcooki\Wp\Util
+ *
+ * @package     Setcooki\Wp\Util
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 class Params
 {
     /**
-     * class constructor set params as http query string, array or object
+     * class constructor set params as http query string, array or object or Params instance
      *
-     * @param null|mixed $params options params to init
+     * @param null|mixed|Params $params options params to init
      */
     public function __construct($params = null)
     {
-        $tmp = array();
+        $tmp = [];
 
-        if(is_string($params))
+        if($params instanceof Params)
         {
+            $this->set(get_object_vars($params));
+        } else if(is_string($params)) {
             parse_str(trim($params), $tmp);
             $this->set($tmp);
         }else if(is_array($params) || is_object($params)){
@@ -42,7 +50,7 @@ class Params
     /**
      * set params either as array with key => value pairs or single with two arguments set
      *
-     * @param string $name expects the parameter name
+     * @param string|array $name expects the parameter name
      * @param null|mixed $value expects the parameter value
      * @return Params
      */
@@ -67,6 +75,7 @@ class Params
      * @param string $name expects the parameter name
      * @param null|mixed $default expects optional default value
      * @return mixed
+     * @throws \Exception
      */
     public function get($name, $default = null)
     {
@@ -109,11 +118,18 @@ class Params
      */
     public function has($name)
     {
-        if(stristr($name, '.') !== false)
+        try
         {
-            return setcooki_object_isset($this, $name, false);
-        }else{
-            return (property_exists($this, trim((string)$name))) ? true : false;
+            if(stristr($name, '.') !== false)
+            {
+                return setcooki_object_isset($this, $name, false);
+            }else{
+                return (property_exists($this, trim((string)$name))) ? true : false;
+            }
+        }
+        catch(\Exception $e)
+        {
+            return false;
         }
     }
 
@@ -126,11 +142,18 @@ class Params
      */
     public function is($name)
     {
-        if(stristr($name, '.') !== false)
+        try
         {
-            return setcooki_object_isset($this, $name, true);
-        }else{
-            return (property_exists($this, trim((string)$name)) && !empty($this->{trim((string)$name)})) ? true : false;
+            if(stristr($name, '.') !== false)
+            {
+                return setcooki_object_isset($this, $name, true);
+            }else{
+                return (property_exists($this, trim((string)$name)) && !empty($this->{trim((string)$name)})) ? true : false;
+            }
+        }
+        catch(\Exception $e)
+        {
+            return false;
         }
     }
 

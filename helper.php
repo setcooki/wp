@@ -9,7 +9,6 @@ if(!function_exists('setcooki_object_get'))
      * @param null|string $key expects a key to look up in object or null to return the object
      * @param null|mixed $default expects default return value
      * @return mixed
-     * @throws Exception
      */
     function setcooki_object_get($object, $key = null, $default = null)
     {
@@ -89,7 +88,7 @@ if(!function_exists('setcooki_object_set'))
             $key = array_shift($keys);
             if(!isset($object[$key]) || !is_array($object[$key]))
             {
-                $object[$key] = array();
+                $object[$key] = [];
             }
             $object =& $object[$key];
         }
@@ -124,7 +123,7 @@ if(!function_exists('setcooki_object_unset'))
         }
         if($key === null)
         {
-            $object = array();
+            $object = [];
         }else{
             if(array_key_exists($key, $object))
             {
@@ -228,6 +227,24 @@ if(!function_exists('setcooki_array_to_object'))
 }
 
 
+if(!function_exists('setcooki_array_is_assoc'))
+{
+    /**
+     * check if an array has associative keys or not
+     *
+     * @since 1.2
+     * @param array $array expects array to check
+     * @return bool
+     */
+    function setcooki_array_is_assoc(Array $array)
+    {
+        if (!is_array($array)) return false;
+        if (array() === $array) return false;
+        return array_keys($array) !== range(0, count($array) - 1);
+    }
+}
+
+
 if(!function_exists('setcooki_object_to_array'))
 {
     /**
@@ -280,6 +297,195 @@ if(!function_exists('setcooki_is_value'))
     }
 }
 
+if(!function_exists('setcooki_type'))
+{
+    /**
+     * returns data type value as string of variable passed in first parameter. if the second parameter is to true will
+     * convert string values that are actually wrong casted into its proper data type - usually used on database results
+     * or $_GET parameters e.g.
+     *
+     * @since 1.2
+     * @param null|mixed $value expects the variable to test
+     * @param boolean $convert expects boolean value for converting string
+     * @return null|string
+     */
+    function setcooki_type($value = null, $convert = false)
+    {
+        if(is_string($value) && (bool)$convert)
+        {
+            if(is_numeric($value))
+            {
+                if((float)$value != (int)$value){
+                    $value = (float)$value;
+                }else{
+                    $value = (int)$value;
+               }
+            }else{
+                if($value === 'true' || $value === 'false')
+                {
+                    $value = (bool)$value;
+                }
+            }
+        }
+
+        if(is_object($value)){
+            return 'object';
+        }
+        if(is_array($value)){
+            return 'array';
+        }
+        if(is_resource($value)){
+            return 'resource';
+        }
+        if(is_callable($value)){
+            return 'callable';
+        }
+        if(is_file($value)){
+            return 'file';
+        }
+        if(is_int($value)){
+            return 'integer';
+        }
+        if(is_float($value)){
+            return 'float';
+        }
+        if(is_bool($value)){
+            return 'boolean';
+        }
+        if(is_null($value)){
+            return 'null';
+        }
+        if(is_string($value)){
+            return 'string';
+        }
+        return null;
+    }
+}
+
+
+if(!function_exists('setcooki_is'))
+{
+    /**
+     * check if a value is of data type as defined in native php types or setcooki wp types defined as SETCOOKI_TYPE_*
+     * constants in core.php
+     *
+     * @since 1.2
+     * @param null|mixed $type expects the data type
+     * @param null $value expects the value to check
+     * @return bool
+     */
+    function setcooki_is($type, $value = null)
+    {
+        $type = strtolower(trim($type));
+        if(function_exists("is_$type"))
+        {
+            return (bool)call_user_func("is_$type", $value);
+        }
+        if(function_exists("setcooki_is_$type"))
+        {
+            return (bool)call_user_func("setcooki_is_$type", $value);
+        }
+        return false;
+    }
+}
+
+if(!function_exists('setcooki_is_class'))
+{
+    /**
+     * check if class value passed in first argument is a regular and instantiable class or not
+     *
+     * @since 1.2
+     * @param mixed $class
+     * @return bool
+     */
+    function setcooki_is_class($class)
+    {
+        if(is_object($class))
+        {
+            return true;
+        }else{
+            return (class_exists((string)$class)) ? true : false;
+        }
+    }
+}
+
+if(!function_exists('setcooki_is_class'))
+{
+    /**
+     * check if date in first argument is a valid date as checked by PHP´s native strtotime() method or if second argument
+     * is set to true by date format set in global constant SETCOOKI_WP_DATE_FORMAT
+     *
+     * @since 1.2
+     * @param string $date expects the date to check
+     * @param bool $strict expects whether check strict against SETCOOKI_WP_DATE_FORMAT
+     * @return bool
+     */
+    function setcooki_is_date($date, $strict = false)
+    {
+        if((bool)$strict)
+        {
+            return (bool)@strptime((string)$date, (string)SETCOOKI_WP_DATE_FORMAT);
+        }else{
+            return (bool)@strtotime((string)$date);
+        }
+    }
+}
+
+
+if(!function_exists('setcooki_is_datetime'))
+{
+    /**
+     * check if date time value in first argument is a valid date as checked by PHP´s native strtotime() method or if
+     * second argument is set to true by date format set in global constant SETCOOKI_WP_DATETIME_FORMAT
+     *
+     * @since 1.2
+     * @param string $datetime expects the date time to check
+     * @param bool $strict expects whether check strict against SETCOOKI_WP_DATETIME_FORMAT
+     * @return bool
+     */
+    function setcooki_is_datetime($datetime, $strict = false)
+    {
+        if((bool)$strict)
+        {
+            return (bool)@strptime($datetime, (string)SETCOOKI_WP_DATETIME_FORMAT);
+        }else{
+            return (bool)@strtotime((string)$datetime);
+        }
+    }
+}
+
+
+if(!function_exists('setcooki_is_timestamp'))
+{
+    /**
+     * check if timestamp in first argument is a valid unix timestamp that can be processed by host system. if second parameter
+     * is set will check also if timestamp is > time value passed in second parameter
+     *
+     * @since 1.2
+     * @param int|string $timestamp expects the timestamp
+     * @param null $time
+     * @return bool
+     */
+    function setcooki_is_timestamp($timestamp, $time = null)
+    {
+        $check = null;
+
+        if(is_int($timestamp) || is_float($timestamp))
+        {
+            $check = $timestamp;
+        }else{
+            $check = (string)(int)$timestamp;
+        }
+        $return = ($check === $timestamp) && ((int)$timestamp <= PHP_INT_MAX) && ((int)$timestamp >= ~PHP_INT_MAX);
+        if($return && $time !== null)
+        {
+            if($time === true) $time = time();
+            return ((int)$timestamp >= (int)$time) ? true : false;
+        }
+        return false;
+    }
+}
+
 
 if(!function_exists('setcooki_default'))
 {
@@ -289,11 +495,11 @@ if(!function_exists('setcooki_default'))
      *
      * @param mixed $value expects the value to execute
      * @return mixed
-     * @throws Exception
+     * @throws \Exception
      */
     function setcooki_default($value)
     {
-        if($value instanceof Exception)
+        if($value instanceof \Exception)
         {
             throw $value;
         }else if(is_callable($value) || (is_string($value) && function_exists($value))){
@@ -309,21 +515,131 @@ if(!function_exists('setcooki_default'))
 if(!function_exists('setcooki_init_options'))
 {
     /**
-     * pass name => value pairs of array passed in first argument to class instance that implements public $options property
-     * in second argument
+     * init class options by passing options array in first argument and class instance in second argument. the class
+     * option will be set to $object->option property which must be public. if the object/class in second argument has a
+     * static property named $optionsMap will validate the options against the map. the map must be an array of option name
+     * as key and option data type as value. if the class is a subclass the options of the parent classes will be merged
+     * into the option array in order to initialize parent classes with inherent options too.
      *
+     * @since 1.2 implements options map validating
+     * @param array $options expects option array
+     * @param object $object expects object that implements public $option property
+     * @return void
+     * @throws Exception
+     */
+    function setcooki_init_options(Array $options, $object)
+    {
+        if(setcooki_can_options($object))
+        {
+            $map = 'optionsMap';
+            $class = null;
+            $instance = null;
+            $_options = [];
+            $class = get_class($object);
+            $parents = class_parents($object);
+
+            if(property_exists($object, $map))
+            {
+                $map = (array)$class::$$map;
+            }else{
+                $map = [];
+            }
+            if(!empty($parents))
+            {
+                foreach($parents as $parent)
+                {
+                    try
+                    {
+                        $class = new \ReflectionClass($parent);
+                        if(!$class->isAbstract() && !$class->isInterface() && !$class->isInternal())
+                        {
+                            if(($_map = $class->getStaticPropertyValue('optionsMap', false)) !== false)
+                            {
+                                $map = array_merge($map, (array)$_map);
+                            }
+                            $instance = $class->newInstanceWithoutConstructor();
+                            if($class->hasProperty('options'))
+                            {
+                                $property = $class->getProperty('options');
+                                $_options = array_merge($_options, (array)$property->getValue($instance));
+                            }
+                        }
+                    }
+                    catch(\Exception $e){}
+                }
+            }
+
+            if(!empty($map))
+            {
+                foreach($map as $name => $type)
+                {
+                    if(array_key_exists($name, $options))
+                    {
+                        $ok = 0;
+                        $error = [];
+                        if(!is_array($type))
+                        {
+                            $type = [$type];
+                        }
+                        foreach($type as $t)
+                        {
+                            try
+                            {
+                                if(defined('SETCOOKI_TYPE_' . strtoupper($t)))
+                                {
+                                    if(strtoupper($t) !== SETCOOKI_TYPE_MIXED && !setcooki_is($t, $options[$name]) )
+                                    {
+                                        throw new Exception(setcooki_sprintf("option: %s expects data type: %s", $name, implode('|', $type)));
+                                    }else{
+                                        $ok++;
+                                    }
+                                }else{
+                                    if(stripos($t, NAMESPACE_SEPARATOR) !== false && (!class_exists($options[$name]) || !($options[$name] instanceof $t)))
+                                    {
+                                        throw new Exception(setcooki_sprintf("unable to set option: %s since value must be instance of: %s", $name, implode('|', $type)));
+                                    }else{
+                                        $ok++;
+                                    }
+                                }
+                            }
+                            catch(Exception $e)
+                            {
+                                array_push($error, $e);
+                            }
+                        }
+                        if($ok === 0)
+                        {
+                            throw $error[0];
+                        }
+                    }
+                }
+            }
+
+            $options = array_merge($_options, (array)$options);
+            foreach((array)$options as $k => $v)
+            {
+                setcooki_set_option($k, $v, $object);
+            }
+        }
+    }
+}
+
+
+if(!function_exists('setcooki_set_options'))
+{
+    /**
+     * set options array overriding previously set options and bypassing option initing from setcooki_init_options()
+     *
+     * @since 1.2
      * @param array $options expects option array
      * @param object $object expects object that implements public $option property
      * @return void
      */
-    function setcooki_init_options($options, $object)
+    function setcooki_set_options(Array $options, $object)
     {
         if(setcooki_can_options($object))
         {
-            foreach((array)$options as $k => $v)
-            {
-                $object->options[$k] = $v;
-            }
+            $object->options = $options;
         }
     }
 }
@@ -333,7 +649,7 @@ if(!function_exists('setcooki_set_option'))
 {
     /**
      * set an option by name => value to object passed in third argument which is a class instance which implements public
-     * $option property
+     * $option property. NOTE: that setting option values via this method does bypass the data type validation from setcooki_init_options
      *
      * @param string $name expects the option name
      * @param mixed $value expects the option value
@@ -418,6 +734,24 @@ if(!function_exists('setcooki_has_option'))
             }
         }
         return false;
+    }
+}
+
+
+if(!function_exists('setcooki_is_option'))
+{
+    /**
+     * shortcut function to test if object has option which is a valid value - see setcooki_has_option()
+     *
+     * @since 1.2
+     * @see setcooki_has_option()
+     * @param string $name expects the option name
+     * @param object $object expects the object to check
+     * @return bool
+     */
+    function setcooki_is_option($name, $object)
+    {
+        return setcooki_has_option($name, $object, true);
     }
 }
 
@@ -702,14 +1036,90 @@ if(!function_exists('setcooki_str_like'))
 if(!function_exists('setcooki_nonce'))
 {
     /**
-     * create a wordpress style nonce value
+     * create a wordpress style nonce value with random string or if you pass action string in first argument with
+     * \Setcooki\Wp\Util\Nonce class
      *
+     * @since 1.2 added $action argument
+     * @since 1.2 added $lifetime argument
      * @since 1.1.3
+     * @param null|string $action expects the action string
+     * @param int $lifetime expects optional nonce lifetime
+     *
      * @return string
      */
-    function setcooki_nonce()
+    function setcooki_nonce($action = null, $lifetime = 1800)
     {
-        return wp_create_nonce(substr(substr("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", mt_rand(0 ,50), 1) . substr(md5(time()), 1), 0, 10));
+        if(!is_null($action))
+        {
+            return \Setcooki\Wp\Util\Nonce::create($action, $lifetime);
+        }else{
+            return wp_create_nonce(substr(substr("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", mt_rand(0 ,50), 1) . substr(md5(time()), 1), 0, 10));
+        }
+    }
+}
+
+
+if(!function_exists('setcooki_ajax_proxy'))
+{
+    /**
+     * returns the proxy ajax action name which is set in ajax base controller
+     *
+     * @since 1.2
+     * @return string
+     */
+    function setcooki_ajax_proxy()
+    {
+        try
+        {
+            return (string)setcooki_wp()->store('ajax.proxy.hook', null, 'proxy');
+        }
+        catch(\Exception $e)
+        {
+            return 'proxy';
+        }
+    }
+}
+
+
+if(!function_exists('setcooki_ajax_url'))
+{
+    /**
+     * preferred way to get admin ajax url. if the first argument is an array with key => value pairs will add
+     * these to the url as GET parameter as well
+     *
+     * @since 1.2
+     * @param null|array $params optional parameter to add to url
+     * @return string
+     */
+    function setcooki_ajax_url(Array $params = null)
+    {
+        $args = [];
+        $url = admin_url('admin-ajax.php');
+
+        $id = null;
+        try
+        {
+            $id = setcooki_id(true, '');
+        }
+        catch(\Exception $e){}
+        if(!empty($id))
+        {
+            $args = ['_id' => $id];
+        }
+        $args['_ts'] = time();
+
+        if(!empty($params) && (array_keys($params) !== range(0, count($params) - 1)))
+        {
+            $args = array_merge($args, (array)$params);
+        }
+        if(stripos($url, '?') === false)
+        {
+            $url .= '?';
+        }else{
+            $url .= '&';
+        }
+        $url .= http_build_query($args);
+        return $url;
     }
 }
 
@@ -783,6 +1193,72 @@ if(!function_exists('setcooki_url'))
             }
         }else{
             return $url;
+        }
+    }
+}
+
+
+if(!function_exists('setcooki_reset_query'))
+{
+    /**
+     * reset wordpress $wp_query object
+     *
+     * @since 1.2
+     * @returns void
+     */
+    function setcooki_reset_query()
+    {
+        global $wp_query;
+
+        $wp_query->is_single = false;
+        $wp_query->is_page = false;
+        $wp_query->queried_object = null;
+        $wp_query->is_home = false;
+    }
+}
+
+
+if(!function_exists('setcooki_dump'))
+{
+    /**
+     * generic dump function will try to dump any input in first parameter using the passed value in second parameter
+     * or if not set by default echo and print_r in cli or none cli mode. the first parameter can by anything that can be
+     * printed to screen via print_r function. the second parameter can by a php function, an object or class name the
+     * implements the dump method as public static or none static method. the dump method of object must have its own logic
+     * for dumping objects since this function will do nothing else but calling the method returning void. you can also
+     * use a php function like json_encode in second parameter to encode and dump your input
+
+     *
+     * @since 1.2
+     * @param mixed $what expects any type of variable
+     * @param null|string|callable|object $with expects optional value with what to output first parameter
+     * @return void
+     */
+    function setcooki_dump($what, $with = null)
+    {
+        ob_start();
+
+        if($with !== null)
+        {
+            if(is_callable($with))
+            {
+                echo call_user_func($with, $what);
+            }else if(is_object($with) && method_exists($with, 'dump')){
+                echo $with->dump($what);
+            }else if(is_string($with)){
+                if(method_exists($with, 'dump'))
+                {
+                    echo call_user_func([$with, 'dump'], $what);
+                }
+            }
+        }
+        if(strlen($o = (string)ob_get_contents()) > 0)
+        {
+            ob_end_clean();
+            echo $o;
+        }else{
+            @ob_end_clean();
+            echo ((strtolower(php_sapi_name()) === 'cli') ? print_r($what, true) : "<pre>".print_r($what, true)."</pre>");
         }
     }
 }

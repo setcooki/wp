@@ -6,7 +6,11 @@ use Setcooki\Wp\Interfaces\Logable;
 
 /**
  * Class Exception
- * @package Setcooki\Wp
+ *
+ * @package     Setcooki\Wp
+ * @author      setcooki <set@cooki.me>
+ * @copyright   setcooki <set@cooki.me>
+ * @license     https://www.gnu.org/licenses/gpl-3.0.en.html
  */
 class Exception extends \ErrorException
 {
@@ -27,7 +31,8 @@ class Exception extends \ErrorException
      * shortcut function to throw an exception
      *
      * @param mixed $e expects an exception
-     * @throws \Throwable|\Exception
+     * @throws \Exception
+     * @throws \Throwable
      */
     public static function t($e)
     {
@@ -43,7 +48,8 @@ class Exception extends \ErrorException
      *
      * @param mixed $e expects an exception
      * @param null|Logable $logger expects optional logger
-     * @throws \Throwable|\Exception
+     * @throws \Exception
+     * @throws \Throwable
      */
     public static function handler($e, Logable $logger = null)
     {
