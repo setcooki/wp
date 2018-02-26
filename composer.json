@@ -34,7 +34,8 @@
   "autoload": {
     "psr-0": {
       "Setcooki\\Wp\\": "src/"
-    }
+    },
+    "classmap": ["/"]
   },
   "minimum-stability": "stable"
 }
