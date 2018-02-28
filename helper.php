@@ -522,14 +522,14 @@ if(!function_exists('setcooki_init_options'))
      * into the option array in order to initialize parent classes with inherent options too.
      *
      * @since 1.2 implements options map validating
-     * @param array $options expects option array
+     * @param array|null $options expects option array
      * @param object $object expects object that implements public $option property
      * @return void
      * @throws Exception
      */
-    function setcooki_init_options(Array $options, $object)
+    function setcooki_init_options(Array $options = null, $object)
     {
-        if(setcooki_can_options($object))
+        if(setcooki_can_options($object) && !empty($options))
         {
             $map = 'optionsMap';
             $class = null;
