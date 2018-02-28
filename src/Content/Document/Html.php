@@ -97,6 +97,31 @@ class Html extends Document
 
 
     /**
+     * @param callable|null $callable
+     * @return mixed|string
+     */
+    public function footer(callable $callable = null)
+    {
+        if($callable !== null)
+        {
+            $this->set('footer', $callable);
+            return null;
+        }else{
+            $callable = $this->get('footer', null);
+            ob_start();
+            wp_footer();
+            $footer = ob_get_clean();
+            if(!empty($callable))
+            {
+                return call_user_func($callable, $footer);
+            }else{
+                return $footer;
+            }
+        }
+    }
+
+
+    /**
      * @return mixed|null
      */
     protected function docType()
