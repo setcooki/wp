@@ -422,6 +422,7 @@ class Resolver
      * @param string|Unit|\Closure $filter expects a filter object
      * @param null|array $options expects optional filter options
      * @throws Exception
+     * @return $this
      */
 	public function attachFilter($filter, $options = null)
 	{
@@ -437,6 +438,7 @@ class Resolver
 			}
 		}
 		$this->_filters = array_values(array_merge($this->_filters, $filter));
+		return $this;
 	}
 
 
