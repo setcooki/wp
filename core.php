@@ -1042,7 +1042,7 @@ if(!function_exists('setcooki_filter'))
                     return $wp->store('resolver')->handle($filter, array_merge((array)$arguments, (array)$params));
                 //filter is a callable
                 }else if(is_callable($filter)){
-                    return call_user_func_array($filter, [func_get_args(), (array)$params]);
+                    return call_user_func_array($filter, array_merge(func_get_args(), (array)$params));
                 //else try filter chain by name
                 }else if(is_string($filter) || is_numeric($filter)){
                     return \Setcooki\Wp\Filter\Chain::e($filter, func_get_args(), (array)$params);
