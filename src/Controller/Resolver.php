@@ -798,6 +798,12 @@ class Resolver
 	protected function lookup($action)
 	{
 		$return = [];
+
+		if(!is_string($action))
+        {
+            return $return;
+        }
+
 		$action = self::normalize($action);
 
 		if(stripos($action, '%') !== false)
