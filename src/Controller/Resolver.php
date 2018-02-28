@@ -639,6 +639,10 @@ class Resolver
      	    {
                 return false;
      	    }
+            if((bool)$strict && is_array($action) && is_callable($action))
+       	    {
+       	        return false;
+       	    }
      	    $actions = (array)$this->lookup($action);
      		if(!empty($actions) && preg_match("@$action$@i", "{$actions[0][0]}::{$actions[0][1]}"))
      		{
