@@ -114,7 +114,7 @@ class Resolver
 			$this->response(setcooki_get_option(self::RESPONSE, $this));
 		}
 
-        static::wp()->store('resolver', $this);
+        $this->wp()->store('resolver', $this);
 	}
 
 

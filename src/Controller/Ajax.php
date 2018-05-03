@@ -278,7 +278,7 @@ class Ajax extends Controller
     {
         if(defined('DOING_AJAX') && DOING_AJAX)
         {
-            if(!static::wp()->stored('ajax.proxy'))
+            if(!$this->wp()->stored('ajax.proxy'))
             {
                 $action = (isset($_REQUEST['action']) && !empty($_REQUEST['action'])) ? trim($_REQUEST['action']) : null;
                 if(!empty($action))
@@ -287,7 +287,7 @@ class Ajax extends Controller
                     {
                         try
                         {
-                            $_proxy = (array)static::wp()->store('ajax.proxy', null, []);
+                            $_proxy = (array)$this->wp()->store('ajax.proxy', null, []);
                             if(!empty($_proxy) && sizeof($_proxy) > 0)
                             {
                                 $proxy = (isset($_REQUEST['proxy']) && !empty($_REQUEST['proxy'])) ? trim((string)$_REQUEST['proxy']) : null;
@@ -340,13 +340,13 @@ class Ajax extends Controller
                 }
             }
 
-            $store = (array)static::wp()->store('ajax.proxy', null, []);
+            $store = (array)$this->wp()->store('ajax.proxy', null, []);
             $store[sprintf("%s", (new \ReflectionClass($this))->getShortName())] = $this;
-            static::wp()->store('ajax.proxy', $store);
+            $this->wp()->store('ajax.proxy', $store);
         }else{
-            if(!static::wp()->stored('ajax.proxy.hook'))
+            if(!$this->wp()->stored('ajax.proxy.hook'))
             {
-                static::wp()->store('ajax.proxy.hook', trim(setcooki_get_option(self::PROXY_HOOK_NAME, $this, substr(md5(uniqid() . time()), 0, 10)), ' _'));
+                $this->wp()->store('ajax.proxy.hook', trim(setcooki_get_option(self::PROXY_HOOK_NAME, $this, substr(md5(uniqid() . time()), 0, 10)), ' _'));
             }
         }
     }

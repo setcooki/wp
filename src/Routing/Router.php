@@ -96,7 +96,7 @@ class Router
 	{
 		setcooki_init_options($options, $this);
 		$this->init();
-        static::wp()->store('router', $this);
+        $this->wp()->store('router', $this);
 	}
 
 
@@ -311,7 +311,7 @@ class Router
      */
 	public function autoAdd($throw = false)
 	{
-		return $this->addFrom(static::wp()->base() . DIRECTORY_SEPARATOR . 'router.php', $throw);
+		return $this->addFrom($this->wp()->base() . DIRECTORY_SEPARATOR . 'router.php', $throw);
 	}
 
 

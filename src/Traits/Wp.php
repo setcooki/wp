@@ -19,7 +19,7 @@ trait Wp
      *
      * @var null|\Setcooki\Wp\Wp
      */
-    private static $_wp = null;
+    private $_wp = null;
 
 
     /**
@@ -29,12 +29,12 @@ trait Wp
      * @return null|\Setcooki\Wp\Wp
      * @throws \Exception
      */
-    public static function wp()
+    public function wp()
     {
-        if(self::$_wp === null)
+        if($this->_wp === null)
         {
-            self::$_wp = setcooki_wp();
+            $this->_wp = setcooki_wp();
         }
-        return self::$_wp;
+        return $this->_wp;
     }
 }

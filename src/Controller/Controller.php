@@ -203,7 +203,7 @@ abstract class Controller
      */
 	public function forward($controller, $params = null, Request $request = null, Response $response = null)
     {
-        $resolver = static::wp()->store('resolver');
+        $resolver = $this->wp()->store('resolver');
 
         if($resolver && $resolver->registered($controller))
         {
@@ -238,7 +238,7 @@ abstract class Controller
                     $controller = explode('::', trim($controller));
                     if(class_exists($controller[0]) && is_subclass_of($controller[0], __CLASS__))
                     {
-                        $controller[0] = new $controller[0](static::wp());
+                        $controller[0] = new $controller[0]($this->wp());
                     }else{
                         throw new Exception(setcooki_sprintf(__("Controller class: %s passed in first argument does not exist or is not a sub class of controller", SETCOOKI_WP_DOMAIN), $controller[0]));
                     }
