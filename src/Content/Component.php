@@ -62,15 +62,26 @@ abstract class Component implements Renderable
 
 
     /**
-     * register a component by id
+     * register a component by id or pass an array of components to first argument
      *
-     * @param string|int $id expects the id as string or int
-     * @param Component $component expects the component instance
+     * @param string|int|array $id expects the id as string or int or array of id => component pairs
+     * @param Component|null $component expects the component instance
      * @return bool
      */
-    public static function register($id, Component $component)
+    public static function register($id, Component $component = null)
     {
-        self::$_components[$id] = $component;
+        if(is_array($id) && $component === null)
+        {
+            foreach($id as $_id => $component)
+            {
+                if($component instanceof Component)
+                {
+                    self::$_components[$_id] = $component;
+                }
+            }
+        }else if($component !== null){
+            self::$_components[$id] = $component;
+        }
         return true;
     }
 
