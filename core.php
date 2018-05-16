@@ -1243,6 +1243,7 @@ if(!function_exists('setcooki_shortcode'))
      * - void = null if you want to remove a shortcode
      * - boolean value to do a shortcode
      * - callable, closure, class that implements render method or controller action to add a shortcode
+     * - a component id previously registered with \Setcooki\Wp\Content\Component::register
      *
      * @since 1.1.3
      * @param string $tag expects the shortcode tag
@@ -1276,6 +1277,11 @@ if(!function_exists('setcooki_shortcode'))
                     add_shortcode($tag, function($params, $content) use ($mixed)
                     {
                         return $mixed($params, $content);
+                    });
+                }else if(is_string($mixed) && \Setcooki\Wp\Content\Component::isRegistered($mixed)){
+                    add_shortcode($tag, function($params, $content) use ($mixed)
+                    {
+                        return \Setcooki\Wp\Content\Component::execute($mixed, $params);
                     });
                 }else{
                     throw new Exception(setcooki_sprintf("callable for shortcode tag: %s is not a callable", $tag));
