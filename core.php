@@ -217,11 +217,11 @@ if(!function_exists('setcooki_boot'))
      * init wp framework with config which can be one or multiple config files as array. the init function will registered
      * the config values and set global values in $GLOBALS namespace.
      *
-     * @param string|array $config expects options config file(s) absolute path as single value or array
+     * @param null|string|array $config expects options config file(s) absolute path as single value or array
      * @param \Setcooki\Wp\Interfaces\Logable|mixed $logger expects optional logger instance
      * @return array
      */
-    function setcooki_boot($config, $logger = null)
+    function setcooki_boot($config = null, $logger = null)
     {
         $ns = setcooki_ns();
         if(isset($GLOBALS[SETCOOKI_NS]) && isset($GLOBALS[SETCOOKI_NS][$ns]))

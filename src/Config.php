@@ -34,24 +34,27 @@ class Config
      * load config files passed in first argument which can be a single config file location or an array of multiple config
      * files which are merge to one config object
      *
-     * @param string|mixed $config expects either a string file name or an array of config files
+     * @param null|string|mixed $config expects either a string file name or an array of config files
      * @throws \Setcooki\Wp\Exception
      */
-    public function __construct($config)
+    public function __construct($config = null)
     {
-        if(is_array($config))
+        if($config !== null)
         {
-            if(array_key_exists(0, $config))
+            if(is_array($config))
             {
-                foreach($config as $c)
+                if(array_key_exists(0, $config))
                 {
-                    $this->_config = array_replace_recursive($this->_config, (array)$this->load($c, false));
+                    foreach($config as $c)
+                    {
+                        $this->_config = array_replace_recursive($this->_config, (array)$this->load($c, false));
+                    }
+                }else{
+                    $this->_config = $this->load($config, false);
                 }
             }else{
                 $this->_config = $this->load($config, false);
             }
-        }else{
-            $this->_config = $this->load($config, false);
         }
     }
 
@@ -61,11 +64,11 @@ class Config
      * set namespace identifier in second argument. that way multiple config namespaces/instances can be maintained
      *
      * @see Cache::__construct()
-     * @param string|mixed $config expects either a string file name or an array of config files
+     * @param null|string|mixed $config expects either a string file name or an array of config files
      * @param string $ns expects config namespace identifier
      * @return mixed
      */
-    public static function init($config, $ns)
+    public static function init($config = null, $ns)
     {
         if(!array_key_exists($ns, self::$_instances))
         {
