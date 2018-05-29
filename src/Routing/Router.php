@@ -26,6 +26,13 @@ class Router
     const ROUTE_CONFIG                  = 'ROUTE_CONFIG';
 
 
+    /**
+     * @since 1.2
+     * let the router handle a wp query 404 error and redirect to fallback if set
+     */
+    const HANDLE_404                    = 'HANDLE_404';
+
+
 	/**
 	 * contains all route object associated with this router
 	 *
@@ -75,7 +82,8 @@ class Router
      */
     public static $optionsMap =
     [
-        self::ROUTE_CONFIG              => [SETCOOKI_TYPE_NULL, SETCOOKI_TYPE_ARRAY, SETCOOKI_TYPE_FILE]
+        self::ROUTE_CONFIG              => [SETCOOKI_TYPE_NULL, SETCOOKI_TYPE_ARRAY, SETCOOKI_TYPE_FILE],
+        self::HANDLE_404                => SETCOOKI_TYPE_BOOL
     ];
 
     /**
@@ -83,7 +91,10 @@ class Router
    	 *
    	 * @var array
    	 */
-   	public $options = [];
+   	public $options =
+    [
+        self::HANDLE_404                => true
+    ];
 
 
     /**
@@ -135,6 +146,18 @@ class Router
             {
                 $this->add($conf);
             }
+        }
+        if(setcooki_is_option(self::HANDLE_404, $this))
+        {
+            add_filter('template_redirect', function()
+            {
+                global $wp_query;
+                if(isset($wp_query) && $wp_query->is_404 && $this->fallback)
+                {
+                    echo static::fail($this->fallback);
+                    exit;
+                }
+            });
         }
     }
 
