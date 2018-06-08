@@ -62,7 +62,6 @@ class Html extends Document
         $this
             ->setDocType('html')
             ->setHtmlLang(get_language_attributes())
-            ->setTitle(get_bloginfo('name'))
             ->addMeta
             (
                 ['charset' => get_bloginfo('charset')]
