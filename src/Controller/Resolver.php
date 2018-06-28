@@ -330,7 +330,15 @@ class Resolver
 		$key = self::normalize($controller);
 		if(stripos($controller, '::') !== false)
 		{
-			return (array_key_exists($key, $this->_map)) ? true : false;
+            if(array_key_exists($key, $this->_map))
+            {
+                return true;
+            }
+   		    if($this->lookup($controller))
+            {
+                return true;
+            }
+            return false;
 		}else{
 			if(!is_null($method))
 			{
