@@ -125,7 +125,7 @@ class Nonce
             return (int)$lifetime;
         };
         add_filter('nonce_life', $filter);
-        $valid = wp_verify_nonce($nonce, self::hash($action));
+        $valid = wp_verify_nonce($nonce, $action);
         remove_filter('nonce_life', $filter);
         unset($filter);
         return $valid;
@@ -171,7 +171,7 @@ class Nonce
             return (int)$this->_lifetime;
         };
         add_filter('nonce_life', $filter);
-        $nonce = wp_create_nonce(self::hash($this->_action));
+        $nonce = wp_create_nonce($this->_action);
         remove_filter('nonce_life', $filter);
         unset($filter);
         return $nonce;
