@@ -63,6 +63,15 @@ class Ajax extends Controller
 
 
     /**
+     * internal instance cache
+     *
+     * @var array
+     * @since 1.2.0
+     */
+    protected static $_instances = [];
+
+
+    /**
      * the option map
      *
      * @var array
@@ -85,7 +94,7 @@ class Ajax extends Controller
      */
     public $options =
     [
-        self::AUTO_BIND              => true,
+        self::AUTO_BIND             => true,
         self::ENABLE_PROXY          => true,
         self::PROXY_NONCE_LIFETIME  => 1800,
         self::ACTION_PREFIX         => '',
@@ -98,13 +107,14 @@ class Ajax extends Controller
      *
      * @since 1.2
      * @param null|mixed $options expects optional options
-     * @throws Exception
      * @throws \Exception
      * @throws \ReflectionException
      */
     public function __construct($options = null)
    	{
    	    parent::__construct($options);
+
+   	    static::$_instances[setcooki_id(true)] = $this;
 
    	    if(setcooki_get_option(self::AUTO_BIND, $this))
         {
@@ -125,6 +135,7 @@ class Ajax extends Controller
      * @since 1.2
      * @param string $action expects the action name
      * @param Ajax|null $controller expects optional controller if not $this
+     * @throws \Exception
      */
     protected function resolve($action, Ajax $controller = null)
     {
@@ -182,7 +193,7 @@ class Ajax extends Controller
      * Resolver::register especially if you want to use pre/post actions and filters
      *
      * @since 1.2
-     * @throws Exception
+     * @throws \Exception
      */
    	protected function bindActions()
     {
@@ -241,7 +252,9 @@ class Ajax extends Controller
 
     /**
      * the proxy allows to route all ajax traffic to proxy router method by the using the same js ajax action parameter name and a proxy
-     * parameter for its actual action target. the following example shows usage in fronted jQuery $.ajax implementation:
+     * parameter for its actual action target. if you run the proxy in parent/child or multisite setup its important that the ajax url
+     * is set with setcooki_ajax_url() - only then correct framework instance resolving is guaranted! the following example
+     * shows usage in fronted jQuery $.ajax implementation for data:
      * <pre>
      *      <?PHP
      *      data: {
@@ -278,16 +291,26 @@ class Ajax extends Controller
     {
         if(defined('DOING_AJAX') && DOING_AJAX)
         {
-            if(!$this->wp()->stored('ajax.proxy'))
+            // We need to get the right framework instance, provided ajax call has the "_id" parameter as provided by setcooki_ajax_url()
+            if(isset($_REQUEST['_id']) && !empty($_REQUEST['_id']))
+            {
+                $wp = $this->wp($_REQUEST['_id']);
+                $self = static::$_instances[$_REQUEST['_id']];
+            }else{
+                $wp = $this->wp();
+                $self = $this;
+            }
+            if(!$wp->stored('ajax.proxy'))
             {
                 $action = (isset($_REQUEST['action']) && !empty($_REQUEST['action'])) ? trim($_REQUEST['action']) : null;
                 if(!empty($action))
                 {
-                    $proxy = function()
+                    $proxy = function() use ($wp)
                     {
                         try
                         {
-                            $_proxy = (array)$this->wp()->store('ajax.proxy', null, []);
+                            $_proxy = (array)$wp->store('ajax.proxy', null, []);
+                            $self = $_proxy[(new \ReflectionClass(__CLASS__))->getShortName()];
                             if(!empty($_proxy) && sizeof($_proxy) > 0)
                             {
                                 $proxy = (isset($_REQUEST['proxy']) && !empty($_REQUEST['proxy'])) ? trim((string)$_REQUEST['proxy']) : null;
@@ -310,7 +333,7 @@ class Ajax extends Controller
                                     }
                                     if(array_key_exists($controller, $_proxy))
                                     {
-                                        $this->resolve($action, $_proxy[$controller]);
+                                        $self->resolve($action, $_proxy[$controller]);
                                     }else{
                                         throw new Exception(setcooki_sprintf(__("Ajax controller: %s is not registered", SETCOOKI_WP_DOMAIN), $controller));
                                     }
@@ -339,10 +362,9 @@ class Ajax extends Controller
                     setcooki_die(__("Ajax action not found in request", SETCOOKI_WP_DOMAIN));
                 }
             }
-
-            $store = (array)$this->wp()->store('ajax.proxy', null, []);
-            $store[sprintf("%s", (new \ReflectionClass($this))->getShortName())] = $this;
-            $this->wp()->store('ajax.proxy', $store);
+            $store = (array)$wp->store('ajax.proxy', null, []);
+            $store[sprintf("%s", (new \ReflectionClass($this))->getShortName())] = $self;
+            $wp->store('ajax.proxy', $store);
         }else{
             if(!$this->wp()->stored('ajax.proxy.hook'))
             {
@@ -358,6 +380,7 @@ class Ajax extends Controller
      * @since 1.2
      * @param Request|null $request expects request object
      * @return Html|Json|Text|Xml
+     * @throws \Exception
      */
     private function createResponseFrom(Request $request = null)
     {

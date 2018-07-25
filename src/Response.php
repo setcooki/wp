@@ -187,7 +187,7 @@ class Response
 	 * @param null|mixed $data expects data as explained in method signature
 	 * @param null|string $buffer expects options return buffer
 	 * @return $this|null|string
-     * @throws Exception
+     * @throws \Exception
 	 */
 	public function flush($data = null, &$buffer = null)
 	{

@@ -37,7 +37,7 @@ class Apc extends Cache
 
     /**
      * @param null $options
-     * @throws Exception
+     * @throws \Exception
      */
     public function __construct($options = null)
     {
@@ -57,7 +57,7 @@ class Apc extends Cache
 
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     protected function init()
     {

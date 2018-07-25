@@ -144,7 +144,7 @@ abstract class Hook
      * @since 1.2
      * @param string $name method name
      * @param mixed $arguments methods arguments
-     * @throws Exception
+     * @throws \Exception
      */
     public function __call($name, $arguments)
     {

@@ -61,7 +61,7 @@ class Unit
 	 *
 	 * @param mixed $filter expects the filter object
 	 * @param null|array $options expects optional filter unit options
-     * @throws Exception
+     * @throws \Exception
 	 */
 	public function __construct($filter, $options = null)
 	{

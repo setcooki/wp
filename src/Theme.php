@@ -95,7 +95,7 @@ abstract class Theme extends Wp
 
     /**
      * @return void
-     * @throws Exception
+     * @throws \Exception
      */
     public function _afterSetup()
     {

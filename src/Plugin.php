@@ -61,7 +61,7 @@ abstract class Plugin extends Wp
      * @param null|mixed $id expects the optional plugin id
      * @param null|mixed $options expects optional class options
      * @return null|Plugin
-     * @throws Exception
+     * @throws \Exception
      */
     public static function instance($id = null, $options = null)
     {
@@ -109,7 +109,7 @@ abstract class Plugin extends Wp
      *
      * @param mixed $id expects the instance id
      * @return null|Plugin
-     * @throws Exception
+     * @throws \Exception
      */
     public static function select($id)
     {
@@ -156,7 +156,7 @@ abstract class Plugin extends Wp
      * internal uninstall hook
      *
      * @return void
-     * @throws Exception
+     * @throws \Exception
      */
     protected static function _uninstall()
     {

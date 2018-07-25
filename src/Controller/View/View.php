@@ -51,7 +51,7 @@ class View
      * @param Controller $controller expects controller instance
      * @param string|Template $view expects view template file or template instance
      * @param null|mixed $vars expects optional vars to assign to view
-     * @throws Exception
+     * @throws \Exception
      */
     public function __construct(Controller $controller, $view, $vars = null)
     {
@@ -101,7 +101,7 @@ class View
      * @see View::assign()
      * @param null|mixed $vars expects optional vars to set and override
      * @return array
-     * @throws Exception
+     * @throws \Exception
      */
     public function vars($vars = null)
     {
@@ -123,7 +123,7 @@ class View
      * @param mixed $key expects key as explained
      * @param null $value expects value assigned to key
      * @return $this
-     * @throws Exception
+     * @throws \Exception
      */
     public function assign($key, $value = null)
     {
@@ -158,7 +158,7 @@ class View
      *
      * @param string $key expects var key to unset
      * @return $this
-     * @throws Exception
+     * @throws \Exception
      */
     public function unassign($key)
     {
@@ -194,7 +194,7 @@ class View
      * @param string|View|Template $view expects a value that can create a valid view object
      * @param null $vars expects optional vars to use in nested view
      * @return $this
-     * @throws Exception
+     * @throws \Exception
      */
     public function nest($key, $view, $vars = null)
     {
@@ -227,7 +227,7 @@ class View
      *
      * @param string $name expects var name
      * @return mixed
-     * @throws Exception
+     * @throws \Exception
      */
     public function &__get($name)
     {
@@ -257,7 +257,7 @@ class View
      *
      * @param string $name expects var name
      * @return $this
-     * @throws Exception
+     * @throws \Exception
      */
     public function __unset($name)
     {
@@ -278,7 +278,7 @@ class View
      * @param null|int $cache expects optional cache life time
      * @param callable|null $callback expects optional callback
      * @return mixed
-     * @throws Exception
+     * @throws \Exception
      */
     public function render($cache = null, callable $callback = null)
     {
@@ -345,7 +345,7 @@ class View
      * @param string $file expects a file path
      * @param array $vars expects optional vars
      * @return string
-     * @throws Exception
+     * @throws \Exception
      */
     public function inc($file, Array $vars = [])
     {
@@ -387,7 +387,7 @@ class View
      * render view
      *
      * @return string
-     * @throws Exception
+     * @throws \Exception
      */
     public function __toString()
     {

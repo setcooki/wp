@@ -457,7 +457,7 @@ abstract class Wp
      * @since 1.1.2
      * @param string $name expects the property name = object name
      * @return mixed
-     * @throws Exception
+     * @throws \Exception
      */
     public function __get($name)
     {

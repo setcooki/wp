@@ -422,7 +422,7 @@ class Request
      * @param null $value expects the value for parameter
      * @param string $to expects optional scope value like "POST"
      * @return Request
-     * @throws Exception
+     * @throws \Exception
      */
     public function set($name, $value = null, $to = self::PARAMS)
     {
@@ -700,7 +700,7 @@ class Request
      * @param null|string $url expects the optional url to parse
      * @param null|int $component expects optional php parse_url component flag
      * @return null|string|array
-     * @throws Exception
+     * @throws \Exception
      */
     public static function url($url = null, $component = null)
     {
@@ -793,7 +793,7 @@ class Request
      *
      * @param string $url expects the url to redirect to
      * @param int $code expects the redirect code
-     * @throws Exception
+     * @throws \Exception
      */
     public static function redirect($url, $code = 302)
    	{

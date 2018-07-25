@@ -54,7 +54,7 @@ class Json extends Response
 	 *
 	 * @param string $body expects the response body string
 	 * @return string
-     * @throws Exception
+     * @throws \Exception
 	 */
 	protected function body(&$body = '')
 	{

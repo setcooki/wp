@@ -21,7 +21,7 @@ trait Factory
      * @param string $name expects subclass name
      * @param null|mixed $options expects optional options
      * @return mixed
-     * @throws Exception
+     * @throws \Exception
      */
     public static function create($name, $options = null)
     {

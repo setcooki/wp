@@ -49,7 +49,7 @@ abstract class Cache
      * @param null|string $driver the cache driver/class name
      * @param null|array $options optional class instance options
      * @return null|Cache
-     * @throws Exception
+     * @throws \Exception
      */
     public static function instance($ns = null, $driver = null, $options = null)
     {
@@ -92,7 +92,7 @@ abstract class Cache
      * @param null|array $options optional class instance options
      * @param null|string $ns expects an optional namespace identifier
      * @return mixed
-     * @throws Exception
+     * @throws \Exception
      */
     public static function factory($driver, $options = null, $ns = null)
     {

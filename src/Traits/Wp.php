@@ -23,15 +23,25 @@ trait Wp
 
 
     /**
-     * get the current wp framework instance
+     * get the current wp framework instance. In order to change framework instance on run time the id of any instance
+     * can be passed as optional parameter
      *
      * @since 1.2
+     * @param null|false|string $id expects the optional id to set
      * @return null|\Setcooki\Wp\Wp
      * @throws \Exception
      */
-    public function wp()
+    public function wp($id = false)
     {
         if($this->_wp === null)
+        {
+            $this->_wp = setcooki_wp();
+        }
+        if(!empty($id))
+        {
+            $this->_wp = setcooki_wp((string)$id);
+        }
+        if($id === null)
         {
             $this->_wp = setcooki_wp();
         }

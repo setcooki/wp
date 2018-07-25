@@ -44,7 +44,7 @@ class Listener
      * @param string $name expects event name to listen to
      * @param callable|\Closure $callback expects a valid callback value
      * @param null|mixed $subject expects optional subject/target object
-     * @throws Exception
+     * @throws \Exception
      */
 	public function __construct($name, $callback, $subject = null)
 	{
@@ -89,7 +89,7 @@ class Listener
      *
      * @param callable|\Closure $callback expects callback
      * @return null|callable|\Closure
-     * @throws Exception
+     * @throws \Exception
      */
 	public function callback($callback = null)
 	{
@@ -139,7 +139,7 @@ class Listener
 	 *
 	 * @param mixed $callback expects callback value
 	 * @return mixed
-     * @throws Exception
+     * @throws \Exception
 	 */
 	protected function isCallable($callback)
 	{

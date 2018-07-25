@@ -41,7 +41,7 @@ class Template
      *
      * @param string $template expects absolute or relative template file
      * @param null $vars
-     * @throws Exception
+     * @throws \Exception
      */
     public function __construct($template, $vars = null)
     {
@@ -152,7 +152,7 @@ class Template
      *
      * @param array|object $vars expects the variables to set
      * @return void
-     * @throws Exception
+     * @throws \Exception
      */
     public function set($vars)
     {
@@ -205,7 +205,7 @@ class Template
      * @param null|int $cache expects optional cache lifetime
      * @param callable|null $callback expects optional buffer callback
      * @return string
-     * @throws Exception
+     * @throws \Exception
      */
     public function render($cache = null, callable $callback = null)
     {
@@ -256,7 +256,7 @@ class Template
      * @param null|mixed $vars expects variables to set
      * @param callable|null $callback expects optional buffer callback
      * @return string
-     * @throws Exception
+     * @throws \Exception
      */
     public static function r($template, $vars = null, callable $callback = null)
     {
@@ -270,7 +270,7 @@ class Template
      * @param string $file expects a file path
      * @param array $vars expects optional vars
      * @return string
-     * @throws Exception
+     * @throws \Exception
      */
     public function inc($file, Array $vars = [])
     {

@@ -36,7 +36,6 @@ trait Event
      * @param null|callable|\Closure $listener expects optional callable/closure
      * @param int $priority expects optional priority which defaults to 0 = no priority
      * @return $this
-     * @throws Exception
      * @throws \Exception
      */
 	public function on($event, $listener, $priority = 0)
@@ -54,7 +53,6 @@ trait Event
      * @param null|string|array $event expects event name(s)
      * @param null|\Setcooki\Wp\Events\Listener|callable|\Closure $listener expects optional listener object or callable/closure
      * @return $this
-     * @throws Exception
      * @throws \Exception
      */
 	public function off($event = null, $listener = null)
@@ -114,7 +112,7 @@ trait Event
 	 *
 	 * @param string|callable|\Closure $listener expects a resolvable callback object
 	 * @return callable|\Closure
-     * @throws Exception
+     * @throws \Exception
 	 */
 	protected function getEventListener($listener)
 	{

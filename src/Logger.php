@@ -298,7 +298,7 @@ class Logger implements Logable
      * @param string|mixed|Exception $message expects a log message
      * @param null|array $context expects a optional argument array
      * @return null
-     * @throws Exception
+     * @throws \Exception
      */
     public function log($level, $message, array $context = [])
     {
@@ -430,7 +430,7 @@ class Logger implements Logable
      *
      * @param string $message write log message to file
      * @return void
-     * @throws Exception
+     * @throws \Exception
      */
     public function write($message)
     {

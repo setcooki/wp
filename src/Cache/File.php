@@ -43,7 +43,6 @@ class File extends Cache
     /**
      * File constructor.
      * @param null $options
-     * @throws Exception
      * @throws \Exception
      */
     public function __construct($options = null)
@@ -64,7 +63,7 @@ class File extends Cache
 
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     protected function init()
     {
@@ -103,7 +102,6 @@ class File extends Cache
      * @param string $key
      * @param null $default
      * @return mixed
-     * @throws Exception
      * @throws \Exception
      */
     public function get($key, $default = null)

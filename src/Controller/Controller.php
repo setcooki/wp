@@ -112,7 +112,7 @@ abstract class Controller
 	 * @param null|Unit|array $filter expects a valid filter value
 	 * @param null|array $options expects optional filter options
 	 * @return mixed
-     * @throws Exception
+     * @throws \Exception
 	 */
 	public function attachFilter($type, $filter, $options = null)
 	{
@@ -167,7 +167,7 @@ abstract class Controller
      * @param array|mixed $filter expects a valid filter value
      * @param null|array $options expects optional filter unit options
      * @return array
-     * @throws Exception
+     * @throws \Exception
      */
 	protected function parseFilter($filter, $options = null)
 	{
@@ -199,7 +199,7 @@ abstract class Controller
      * @param Request|null $request optional request object to pass to target
      * @param Response|null $response optional response object to pass to target
      * @return mixed
-     * @throws Exception
+     * @throws \Exception
      */
 	public function forward($controller, $params = null, Request $request = null, Response $response = null)
     {
@@ -270,7 +270,7 @@ abstract class Controller
      * @param Request|null $request optional request object to pass to target
      * @param Response|null $response optional response object to pass to target
      * @return mixed
-     * @throws Exception
+     * @throws \Exception
      */
     protected function forwardByPath($path, $params = null, Request $request = null, Response $response = null)
     {
@@ -324,7 +324,7 @@ abstract class Controller
      * @since 1.2
      * @param string $url expects redirect url
      * @param int $status expects redirect status
-     * @throws Exception
+     * @throws \Exception
      */
     public function redirect($url, $status = 302)
     {
@@ -340,7 +340,7 @@ abstract class Controller
      * @param Request|null $request expects optional request instance
 	 * @param Response|null $response expects optional response instance
 	 * @return mixed
-     * @throws Exception
+     * @throws \Exception
 	 */
 	public function call($action, $params = null, Request $request = null, Response $response = null)
 	{
@@ -381,7 +381,7 @@ abstract class Controller
 	 *
 	 * @param string $name expects method name
 	 * @param mixed $parameters expects parameters
-     * @throws Exception
+     * @throws \Exception
 	 */
 	public function __call($name, $parameters)
 	{
@@ -394,7 +394,7 @@ abstract class Controller
 	 *
 	 * @param string $name expects method name
 	 * @param mixed $arguments expects parameters
-     * @throws Exception
+     * @throws \Exception
 	 */
 	public static function __callStatic($name, $arguments)
 	{

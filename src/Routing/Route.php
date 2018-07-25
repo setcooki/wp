@@ -101,7 +101,7 @@ class Route
 	 * @param string|array $route expects 1+n route strings
 	 * @param null|mixed $target expects a target value
 	 * @param null|array|object $params expects optional parameters
-     * @throws Exception
+     * @throws \Exception
 	 */
     public function __construct($route, $target = null, $params = null)
     {
@@ -196,7 +196,7 @@ class Route
      * @param mixed $target expects a target value
      * @param null|array|object $params expects optional parameters
      * @return Route
-     * @throws Exception
+     * @throws \Exception
      */
 	public static function create($route, $target, $params = null)
 	{
@@ -222,7 +222,7 @@ class Route
      * @see Router::exec()
      * @param Request $request expects request object
      * @return mixed
-     * @throws Exception
+     * @throws \Exception
      */
 	public function execute(Request $request)
 	{

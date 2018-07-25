@@ -83,7 +83,7 @@ class Config
      *
      * @param string|null $ns expect the optional namespace identifier
      * @return Config
-     * @throws Exception
+     * @throws \Exception
      */
     public static function instance($ns = null)
     {
@@ -123,7 +123,7 @@ class Config
      * @param null|string $ns expects optional existing namespace identifier
      * @param null|string $new expects optional namespace identifier for replacement
      * @return Config
-     * @throws Exception
+     * @throws \Exception
      */
     public static function ns($ns = null, $new = null)
     {
@@ -151,7 +151,7 @@ class Config
      * @param string $file expects a absolute path to config file
      * @param bool $throw expects boolean value to throw exception on failure or return array
      * @return array
-     * @throws Exception
+     * @throws \Exception
      */
     public static function load($file, $throw = true)
     {

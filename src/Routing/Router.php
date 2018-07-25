@@ -238,7 +238,7 @@ class Router
      * @param null|string $target expects the routes target value
      * @param null|array $params expects optional params as array
      * @return $this
-     * @throws Exception
+     * @throws \Exception
      */
 	public function set($route, $target = null, $params = null)
 	{
@@ -261,7 +261,7 @@ class Router
 	 * @param null|string $target expects the routes target value
 	 * @param null|array $params expects optional params as array
 	 * @return $this
-     * @throws Exception
+     * @throws \Exception
 	 */
 	public function add($route, $target = null, $params = null)
 	{
@@ -299,7 +299,7 @@ class Router
      * @param string $file expects routes config file absolute file location
      * @param bool $throw expects boolean value for whether to throw exception or return false on failure
      * @return bool|Router
-     * @throws Exception
+     * @throws \Exception
      */
 	public function addFrom($file, $throw = true)
 	{
@@ -329,7 +329,6 @@ class Router
      *
      * @param bool $throw expects boolean value for whether to throw exception or return false on failure
      * @return bool|Router
-     * @throws Exception
      * @throws \Exception
      */
 	public function autoAdd($throw = false)
@@ -376,7 +375,7 @@ class Router
 	 * @param string $what expects "route" or "target"
 	 * @param string $with expects the type value to match - see Route::__construct()
 	 * @return array
-     * @throws Exception
+     * @throws \Exception
 	 */
 	public function getBy($what, $with)
 	{
@@ -456,7 +455,7 @@ class Router
      * @param string $what expects "route" or "target"
      * @param string $with expects the type value to match - see Route::__construct()
      * @return $this
-     * @throws Exception
+     * @throws \Exception
      */
 	public function removeBy($what, $with)
 	{
@@ -513,7 +512,6 @@ class Router
      * @param null|mixed $fallback expects a recognizable fallback value
      * @param Request|null $request expects a optional request object instance
      * @return bool|mixed
-     * @throws Exception
      * @throws \Exception
      * @throws \Throwable
      */
@@ -563,7 +561,7 @@ class Router
 	 * @param mixed $route expects recognizable route value
 	 * @param Request|null $request expects optional request instance
 	 * @return mixed
-     * @throws Exception
+     * @throws \Exception
 	 */
 	public function execute($route, Request $request = null)
 	{
@@ -622,7 +620,7 @@ class Router
 	 * @param Route $route expects route object
 	 * @param Request|null $request expects optional request instance
 	 * @return bool|mixed
-     * @throws Exception
+     * @throws \Exception
 	 */
 	public static function exec(Route $route, Request $request = null)
 	{
@@ -732,7 +730,7 @@ class Router
      * @param string $target expects the target value to match
      * @param null|array $params expects optional params to overwrite in matched route object
      * @return bool|mixed
-     * @throws Exception
+     * @throws \Exception
      */
 	protected function redirectToRoute($target, $params = null)
 	{

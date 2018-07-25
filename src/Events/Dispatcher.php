@@ -64,7 +64,7 @@ class Dispatcher
 	 * @param null|callable|\Closure $listener expects optional callable/closure
 	 * @param int $priority expects optional priority which defaults to 0 = no priority
 	 * @return $this
-     * @throws Exception
+     * @throws \Exception
 	 */
 	public function listen($event, $listener = null, $priority = 0)
 	{

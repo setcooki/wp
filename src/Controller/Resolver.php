@@ -190,7 +190,7 @@ class Resolver
 	 * @param Controller|string $controller expects controller class instance or string name
 	 * @param null|array $options expects optional options
 	 * @return $this
-     * @throws Exception
+     * @throws \Exception
 	 */
 	public function register($controller, $options = null)
 	{
@@ -370,7 +370,6 @@ class Resolver
      * @param string|array $hook expects hook value as string or multiple bindings as array
      * @param null|string $action expect controller action
      * @return $this
-     * @throws Exception
      * @throws \Exception
      */
 	public function bind($hook, $action = null)
@@ -429,7 +428,7 @@ class Resolver
      * @see \Setcooki\Wp\Controller\Filter\Unit::__construct()
      * @param string|Unit|\Closure $filter expects a filter object
      * @param null|array $options expects optional filter options
-     * @throws Exception
+     * @throws \Exception
      * @return $this
      */
 	public function attachFilter($filter, $options = null)
@@ -528,7 +527,6 @@ class Resolver
 	 * @param null|mixed $callback expects optional callback - see Resolver::callback
 	 * @param null|string $buffer expects optional string buffer
 	 * @return mixed
-     * @throws Exception
      * @throws \Exception
      * @throws \Throwable
 	 */
@@ -671,7 +669,6 @@ class Resolver
      * @param Request $request expects the request instance
      * @param Response $response expects the response instance
      * @return mixed
-     * @throws Exception
      * @throws \Exception
      * @throws \Throwable
      */
@@ -765,7 +762,7 @@ class Resolver
 	 * @param callable $callable expects the callable
 	 * @param array $params expects optional parameters
 	 * @return mixed
-     * @throws Exception
+     * @throws \Exception
 	 */
 	protected function callback(callable $callable, Array $params = [])
 	{
@@ -801,7 +798,7 @@ class Resolver
 	 *
 	 * @param string $action expects the action to lookup
 	 * @return array
-     * @throws Exception
+     * @throws \Exception
 	 */
 	protected function lookup($action)
 	{
@@ -868,7 +865,6 @@ class Resolver
      * be used for debugging purposes
      *
      * @param null|object|array|Params $params expects optional params
-     * @throws Exception
      * @throws \Exception
      * @throws \Throwable
      */
@@ -918,7 +914,7 @@ class Resolver
 	 *
 	 * @param string $name expects method name
 	 * @param array $arguments contains passed arguments
-     * @throws Exception
+     * @throws \Exception
 	 */
 	public function __call($name, $arguments)
 	{
@@ -929,7 +925,7 @@ class Resolver
 	/**
 	 * prevent cloning
      *
-     * @throws Exception
+     * @throws \Exception
 	 */
 	public function __clone()
 	{
