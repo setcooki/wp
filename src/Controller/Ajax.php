@@ -291,6 +291,10 @@ class Ajax extends Controller
     {
         if(defined('DOING_AJAX') && DOING_AJAX)
         {
+            $action = (isset($_REQUEST['action']) && !empty($_REQUEST['action'])) ? trim($_REQUEST['action']) : null;
+            $proxy = (isset($_REQUEST['proxy']) && !empty($_REQUEST['proxy'])) ? trim((string)$_REQUEST['proxy']) : null;
+            $nonce = (isset($_REQUEST['nonce']) && !empty($_REQUEST['nonce'])) ? trim((string)$_REQUEST['nonce']) : null;
+
             // We need to get the right framework instance, provided ajax call has the "_id" parameter as provided by setcooki_ajax_url()
             if(isset($_REQUEST['_id']) && !empty($_REQUEST['_id']))
             {
@@ -300,12 +304,12 @@ class Ajax extends Controller
                 $wp = $this->wp();
                 $self = $this;
             }
-            if(!$wp->stored('ajax.proxy'))
+
+            if(!$this->wp()->stored('ajax.proxy'))
             {
-                $action = (isset($_REQUEST['action']) && !empty($_REQUEST['action'])) ? trim($_REQUEST['action']) : null;
-                if(!empty($action))
+                if(!empty($action) && !empty($proxy))
                 {
-                    $proxy = function() use ($wp)
+                    $closure = function() use ($nonce, $proxy)
                     {
                         try
                         {
@@ -313,32 +317,25 @@ class Ajax extends Controller
                             $self = $_proxy[(new \ReflectionClass(__CLASS__))->getShortName()];
                             if(!empty($_proxy) && sizeof($_proxy) > 0)
                             {
-                                $proxy = (isset($_REQUEST['proxy']) && !empty($_REQUEST['proxy'])) ? trim((string)$_REQUEST['proxy']) : null;
-                                $nonce = (isset($_REQUEST['nonce']) && !empty($_REQUEST['nonce'])) ? trim((string)$_REQUEST['nonce']) : null;
-                                if(!empty($proxy))
+                                if(!empty($nonce) && !Nonce::verify($proxy, (int)setcooki_get_option(self::PROXY_NONCE_LIFETIME, $self, 1800)))
                                 {
-                                    if(!empty($nonce) && !Nonce::verify($proxy, (int)setcooki_get_option(self::PROXY_NONCE_LIFETIME, $this, 1800)))
-                                    {
-                                        throw new Exception(__("Verify nonce failed", SETCOOKI_WP_DOMAIN));
-                                    }
-                                    $proxy = str_replace(['::', ':'], '.', $proxy);
-                                    if(stripos($proxy, '.') !== false)
-                                    {
-                                        $proxy = explode('.', $proxy);
-                                        $action = trim($proxy[1]);
-                                        $controller = trim($proxy[0]);
-                                    }else{
-                                        $action = trim($proxy);
-                                        $controller = current(array_keys($_proxy));
-                                    }
-                                    if(array_key_exists($controller, $_proxy))
-                                    {
-                                        $self->resolve($action, $_proxy[$controller]);
-                                    }else{
-                                        throw new Exception(setcooki_sprintf(__("Ajax controller: %s is not registered", SETCOOKI_WP_DOMAIN), $controller));
-                                    }
+                                    throw new Exception(__("Verify nonce failed", SETCOOKI_WP_DOMAIN));
+                                }
+                                $proxy = str_replace(['::', ':'], '.', $proxy);
+                                if(stripos($proxy, '.') !== false)
+                                {
+                                    $proxy = explode('.', $proxy);
+                                    $action = trim($proxy[1]);
+                                    $controller = trim($proxy[0]);
                                 }else{
-                                    throw new Exception(__("'proxy' parameter not found in request", SETCOOKI_WP_DOMAIN));
+                                    $action = trim($proxy);
+                                    $controller = current(array_keys($_proxy));
+                                }
+                                if(array_key_exists($controller, $_proxy))
+                                {
+                                    $self->resolve($action, $_proxy[$controller]);
+                                }else{
+                                    throw new Exception(setcooki_sprintf(__("Ajax controller: %s is not registered", SETCOOKI_WP_DOMAIN), $controller));
                                 }
                             }else{
                                 throw new Exception(__("No proxy controllers have been registered", SETCOOKI_WP_DOMAIN));
@@ -356,10 +353,8 @@ class Ajax extends Controller
                             exit;
                         }
                     };
-                    add_action(sprintf("wp_ajax_nopriv_%s", $action), $proxy);
-                    add_action(sprintf("wp_ajax_%s", $action), $proxy);
-                }else{
-                    setcooki_die(__("Ajax action not found in request", SETCOOKI_WP_DOMAIN));
+                    add_action(sprintf("wp_ajax_nopriv_%s", $action), $closure);
+                    add_action(sprintf("wp_ajax_%s", $action), $closure);
                 }
             }
             $store = (array)$wp->store('ajax.proxy', null, []);
