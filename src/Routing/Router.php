@@ -125,6 +125,24 @@ class Router
 
 
     /**
+     * set/get router instance. This is the preferred method to use the router
+     *
+     * @since 1.1.5
+     * @param null|mixed $options
+     * @return array|mixed|\Setcooki\Wp\Wp
+     * @throws \Exception
+     */
+	public static function instance($options = null)
+    {
+        if(!setcooki_wp()->stored('router'))
+        {
+            static::create($options);
+        }
+        return setcooki_wp()->store('router');
+    }
+
+
+    /**
      * initialize router
      *
      * @since 1.2
