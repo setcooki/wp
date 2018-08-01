@@ -309,7 +309,7 @@ class Ajax extends Controller
             {
                 if(!empty($action) && !empty($proxy))
                 {
-                    $closure = function() use ($nonce, $proxy)
+                    $closure = function() use ($wp, $nonce, $proxy)
                     {
                         try
                         {
