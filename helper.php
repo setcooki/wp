@@ -1262,3 +1262,39 @@ if(!function_exists('setcooki_dump'))
         }
     }
 }
+
+
+if(!function_exists('setcooki_shortcode_forward'))
+{
+    /**
+     * forward the execution of a shortcode tag to another shortcode tag already registered
+     *
+     * @since 1.2
+     * @param string $shortcode expects the shortcode tag that needs to be forwarded
+     * @param string $target expects the shortcode tag that needs to be executed instead of the forward source
+     * @return null|string
+     * @throws Exception
+     */
+    function setcooki_shortcode_forward($shortcode, $target)
+    {
+        $target = trim($target, ' []');
+
+        return setcooki_shortcode($shortcode, function($atts) use ($target)
+        {
+            if(!empty($atts))
+            {
+                $tmp = [];
+                foreach((array)$atts as $key => $val)
+                {
+                    if(is_numeric($key) || !is_string($val)) continue;
+                    array_push($tmp, sprintf('%s="%s"', $key, htmlspecialchars($val, ENT_QUOTES, 'UTF-8')));
+                }
+                if(!empty($tmp))
+                {
+                    return do_shortcode(sprintf('[%s %s]', $target, implode(' ', $tmp)));
+                }
+            }
+            return do_shortcode(sprintf('[%s]', $target));
+        });
+    }
+}
