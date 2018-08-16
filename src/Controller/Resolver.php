@@ -123,6 +123,7 @@ class Resolver
 	 *
 	 * @param null|mixed $options expects optional options
 	 * @return Resolver
+     * @throws \Exception
 	 */
 	public static function create($options = null)
 	{
@@ -332,6 +333,7 @@ class Resolver
 	 * @param string|Controller|array|callable $controller expects controller class name as string or class instance
 	 * @param null|string $method expects options method/action name
 	 * @return bool
+     * @throws \Exception
 	 */
 	public function registered($controller, $method = null)
 	{
@@ -366,6 +368,27 @@ class Resolver
 			}
 		}
 	}
+
+
+    /**
+     * get all registered controllers or a a controller by key which is the controller class name with or without namespaces
+     *
+     * @since 1.2
+     * @param string $key expects the controller key
+     * @param null|mixed $default expects the the default return value
+     * @return array|mixed
+     * @throws \Exception
+     */
+	public function getController($key = null, $default = null)
+    {
+        if($key === null)
+        {
+            return $this->_controllers;
+        }else{
+            $key = self::normalize($key);
+            return (array_key_exists($key, $this->_controllers)) ? $this->_controllers[$key] : setcooki_default($default);
+        }
+    }
 
 
     /**
@@ -606,7 +629,7 @@ class Resolver
 						return $return;
 					}
 				}else{
-					throw new Exception(__("No action found to handle", SETCOOKI_WP_DOMAIN));
+					throw new Exception(__("No action found to handle", SETCOOKI_WP_DOMAIN), -1);
 				}
 			}
 		}
@@ -650,6 +673,7 @@ class Resolver
      * @param bool $strict
 	 * @since 1.1.3
 	 * @return bool
+     * @throws \Exception
 	 */
 	public function handleable($action, $strict = false)
 	{

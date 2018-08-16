@@ -139,19 +139,43 @@ class Ajax extends Controller
      */
     protected function resolve($action, Ajax $controller = null)
     {
+        $self       = __CLASS__;
         $request    = new Request();
         $params     = new Params(((!empty($_REQUEST)) ? $_REQUEST : array_merge($_POST, $_GET)));
-
-        if(is_null($controller))
-        {
-            $controller = $this;
-        }
 
         $response = $this->createResponseFrom($request);
 
         try
         {
-            $action = $this->forward([$controller, $action], $params, $request, $response);
+            if(!is_null($controller))
+            {
+                $action = $this->forward([$controller, $action], $params, $request, $response);
+            }else{
+                if(stripos($action, '::') === false)
+                {
+                    $resolver = $this->wp()->store('resolver');
+                    if($resolver)
+                    {
+                        foreach((array)$resolver->getController() as $class)
+                        {
+                            if(is_subclass_of($class, $self))
+                            {
+                                try
+                                {
+                                    $action = $resolver->handle(sprintf("%s::%s", get_class($class), $action), $params, $request, $response);
+                                }
+                                catch(Exception $e)
+                                {
+                                    if((int)$e->getCode() !== -1) { throw $e; }
+                                }
+                            }
+                        }
+                    }else{
+                        throw new Exception(setcooki_sprintf(__("Unable to resolve action: %s since no controller specified or no resolver found", SETCOOKI_WP_DOMAIN), $action));
+                    }
+                }
+                $action = $this->forward($action, $params, $request, $response);
+            }
             if($action instanceof Response)
             {
                 $action->send();
@@ -313,32 +337,47 @@ class Ajax extends Controller
                     {
                         try
                         {
-                            $_proxy = (array)$wp->store('ajax.proxy', null, []);
-                            $self = $_proxy[(new \ReflectionClass(__CLASS__))->getShortName()];
-                            if(!empty($_proxy) && sizeof($_proxy) > 0)
+                            if(!empty($nonce))
                             {
-                                if(!empty($nonce) && !Nonce::verify($proxy, (int)setcooki_get_option(self::PROXY_NONCE_LIFETIME, $self, 1800)))
+                                $_proxy = (array)$wp->store('ajax.proxy', null, []);
+                                if(!empty($_proxy) && sizeof($_proxy) > 0)
                                 {
-                                    throw new Exception(__("Verify nonce failed", SETCOOKI_WP_DOMAIN));
-                                }
-                                $proxy = str_replace(['::', ':'], '.', $proxy);
-                                if(stripos($proxy, '.') !== false)
-                                {
-                                    $proxy = explode('.', $proxy);
-                                    $action = trim($proxy[1]);
-                                    $controller = trim($proxy[0]);
+                                    $proxy = str_replace(['.', ':'], '::', trim($proxy, ' ' . NAMESPACE_SEPARATOR));
+                                    $proxy = preg_replace('/\:+/i', '::', $proxy);
+                                    $proxy = preg_replace('/\\' . NAMESPACE_SEPARATOR . '+/i', NAMESPACE_SEPARATOR, $proxy);
+
+                                    if(stripos($proxy, NAMESPACE_SEPARATOR) !== false)
+                                    {
+                                        $proxy = explode('::', $proxy);
+                                        $action = trim($proxy[1]);
+                                        $controller = trim($proxy[0]);
+                                        if(array_key_exists($controller, $_proxy))
+                                        {
+                                            if(!Nonce::verify($action, (int)setcooki_get_option(self::PROXY_NONCE_LIFETIME, $_proxy[$controller], 1800)))
+                                            {
+                                                throw new Exception(__("Verify nonce failed", SETCOOKI_WP_DOMAIN));
+                                            }
+                                            $this->resolve($action, $_proxy[$controller]);
+                                        }else{
+                                            throw new Exception(setcooki_sprintf(__("Ajax controller: %s is not registered or not a subclass of: %s", SETCOOKI_WP_DOMAIN), $controller, __CLASS__));
+                                        }
+                                    }else{
+                                        if(!Nonce::verify($proxy, (int)setcooki_get_option(self::PROXY_NONCE_LIFETIME, ((sizeof($_proxy) === 1) ? current($_proxy) : null), 1800)))
+                                        {
+                                            throw new Exception(__("Verify nonce failed", SETCOOKI_WP_DOMAIN));
+                                        }
+                                        if(stripos($proxy, '::') === false && sizeof($_proxy) === 1)
+                                        {
+                                            $this->resolve($proxy, current($_proxy));
+                                        }else{
+                                            $this->resolve($proxy);
+                                        }
+                                    }
                                 }else{
-                                    $action = trim($proxy);
-                                    $controller = current(array_keys($_proxy));
-                                }
-                                if(array_key_exists($controller, $_proxy))
-                                {
-                                    $self->resolve($action, $_proxy[$controller]);
-                                }else{
-                                    throw new Exception(setcooki_sprintf(__("Ajax controller: %s is not registered", SETCOOKI_WP_DOMAIN), $controller));
+                                    throw new Exception(__("No proxy controllers have been registered", SETCOOKI_WP_DOMAIN));
                                 }
                             }else{
-                                throw new Exception(__("No proxy controllers have been registered", SETCOOKI_WP_DOMAIN));
+                                throw new Exception(__("No nonce parameter or value found in request", SETCOOKI_WP_DOMAIN));
                             }
                         }
                         catch(\Exception $e)
@@ -358,7 +397,7 @@ class Ajax extends Controller
                 }
             }
             $store = (array)$wp->store('ajax.proxy', null, []);
-            $store[sprintf("%s", (new \ReflectionClass($this))->getShortName())] = $self;
+            $store[sprintf("%s", (new \ReflectionClass($self))->getName())] = $self;
             $wp->store('ajax.proxy', $store);
         }else{
             if(!$this->wp()->stored('ajax.proxy.hook'))
