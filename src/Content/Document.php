@@ -58,13 +58,34 @@ abstract class Document
 
 
     /**
+     * add a singular value only if it does not exist
+     *
+     * @param string $key expects the key
+     * @param string|array $value expects the value
+     * @return $this
+     */
+    public function add($key, $value)
+    {
+        if(is_array($value) && empty($value))
+        {
+            $value = null;
+        }
+        if(!array_key_exists($key, $this->document))
+        {
+            $this->document[$key] = $value;
+        }
+        return $this;
+    }
+
+
+    /**
      * add to a document value by key supposing key is an array and value is anything but array
      *
      * @param string $key expects the key
      * @param string $value expects the value
      * @return $this
      */
-    public function add($key, $value)
+    public function addTo($key, $value)
     {
         if(!array_key_exists($key, $this->document))
         {

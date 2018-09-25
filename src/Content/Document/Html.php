@@ -645,7 +645,7 @@ class Html extends Document
      */
     protected function addContent($for, array $with, $alias = null)
     {
-        $this->add($for, $this->tag((($alias) ? $alias : $for), $with));
+        $this->addTo($for, $this->tag((($alias) ? $alias : $for), $with));
         return $this;
     }
 
