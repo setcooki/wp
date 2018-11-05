@@ -127,7 +127,7 @@ class View
      */
     public function assign($key, $value = null)
     {
-        if(is_array($key) && is_null($value))
+        if((is_array($key) || $key instanceof \stdClass) && is_null($value))
         {
             foreach($key as $k => $v)
             {
