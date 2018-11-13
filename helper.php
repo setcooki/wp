@@ -1252,6 +1252,10 @@ if(!function_exists('setcooki_dump'))
                 }
             }
         }
+        if($what instanceof \Throwable)
+        {
+            echo sprintf('Error: %s with code: %d in: %s:%d', $what->getMessage(), $what->getCode(), $what->getFile(), $what->getLine());
+        }
         if(strlen($o = (string)ob_get_contents()) > 0)
         {
             ob_end_clean();
