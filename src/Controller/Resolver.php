@@ -708,13 +708,13 @@ class Resolver
      * @param string $controller expects the controller path/name
      * @param string $action expects the action/method name
      * @param null|mixed $params expects optional parameters
-     * @param Request $request expects the request instance
-     * @param Response $response expects the response instance
+     * @param null|Request $request expects the request instance
+     * @param null|Response $response expects the response instance
      * @return mixed
      * @throws \Exception
      * @throws \Throwable
      */
-	protected function execute($controller, $action, $params = null, $request, $response)
+	protected function execute($controller, $action, $params = null, $request = null, $response = null )
 	{
 		if(array_key_exists($controller, $this->_controllers))
 		{
