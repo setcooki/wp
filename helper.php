@@ -922,7 +922,7 @@ if(!function_exists('setcooki_stringable'))
      */
     function setcooki_stringable($mixed)
     {
-        return (is_array($mixed) || is_object($mixed) || is_callable($mixed) || is_resource($mixed)) ? false : true;
+        return (is_array($mixed) || is_object($mixed) || is_resource($mixed)) ? false : true;
     }
 }
 
