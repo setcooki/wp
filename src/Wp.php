@@ -382,7 +382,7 @@ abstract class Wp
                 $id = trim(strtolower(substr($path[sizeof($path)-2], 0, -1)) . ':' . trim($path[sizeof($path)-1]), ' ' . DIRECTORY_SEPARATOR);
             }
         }
-        if(!empty($id) && array_key_exists($id, self::$_wp))
+        if(!empty($id))
         {
             return ((bool)$hashed) ? md5($id) : $id;
         }else{
