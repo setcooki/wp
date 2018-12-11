@@ -1007,7 +1007,7 @@ if(!function_exists('setcooki_filter'))
      * @see add_filter()
      * @see remove_filter()
      * @see apply_filter()
-     * @param string|\Setcooki\Wp\Filter\Filter $tag expects the filter tag name or instance of \Setcooki\Wp\Filter\Filter
+     * @param string|array|\Setcooki\Wp\Filter\Filter $tag expects the filter tag name or instance of \Setcooki\Wp\Filter\Filter
      * @param callable|\Setcooki\Wp\Filter\Filter $filter expects callable or instance of \Setcooki\Wp\Filter
      * @param null|mixed $params expects optional additional parameters
      * @param int $priority expects the filter priority value
@@ -1076,7 +1076,15 @@ if(!function_exists('setcooki_filter'))
             return call_user_func_array('apply_filter', [$_tag, $params]);
         //add
         }else{
-            return add_filter($_tag, $callback, $priority, $args);
+            if(is_array($_tag))
+            {
+                foreach($_tag as $t)
+                {
+                    add_filter($t, $callback, $priority, $args);
+                }
+            }else{
+                return add_filter($_tag, $callback, $priority, $args);
+            }
         }
     }
 }
@@ -1097,7 +1105,7 @@ if(!function_exists('setcooki_action'))
      * @see add_action()
      * @see remove_action()
      * @see do_action()
-     * @param string|\Setcooki\Wp\Action\Action $tag expects the action tag name or instance of \Setcooki\Wp\Action\Action
+     * @param string|array|\Setcooki\Wp\Action\Action $tag expects the action tag name or instance of \Setcooki\Wp\Action\Action
      * @param callable|\Setcooki\Wp\Action\Action $action expects callable or instance of \Setcooki\Wp\Action\Action
      * @param null|mixed $params expects optional additional parameters
      * @param int $priority expects the action priority value
@@ -1160,7 +1168,15 @@ if(!function_exists('setcooki_action'))
             return call_user_func_array('do_action', [$_tag, $params]);
         //add
         }else{
-            return add_action($_tag, $callback, $priority, $args);
+            if(is_array($_tag))
+            {
+                foreach($_tag as $t)
+                {
+                    add_action($t, $callback, $priority, $args);
+                }
+            }else{
+                return add_action($_tag, $callback, $priority, $args);
+            }
         }
     }
 }
