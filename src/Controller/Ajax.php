@@ -345,7 +345,6 @@ class Ajax extends Controller
                                     $proxy = str_replace(['.', ':'], '::', trim($proxy, ' ' . NAMESPACE_SEPARATOR));
                                     $proxy = preg_replace('/\:+/i', '::', $proxy);
                                     $proxy = preg_replace('/\\' . NAMESPACE_SEPARATOR . '+/i', NAMESPACE_SEPARATOR, $proxy);
-
                                     if(stripos($proxy, NAMESPACE_SEPARATOR) !== false)
                                     {
                                         $proxy = explode('::', $proxy);
@@ -357,6 +356,7 @@ class Ajax extends Controller
                                             {
                                                 throw new Exception(__("Verify nonce failed", SETCOOKI_WP_DOMAIN));
                                             }
+                                            $this->authenticateProxy($_proxy[$controller], $action);
                                             $this->resolve($action, $_proxy[$controller]);
                                         }else{
                                             throw new Exception(setcooki_sprintf(__("Ajax controller: %s is not registered or not a subclass of: %s", SETCOOKI_WP_DOMAIN), $controller, __CLASS__));
@@ -366,6 +366,7 @@ class Ajax extends Controller
                                         {
                                             throw new Exception(__("Verify nonce failed", SETCOOKI_WP_DOMAIN));
                                         }
+                                        $this->authenticateProxy($this, $proxy);
                                         if(stripos($proxy, '::') === false && sizeof($_proxy) === 1)
                                         {
                                             $this->resolve($proxy, current($_proxy));
@@ -404,6 +405,28 @@ class Ajax extends Controller
             {
                 $this->wp()->store('ajax.proxy.hook', trim(setcooki_get_option(self::PROXY_HOOK_NAME, $this, substr(md5(uniqid() . time()), 0, 10)), ' _'));
             }
+        }
+    }
+
+
+    /**
+     * we test if action does exist and if user is logged in in case a controller action is protected
+     *
+     * @param Ajax $controller the ajax controller
+     * @param string $action the controller method
+     */
+    protected function authenticateProxy(Ajax $controller, $action)
+    {
+        try
+        {
+            if(!(new \ReflectionMethod($controller, $action))->isPublic() && !is_user_logged_in())
+            {
+                wp_die(sprintf(__("Ajax action: %s requires logged in user", SETCOOKI_WP_DOMAIN), $action), 400);
+            }
+        }
+        catch(\ReflectionException $e)
+        {
+            wp_die(sprintf(__("Ajax action: %s is not found or valid", SETCOOKI_WP_DOMAIN), $action), 400);
         }
     }
 
