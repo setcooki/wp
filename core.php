@@ -1313,6 +1313,10 @@ if(!function_exists('setcooki_shortcode'))
                     {
                         if($content !== '' && $content !== null)
                         {
+                            if(empty($params))
+                            {
+                                $params = [];
+                            }
                             $params['_content'] = $content;
                         }
                         return \Setcooki\Wp\Content\Component::execute($mixed, $params);
