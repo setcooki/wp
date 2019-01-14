@@ -1311,6 +1311,10 @@ if(!function_exists('setcooki_shortcode'))
                 }else if(is_string($mixed) && \Setcooki\Wp\Content\Component::isRegistered($mixed)){
                     add_shortcode($tag, function($params, $content) use ($mixed)
                     {
+                        if($content !== '' && $content !== null)
+                        {
+                            $params['_content'] = $content;
+                        }
                         return \Setcooki\Wp\Content\Component::execute($mixed, $params);
                     });
                 }else{
