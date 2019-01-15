@@ -1294,6 +1294,14 @@ if(!function_exists('setcooki_shortcode'))
                 {
                     add_shortcode($tag, function($params, $content) use ($wp, $mixed)
                     {
+                        if($content !== '' && $content !== null)
+                        {
+                            if(empty($params))
+                            {
+                                $params = [];
+                            }
+                            $params['_content'] = $content;
+                        }
                         return (string)$wp->store('resolver')->handle($mixed, $params, null, null, null, null, $content);
                     });
                 }else if(is_object($mixed) && method_exists($mixed, 'render') && is_callable([$mixed, 'render'])){
