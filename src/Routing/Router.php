@@ -769,6 +769,26 @@ class Router
 	}
 
 
+    /**
+     * match a route string and redirect to an url
+     *
+     * @param string $route expects a route string
+     * @param string $url expects a url string
+     * @throws \Throwable
+     */
+	public function matchAndRedirect($route, $url)
+    {
+        $route = new Route($route);
+        foreach($route->route as $r)
+        {
+            if($this->match($r))
+            {
+                self::redirect($url);
+            }
+        }
+    }
+
+
 	/**
 	 * match a route value - see concrete implementation by route type
 	 *
