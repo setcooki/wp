@@ -53,6 +53,11 @@ class Ajax extends Controller
      */
     const ECHO_ERROR                = 'ECHO_ERROR';
 
+    /**
+     * array of actions to ignore and not validate
+     */
+    const BYPASS_NONCES             = 'BYPASS_NONCES';
+
 
     /**
      * boolean flag to prevent more then once auto bind call
@@ -83,7 +88,8 @@ class Ajax extends Controller
         self::PROXY_HOOK_NAME       => SETCOOKI_TYPE_STRING,
         self::PROXY_NONCE_LIFETIME  => SETCOOKI_TYPE_INT,
         self::ACTION_PREFIX         => SETCOOKI_TYPE_STRING,
-        self::ECHO_ERROR            => [SETCOOKI_TYPE_BOOL, SETCOOKI_TYPE_CALLABLE]
+        self::ECHO_ERROR            => [SETCOOKI_TYPE_BOOL, SETCOOKI_TYPE_CALLABLE],
+        self::BYPASS_NONCES         => SETCOOKI_TYPE_ARRAY
     ];
 
 
@@ -98,7 +104,8 @@ class Ajax extends Controller
         self::ENABLE_PROXY          => true,
         self::PROXY_NONCE_LIFETIME  => 1800,
         self::ACTION_PREFIX         => '',
-        self::ECHO_ERROR            => true
+        self::ECHO_ERROR            => true,
+        self::BYPASS_NONCES         => []
     ];
 
 
@@ -340,42 +347,47 @@ class Ajax extends Controller
                             if(!empty($nonce))
                             {
                                 $_proxy = (array)$wp->store('ajax.proxy', null, []);
-                                if(!empty($_proxy) && sizeof($_proxy) > 0)
+                                if(stripos($proxy, NAMESPACE_SEPARATOR) !== false)
                                 {
-                                    $proxy = str_replace(['.', ':'], '::', trim($proxy, ' ' . NAMESPACE_SEPARATOR));
-                                    $proxy = preg_replace('/\:+/i', '::', $proxy);
-                                    $proxy = preg_replace('/\\' . NAMESPACE_SEPARATOR . '+/i', NAMESPACE_SEPARATOR, $proxy);
-                                    if(stripos($proxy, NAMESPACE_SEPARATOR) !== false)
+                                    $proxy = explode('::', $proxy);
+                                    $action = trim($proxy[1]);
+                                    $controller = trim($proxy[0]);
+                                    if(array_key_exists($controller, $_proxy))
                                     {
-                                        $proxy = explode('::', $proxy);
-                                        $action = trim($proxy[1]);
-                                        $controller = trim($proxy[0]);
-                                        if(array_key_exists($controller, $_proxy))
+                                        if(in_array($action, (array)setcooki_get_option(self::BYPASS_NONCES, $_proxy[$controller], [])))
                                         {
-                                            if(!Nonce::verify($action, (int)setcooki_get_option(self::PROXY_NONCE_LIFETIME, $_proxy[$controller], 1800)))
-                                            {
-                                                throw new Exception(__("Verify nonce failed", SETCOOKI_WP_DOMAIN));
-                                            }
-                                            $this->authenticateProxy($_proxy[$controller], $action);
-                                            $this->resolve($action, $_proxy[$controller]);
+                                            $ignore = true;
                                         }else{
-                                            throw new Exception(setcooki_sprintf(__("Ajax controller: %s is not registered or not a subclass of: %s", SETCOOKI_WP_DOMAIN), $controller, __CLASS__));
+                                            $ignore = false;
                                         }
-                                    }else{
-                                        if(!Nonce::verify($proxy, (int)setcooki_get_option(self::PROXY_NONCE_LIFETIME, ((sizeof($_proxy) === 1) ? current($_proxy) : null), 1800)))
+                                        if(!$ignore && !Nonce::verify($action, (int)setcooki_get_option(self::PROXY_NONCE_LIFETIME, $_proxy[$controller], 1800)))
                                         {
                                             throw new Exception(__("Verify nonce failed", SETCOOKI_WP_DOMAIN));
                                         }
-                                        $this->authenticateProxy($this, $proxy);
-                                        if(stripos($proxy, '::') === false && sizeof($_proxy) === 1)
-                                        {
-                                            $this->resolve($proxy, current($_proxy));
-                                        }else{
-                                            $this->resolve($proxy);
-                                        }
+                                        $this->authenticateProxy($_proxy[$controller], $action);
+                                        $this->resolve($action, $_proxy[$controller]);
+                                    }else{
+                                        throw new Exception(setcooki_sprintf(__("Ajax controller: %s is not registered or not a subclass of: %s", SETCOOKI_WP_DOMAIN), $controller, __CLASS__));
                                     }
                                 }else{
-                                    throw new Exception(__("No proxy controllers have been registered", SETCOOKI_WP_DOMAIN));
+                                    $_proxy = ((sizeof($_proxy) === 1) ? current($_proxy) : null);
+                                    if(!empty($_proxy) && in_array($proxy, (array)setcooki_get_option(self::BYPASS_NONCES, $_proxy, [])))
+                                    {
+                                        $ignore = true;
+                                    }else{
+                                        $ignore = false;
+                                    }
+                                    if(!$ignore && !Nonce::verify($proxy, ((!empty($_proxy)) ? (int)setcooki_get_option(self::PROXY_NONCE_LIFETIME, $_proxy, 1800) : 1800)))
+                                    {
+                                        throw new Exception(__("Verify nonce failed", SETCOOKI_WP_DOMAIN));
+                                    }
+                                    $this->authenticateProxy($this, $proxy);
+                                    if(stripos($proxy, '::') === false && !empty($_proxy))
+                                    {
+                                        $this->resolve($proxy, $_proxy);
+                                    }else{
+                                        $this->resolve($proxy);
+                                    }
                                 }
                             }else{
                                 throw new Exception(__("No nonce parameter or value found in request", SETCOOKI_WP_DOMAIN));
