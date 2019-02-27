@@ -453,7 +453,7 @@ if(!function_exists('setcooki_base'))
         {
             if(isset($d['file']) && isset($d['function']) && $d['function'] === 'setcooki_boot')
             {
-                return ((bool)$name) ? strtolower(preg_replace('=(.*\/|\\\(themes|plugins)\/|\\\([^\/\\\]{1,}))\/|\\\.*=i', '\\3', $d['file'])) : preg_replace('=(.*\/|\\\(themes|plugins)\/|\\\([^\/\\\]{1,}))\/|\\\.*=i', '\\1', $d['file']);
+                return ((bool)$name) ? strtolower(preg_replace('=(.*(?:\/|\\\)(themes|plugins)(?:\/|\\\)([^\/\\\]{1,}))(?:\/|\\\).*=i', '\\3', $d['file'])) : preg_replace('=(.*(?:\/|\\\)(themes|plugins)(?:\/|\\\)([^\/\\\]{1,}))(?:\/|\\\).*=i', '\\1', $d['file']);
             }
         }
 
@@ -516,7 +516,7 @@ if(!function_exists('setcooki_path'))
             case 'plugin':
                 if(stripos(__FILE__, 'plugins' . DIRECTORY_SEPARATOR) !== false)
                 {
-                    $path = preg_replace('/(.*)\/|\\\(plugins)\/|\\\([^\/\\\]{1,}).*/i', '$1' . DIRECTORY_SEPARATOR . '$2' . DIRECTORY_SEPARATOR . '$3', dirname(__FILE__));
+                    $path = preg_replace('/(.*)(?:\/|\\\)(plugins)(?:\/|\\\)([^\/\\\]{1,}).*/i', '$1' . DIRECTORY_SEPARATOR . '$2' . DIRECTORY_SEPARATOR . '$3', dirname(__FILE__));
                 }else{
                     $debug = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 15);
                     foreach((array)$debug as $bt)
@@ -547,9 +547,9 @@ if(!function_exists('setcooki_path'))
             {
                 if(stripos($path, 'wp-content '. DIRECTORY_SEPARATOR . 'plugins') === false)
                 {
-                    $path = preg_replace('/(.*)\/|\\\(plugins)\/|\\\([^\/\\\]{1,}).*/i', '$1' . DIRECTORY_SEPARATOR . 'wp-content' . DIRECTORY_SEPARATOR . '$2' . DIRECTORY_SEPARATOR . '$3', $path);
+                    $path = preg_replace('/(.*)(?:\/|\\\)(plugins)(?:\/|\\\)([^\/\\\]{1,}).*/i', '$1' . DIRECTORY_SEPARATOR . 'wp-content' . DIRECTORY_SEPARATOR . '$2' . DIRECTORY_SEPARATOR . '$3', $path);
                 }
-                $path =  preg_replace('/(.*)(\/|\\\wp-content.*)/i', '$2', $path);
+                $path =  preg_replace('/(.*)((?:\/|\\\)wp-content.*)/i', '$2', $path);
             }else{
                 $path = preg_replace('=^(?:\/|\\\)?'.addslashes($root).'=i', '', $path);
             }

@@ -239,11 +239,11 @@ abstract class Wp
         {
             if(isset($d['file']) && (stripos($d['file'], DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR) !== false || stripos($d['file'], DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR) !== false))
             {
-                return (!empty($path)) ? rtrim(preg_replace('@(.*)((\/|\\\themes|\/|\\\plugins)\/|\\\([^\/\\\]{1,}))(.*)$@i', '$1$2', $d['file']), ' ' . DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR .  ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim(preg_replace('@(.*)((\/|\\\themes|\/|\\\plugins)\/|\\\([^\/\\\]{1,}))(.*)$@i', '$1$2', $d['file']), ' ' . DIRECTORY_SEPARATOR);
+                return (!empty($path)) ? rtrim(preg_replace('@(.*)(((?:\/|\\\)themes|(?:\/|\\\)plugins)(?:\/|\\\)([^\/\\\]{1,}))(.*)$@i', '$1$2', $d['file']), ' ' . DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR .  ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim(preg_replace('@(.*)(((?:\/|\\\)themes|(?:\/|\\\)plugins)(?:\/|\\\)([^\/\\\]{1,}))(.*)$@i', '$1$2', $d['file']), ' ' . DIRECTORY_SEPARATOR);
             }
         }
         //last pass (is framework installed inside plugin or theme)
-        if(preg_match('=^(.*(?:plugins|themes)\/|\\\[^\/\\\]{1,})\/|\\\=i', __FILE__, $m))
+        if(preg_match('=^(.*(?:plugins|themes)(?:\/|\\\)[^\/\\\]{1,})(?:\/|\\\)=i', __FILE__, $m))
         {
             return (!empty($path)) ? rtrim(trim($m[1]), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim(trim($m[1]), DIRECTORY_SEPARATOR);
         }
