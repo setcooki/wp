@@ -237,13 +237,13 @@ abstract class Wp
         //third pass (fallback to file path)
         foreach((array)$debug as $d)
         {
-            if(isset($d['file']) && (stripos($d['file'], '/themes/') !== false || stripos($d['file'], '/plugins/') !== false))
+            if(isset($d['file']) && (stripos($d['file'], DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR) !== false || stripos($d['file'], DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR) !== false))
             {
-                return (!empty($path)) ? rtrim(preg_replace('@(.*)((\/themes|\/plugins)\/([^\/]{1,}))(.*)$@i', '$1$2', $d['file']), ' ' . DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR .  ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim(preg_replace('@(.*)((\/themes|\/plugins)\/([^\/]{1,}))(.*)$@i', '$1$2', $d['file']), ' ' . DIRECTORY_SEPARATOR);
+                return (!empty($path)) ? rtrim(preg_replace('@(.*)((\/|\\\themes|\/|\\\plugins)\/|\\\([^\/\\\]{1,}))(.*)$@i', '$1$2', $d['file']), ' ' . DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR .  ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim(preg_replace('@(.*)((\/|\\\themes|\/|\\\plugins)\/|\\\([^\/\\\]{1,}))(.*)$@i', '$1$2', $d['file']), ' ' . DIRECTORY_SEPARATOR);
             }
         }
         //last pass (is framework installed inside plugin or theme)
-        if(preg_match('=^(.*(?:plugins|themes)\/[^\/]{1,})\/=i', __FILE__, $m))
+        if(preg_match('=^(.*(?:plugins|themes)\/|\\\[^\/\\\]{1,})\/|\\\=i', __FILE__, $m))
         {
             return (!empty($path)) ? rtrim(trim($m[1]), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($path, ' ' . DIRECTORY_SEPARATOR) : rtrim(trim($m[1]), DIRECTORY_SEPARATOR);
         }
@@ -344,7 +344,14 @@ abstract class Wp
                 $path = array_values(array_filter(explode(DIRECTORY_SEPARATOR, $path)));
                 if(sizeof($path) >= 2)
                 {
-                    $id = trim(strtolower(substr($path[sizeof($path)-2], 0, -1)) . ':' . trim($path[sizeof($path)-1]), ' ' . DIRECTORY_SEPARATOR);
+                    $index = sizeof($path) - 2;
+                    if(in_array('themes', $path))
+                    {
+                        $index = array_search('themes', $path);
+                    }else if(in_array('plugins', $path)){
+                        $index = array_search('plugins', $path);
+                    }
+                    $id = trim(strtolower(substr($path[$index], 0, -1)) . ':' . trim($path[$index + 1]), ' ' . DIRECTORY_SEPARATOR);
                 }
             }
         }
@@ -413,7 +420,7 @@ abstract class Wp
         {
             $file = trim(str_ireplace(__NAMESPACE__, '', $class), ' \\');
             $file = str_replace('\\', DIRECTORY_SEPARATOR, $file);
-            require_once $src . $file . $ext;
+            require_once setcooki_pathify($src . $file . $ext);
         //others dirs/ns set with global options
         }else if(setcooki_conf(SETCOOKI_WP_AUTOLOAD_DIRS)){
             foreach((array)setcooki_conf(SETCOOKI_WP_AUTOLOAD_DIRS) as $dir)
@@ -428,6 +435,7 @@ abstract class Wp
                 }
                 $class = str_replace('\\', DIRECTORY_SEPARATOR, $class);
                 $file = DIRECTORY_SEPARATOR . trim((string)$dir, ' \\/') . DIRECTORY_SEPARATOR . $class . $ext;
+                $file = setcooki_pathify($file);
                 if(file_exists($file))
                 {
                     require_once $file;

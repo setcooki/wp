@@ -319,7 +319,7 @@ class View
             }else{
                 extract($vars);
                 ob_start();
-                require $view;
+                require setcooki_pathify($view);
                 $view = ob_get_clean();
                 if($cache >= 0)
                 {
@@ -327,7 +327,7 @@ class View
                 }
             }
         }else{
-            throw new Exception(__("Unable to render view since view data type or value not supported", SETCOOKI_WP_DOMAIN));
+            throw new Exception(sprintf(__("Unable to render view: %s since view data type or value not supported", SETCOOKI_WP_DOMAIN), $view));
         }
 
         if(!is_null($callback))
@@ -353,7 +353,7 @@ class View
         {
             extract($vars);
             ob_start();
-            require $file;
+            require setcooki_pathify($file);
             return ob_get_clean();
         }else{
             throw new Exception(setcooki_sprintf(__("Unable to include file: %s", SETCOOKI_WP_DOMAIN), $file));
@@ -369,6 +369,10 @@ class View
      */
     protected function lookup($file)
     {
+        if(DIRECTORY_SEPARATOR === '\\')
+        {
+            $file = str_replace('/', DIRECTORY_SEPARATOR, $file);
+        }
         $file = DIRECTORY_SEPARATOR . ltrim(trim($file), DIRECTORY_SEPARATOR);
         if(is_file($file) && is_readable($file))
         {

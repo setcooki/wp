@@ -189,15 +189,15 @@ if(function_exists('get_magic_quotes_gpc') && call_user_func('get_magic_quotes_g
 /**
  * load core files
  */
-require_once dirname(__FILE__) . '/wp.php';
-require_once dirname(__FILE__) . '/helper.php';
+require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'wp.php';
+require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'helper.php';
 if(!class_exists('Setcooki\\Wp\\Wp'))
 {
-    require_once dirname(__FILE__) . '/src/Wp.php';
+    require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'Wp.php';
 }
 if(!class_exists('Setcooki\\Wp\\Config'))
 {
-    require_once dirname(__FILE__) . '/src/Config.php';
+    require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'Config.php';
 }
 
 /**
@@ -453,14 +453,14 @@ if(!function_exists('setcooki_base'))
         {
             if(isset($d['file']) && isset($d['function']) && $d['function'] === 'setcooki_boot')
             {
-                return ((bool)$name) ? strtolower(preg_replace('=(.*\/(themes|plugins)\/([^\/]{1,}))\/.*=i', '\\3', $d['file'])) : preg_replace('=(.*\/(themes|plugins)\/([^\/]{1,}))\/.*=i', '\\1', $d['file']);
+                return ((bool)$name) ? strtolower(preg_replace('=(.*\/|\\\(themes|plugins)\/|\\\([^\/\\\]{1,}))\/|\\\.*=i', '\\3', $d['file'])) : preg_replace('=(.*\/|\\\(themes|plugins)\/|\\\([^\/\\\]{1,}))\/|\\\.*=i', '\\1', $d['file']);
             }
         }
 
         //4) fourth pass check file path for theme/plugin folder
         foreach((array)$stack as $d)
         {
-            if(isset($d['file']) && (bool)preg_match('=(.*\/(themes|plugins)\/([^\/]{1,}))\/.*=i', $d['file'], $m))
+            if(isset($d['file']) && (bool)preg_match('=(.*(?:\/|\\\)(themes|plugins)(?:\/|\\\)([^\/\\\]{1,}))(?:\/|\\\).*=i', $d['file'], $m))
             {
                 return ((bool)$name) ? strtolower(trim($m[3])) : $m[1];
             }
@@ -495,11 +495,11 @@ if(!function_exists('setcooki_path'))
 
         if(defined('ABSPATH'))
         {
-            $root = rtrim(ABSPATH, '/');
+            $root = rtrim(ABSPATH, '/\\');
         }else if(isset($_SERVER['DOCUMENT_ROOT']) && !empty($_SERVER['DOCUMENT_ROOT'])){
-            $root = rtrim($_SERVER['DOCUMENT_ROOT'], '/');
+            $root = rtrim($_SERVER['DOCUMENT_ROOT'], '/\\');
         }else{
-            $root = realpath(rtrim(__DIR__, '/') . '/../../../../../../../');
+            $root = realpath(rtrim(__DIR__, '/\\') . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' .DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR);
         }
 
         switch($type)
@@ -511,17 +511,17 @@ if(!function_exists('setcooki_path'))
                 $path = get_stylesheet_directory();
                 break;
             case 'themes':
-                $path = (function_exists('get_theme_root')) ? get_theme_root() : ABSPATH . 'wp-content/themes';
+                $path = (function_exists('get_theme_root')) ? get_theme_root() : ABSPATH . 'wp-content' . DIRECTORY_SEPARATOR . 'themes';
                 break;
             case 'plugin':
                 if(stripos(__FILE__, 'plugins' . DIRECTORY_SEPARATOR) !== false)
                 {
-                    $path = preg_replace('/(.*)\/(plugins)\/([^\/]{1,}).*/i', '$1/$2/$3', dirname(__FILE__));
+                    $path = preg_replace('/(.*)\/|\\\(plugins)\/|\\\([^\/\\\]{1,}).*/i', '$1' . DIRECTORY_SEPARATOR . '$2' . DIRECTORY_SEPARATOR . '$3', dirname(__FILE__));
                 }else{
                     $debug = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 15);
                     foreach((array)$debug as $bt)
                     {
-                        if(isset($bt['file']) && stripos($bt['file'], 'plugins' . DIRECTORY_SEPARATOR) !== false && preg_match('=^(.*(?:plugins)\/[^\/]{1,})\/=i', $bt['file'], $m))
+                        if(isset($bt['file']) && stripos($bt['file'], 'plugins' . DIRECTORY_SEPARATOR) !== false && preg_match('=^(.*(?:plugins)(?:\/|\\\)[^\/]{1,})(?:\/|\\\)=i', $bt['file'], $m))
                         {
                             $path = trim($m[1]);
                             break;
@@ -535,7 +535,7 @@ if(!function_exists('setcooki_path'))
                 }
                 break;
             case 'plugins':
-                $path = (defined('WP_PLUGIN_DIR')) ? WP_PLUGIN_DIR : ABSPATH . 'wp-content/plugins';
+                $path = (defined('WP_PLUGIN_DIR')) ? WP_PLUGIN_DIR : ABSPATH . 'wp-content' . DIRECTORY_SEPARATOR . 'plugins';
                 break;
             default;
                 return '';
@@ -547,11 +547,11 @@ if(!function_exists('setcooki_path'))
             {
                 if(stripos($path, 'wp-content '. DIRECTORY_SEPARATOR . 'plugins') === false)
                 {
-                    $path = preg_replace('/(.*)\/(plugins)\/([^\/]{1,}).*/i', '$1/wp-content/$2/$3', $path);
+                    $path = preg_replace('/(.*)\/|\\\(plugins)\/|\\\([^\/\\\]{1,}).*/i', '$1' . DIRECTORY_SEPARATOR . 'wp-content' . DIRECTORY_SEPARATOR . '$2' . DIRECTORY_SEPARATOR . '$3', $path);
                 }
-                $path =  preg_replace('/(.*)(\/wp-content.*)/i', '$2', $path);
+                $path =  preg_replace('/(.*)(\/|\\\wp-content.*)/i', '$2', $path);
             }else{
-                $path = preg_replace('=^\/?'.addslashes($root).'=i', '', $path);
+                $path = preg_replace('=^(?:\/|\\\)?'.addslashes($root).'=i', '', $path);
             }
             if((bool)$url)
             {
@@ -1294,14 +1294,6 @@ if(!function_exists('setcooki_shortcode'))
                 {
                     add_shortcode($tag, function($params, $content) use ($wp, $mixed)
                     {
-                        if($content !== '' && $content !== null)
-                        {
-                            if(empty($params))
-                            {
-                                $params = [];
-                            }
-                            $params['_content'] = $content;
-                        }
                         return (string)$wp->store('resolver')->handle($mixed, $params, null, null, null, null, $content);
                     });
                 }else if(is_object($mixed) && method_exists($mixed, 'render') && is_callable([$mixed, 'render'])){

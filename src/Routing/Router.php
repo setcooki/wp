@@ -152,7 +152,7 @@ class Router
         if(setcooki_is_option(self::ROUTE_CONFIG, $this))
         {
             $config = setcooki_get_option(self::ROUTE_CONFIG, $this);
-            if(!is_array($config) && is_file($config))
+            if(!is_array($config) && is_file($config = setcooki_pathify($config)))
             {
                 $config = require $config;
                 if($config === 1)
@@ -323,7 +323,7 @@ class Router
 	{
 		if(is_file($file))
 		{
-			$file = require $file;
+			$file = require setcooki_pathify($file);
             if($file === 1)
             {
                 $file = array_slice(get_defined_vars(), 1);

@@ -226,7 +226,7 @@ class Template
             }else{
                 ob_start();
                 @extract((array)$this->get(), EXTR_SKIP);
-                require $template;
+                require setcooki_pathify($template);
                 $buffer = ob_get_clean();
                 $buffer = preg_replace_callback('/\{(\()([^)}]{2,})\)\}/i', [$this, 'parse'], $buffer);
                 $buffer = preg_replace_callback('/\{(\$|\%)([^\}]{2,})\}/i', [$this, 'parse'], $buffer);

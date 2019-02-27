@@ -1295,3 +1295,22 @@ if(!function_exists('setcooki_shortcode_forward'))
         });
     }
 }
+
+if(!function_exists('setcooki_pathify'))
+{
+    /**
+     * normalize a path
+     *
+     * @since 1.4
+     * @param string $path expects the path to normalize
+     * @return string
+     */
+    function setcooki_pathify($path)
+    {
+        if(strtolower(substr(PHP_OS, 0, 3)) === 'win')
+        {
+            $path = trim(str_replace('/', '\\', $path), ' \\');
+        }
+        return $path;
+    }
+}

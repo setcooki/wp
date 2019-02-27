@@ -157,6 +157,7 @@ class Config
     {
         if(is_string($file) && preg_match('/\.phtml|\.php([0-9]{1,})?|\.inc$/i', $file))
         {
+            $file = setcooki_pathify($file);
             if(is_file($file))
             {
                 $file = require $file;
