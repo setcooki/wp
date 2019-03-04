@@ -172,7 +172,7 @@ abstract class Wp
                 {
                     if(preg_match('=(.*)functions.php$=i', $bt['file'], $m))
                     {
-                        $base = DIRECTORY_SEPARATOR . trim($m[1], ' ' . DIRECTORY_SEPARATOR);
+                        $base = ((strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' || preg_match('=^[a-z]{1,}\:\\\=i', $m[1])) ? $m[1] : DIRECTORY_SEPARATOR . trim($m[1], ' \//'));
                         break;
                     }
                 }

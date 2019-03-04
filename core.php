@@ -540,7 +540,12 @@ if(!function_exists('setcooki_path'))
             default;
                 return '';
         }
-        $path = DIRECTORY_SEPARATOR . trim($path, ' ' . DIRECTORY_SEPARATOR);
+        if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' || preg_match('=^[a-z]{1,}\:\\\=i', $path))
+        {
+            //do nothing since its windows
+        }else{
+            $path = DIRECTORY_SEPARATOR . trim($path, ' \\/');
+        }
         if((bool)$relative)
         {
             if($type === 'plugin')
