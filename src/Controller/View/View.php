@@ -236,7 +236,11 @@ class View
             throw new Exception(setcooki_sprintf(__("Unable to __get: %s from view", SETCOOKI_WP_DOMAIN), $name));
         }
         $var = $this->_vars[$name];
-        return ($var instanceof \Closure) ? $var($this) : $var;
+        if($var instanceof \Closure)
+        {
+            $var = $var($this);
+        }
+        return $var;
     }
 
 
