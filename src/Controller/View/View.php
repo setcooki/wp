@@ -288,6 +288,7 @@ class View
     {
         $vars = $this->vars();
         $view = $this->view();
+        $_view = $view;
 
         if(!is_null($cache) && ctype_digit($cache) && $this->cache())
         {
@@ -331,7 +332,7 @@ class View
                 }
             }
         }else{
-            throw new Exception(sprintf(__("Unable to render view: %s since view data type or value not supported", SETCOOKI_WP_DOMAIN), $view));
+            throw new Exception(sprintf(__("Unable to render view: %s since view not found or not supported", SETCOOKI_WP_DOMAIN), $_view));
         }
 
         if(!is_null($callback))
@@ -382,10 +383,15 @@ class View
         {
             return $file;
         }
-        $file = Wp::b($file);
-        if(is_file($file) && is_readable($file))
+        $dir = rtrim(get_stylesheet_directory() . ' /\\');
+        if(is_file($dir . $file) && is_readable($dir . $file))
         {
-            return $file;
+            return $dir . $file;
+        }
+        $dir = rtrim(get_template_directory() . ' /\\');
+        if(is_file($dir . $file) && is_readable($dir . $file))
+        {
+            return $dir . $file;
         }
         return false;
     }
