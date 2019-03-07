@@ -383,12 +383,12 @@ class View
         {
             return $file;
         }
-        $dir = rtrim(get_stylesheet_directory() . ' /\\');
+        $dir = rtrim(get_stylesheet_directory(), ' /\\');
         if(is_file($dir . $file) && is_readable($dir . $file))
         {
             return $dir . $file;
         }
-        $dir = rtrim(get_template_directory() . ' /\\');
+        $dir = rtrim(get_template_directory(), ' /\\');
         if(is_file($dir . $file) && is_readable($dir . $file))
         {
             return $dir . $file;
