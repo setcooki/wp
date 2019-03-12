@@ -121,8 +121,11 @@ class Ajax extends Controller
    	{
    	    parent::__construct($options);
 
-   	    static::$_instances[setcooki_id(true)] = $this;
-
+   	    if(!array_key_exists(setcooki_id(true), static::$_instances))
+        {
+            static::$_instances[setcooki_id(true)] = [];
+        }
+        static::$_instances[setcooki_id(true)][get_class($this)] = $this;
    	    if(setcooki_get_option(self::AUTO_BIND, $this))
         {
             $this->bindActions();
@@ -132,78 +135,6 @@ class Ajax extends Controller
             $this->bindProxy();
         }
    	}
-
-
-    /**
-     * TODO: implement check that action = method exists and is only public or protected
-     *
-     * resolve ajax action which represents public or protected ajax controller method.
-     *
-     * @since 1.2
-     * @param string $action expects the action name
-     * @param Ajax|null $controller expects optional controller if not $this
-     * @throws \Exception
-     */
-    protected function resolve($action, Ajax $controller = null)
-    {
-        $self       = __CLASS__;
-        $request    = new Request();
-        $params     = new Params(((!empty($_REQUEST)) ? $_REQUEST : array_merge($_POST, $_GET)));
-
-        $response = $this->createResponseFrom($request);
-
-        try
-        {
-            if(!is_null($controller))
-            {
-                $action = $this->forward([$controller, $action], $params, $request, $response);
-            }else{
-                if(stripos($action, '::') === false)
-                {
-                    $resolver = $this->wp()->store('resolver');
-                    if($resolver)
-                    {
-                        foreach((array)$resolver->getController() as $class)
-                        {
-                            if(is_subclass_of($class, $self))
-                            {
-                                try
-                                {
-                                    $action = $resolver->handle(sprintf("%s::%s", get_class($class), $action), $params, $request, $response);
-                                }
-                                catch(Exception $e)
-                                {
-                                    if((int)$e->getCode() !== -1) { throw $e; }
-                                }
-                            }
-                        }
-                    }else{
-                        throw new Exception(setcooki_sprintf(__("Unable to resolve action: %s since no controller specified or no resolver found", SETCOOKI_WP_DOMAIN), $action));
-                    }
-                }
-                $action = $this->forward($action, $params, $request, $response);
-            }
-            if($action instanceof Response)
-            {
-                $action->send();
-            }else{
-                $response->send($action);
-            }
-        }
-        catch(\Exception $e)
-        {
-            $error = setcooki_get_option(self::ECHO_ERROR, $this);
-            if($error === true)
-            {
-                echo $response->handleError($e);
-            }else if(is_callable($error)){
-                echo call_user_func_array($error, [$e]);
-            }else{
-                setcooki_die($e->getMessage(), false);
-            }
-        }
-        exit;
-    }
 
 
     /**
@@ -320,114 +251,204 @@ class Ajax extends Controller
      */
     protected function bindProxy()
     {
-        if(defined('DOING_AJAX') && DOING_AJAX)
+        if(!$this->wp()->stored('ajax.proxy.hook'))
         {
-            $action = (isset($_REQUEST['action']) && !empty($_REQUEST['action'])) ? trim($_REQUEST['action']) : null;
-            $proxy = (isset($_REQUEST['proxy']) && !empty($_REQUEST['proxy'])) ? trim((string)$_REQUEST['proxy']) : null;
-            $nonce = (isset($_REQUEST['nonce']) && !empty($_REQUEST['nonce'])) ? trim((string)$_REQUEST['nonce']) : null;
+            $this->wp()->store('ajax.proxy.hook', trim(setcooki_get_option(self::PROXY_HOOK_NAME, $this, 'proxy')));
+        }
 
-            // We need to get the right framework instance, provided ajax call has the "_id" parameter as provided by setcooki_ajax_url()
-            if(isset($_REQUEST['_id']) && !empty($_REQUEST['_id']))
+        $closure = function()
+        {
+            if(defined('DOING_AJAX') && DOING_AJAX)
             {
-                $wp = $this->wp($_REQUEST['_id']);
-                $self = static::$_instances[$_REQUEST['_id']];
-            }else{
-                $wp = $this->wp();
-                $self = $this;
-            }
+                $action = (isset($_REQUEST['action']) && !empty($_REQUEST['action'])) ? trim($_REQUEST['action']) : null;
+                $proxy = (isset($_REQUEST['proxy']) && !empty($_REQUEST['proxy'])) ? trim((string)$_REQUEST['proxy']) : null;
 
-            if(!$this->wp()->stored('ajax.proxy'))
-            {
-                if(!empty($action) && !empty($proxy))
+                // We need to get the right framework instance, provided ajax call has the "_id" parameter as provided by setcooki_ajax_url()
+                if(isset($_REQUEST['_id']) && !empty($_REQUEST['_id']) && array_key_exists($_REQUEST['_id'], static::$_instances))
                 {
-                    $closure = function() use ($wp, $nonce, $proxy)
+                    $controllers = static::$_instances[$_REQUEST['_id']];
+                }else{
+                    $controllers = [get_class($this) => $this];
+                }
+
+                try
+                {
+                    if(stripos($proxy, NAMESPACE_SEPARATOR) !== false)
                     {
-                        try
+                        $proxy = explode('::', str_replace('.', '::', trim($proxy)));
+                        $controller = trim($proxy[0], ' ' . NAMESPACE_SEPARATOR);
+                        $action = trim($proxy[1]);
+                        if(array_key_exists($controller, $controllers))
                         {
-                            if(!empty($nonce))
-                            {
-                                $_proxy = (array)$wp->store('ajax.proxy', null, []);
-                                if(stripos($proxy, NAMESPACE_SEPARATOR) !== false)
-                                {
-                                    $proxy = explode('::', $proxy);
-                                    $action = trim($proxy[1]);
-                                    $controller = trim($proxy[0]);
-                                    if(array_key_exists($controller, $_proxy))
-                                    {
-                                        if(in_array($action, (array)setcooki_get_option(self::BYPASS_NONCES, $_proxy[$controller], [])))
-                                        {
-                                            $ignore = true;
-                                        }else{
-                                            $ignore = false;
-                                        }
-                                        if(!$ignore && !Nonce::verify($action, (int)setcooki_get_option(self::PROXY_NONCE_LIFETIME, $_proxy[$controller], 1800)))
-                                        {
-                                            throw new Exception(__("Verify nonce failed", SETCOOKI_WP_DOMAIN));
-                                        }
-                                        $this->authenticateProxy($_proxy[$controller], $action);
-                                        $this->resolve($action, $_proxy[$controller]);
-                                    }else{
-                                        throw new Exception(setcooki_sprintf(__("Ajax controller: %s is not registered or not a subclass of: %s", SETCOOKI_WP_DOMAIN), $controller, __CLASS__));
-                                    }
-                                }else{
-                                    $_proxy = ((sizeof($_proxy) === 1) ? current($_proxy) : null);
-                                    if(!empty($_proxy) && in_array($proxy, (array)setcooki_get_option(self::BYPASS_NONCES, $_proxy, [])))
-                                    {
-                                        $ignore = true;
-                                    }else{
-                                        $ignore = false;
-                                    }
-                                    if(!$ignore && !Nonce::verify($proxy, ((!empty($_proxy)) ? (int)setcooki_get_option(self::PROXY_NONCE_LIFETIME, $_proxy, 1800) : 1800)))
-                                    {
-                                        throw new Exception(__("Verify nonce failed", SETCOOKI_WP_DOMAIN));
-                                    }
-                                    $this->authenticateProxy($this, $proxy);
-                                    if(stripos($proxy, '::') === false && !empty($_proxy))
-                                    {
-                                        $this->resolve($proxy, $_proxy);
-                                    }else{
-                                        $this->resolve($proxy);
-                                    }
-                                }
-                            }else{
-                                throw new Exception(__("No nonce parameter or value found in request", SETCOOKI_WP_DOMAIN));
-                            }
+                            $controllers = [$controllers[$controller]];
                         }
-                        catch(\Exception $e)
-                        {
-                            $error = setcooki_get_option(self::ECHO_ERROR, $this);
-                            if($error === true)
-                            {
-                                echo $this->createResponseFrom(new Request())->handleError($e);
-                            }else if(is_callable($error)){
-                                echo call_user_func_array($error, [$e]);
-                            }
-                            exit;
-                        }
-                    };
-                    add_action(sprintf("wp_ajax_nopriv_%s", $action), $closure);
-                    add_action(sprintf("wp_ajax_%s", $action), $closure);
+                    }else{
+                        $action = $proxy;
+                    }
+                    $this->resolveProxy($action, $controllers);
+                }
+                catch(\Exception $e)
+                {
+                    $error = setcooki_get_option(self::ECHO_ERROR, $this);
+                    if($error === true)
+                    {
+                        echo $this->createResponseFrom(new Request())->handleError($e);
+                    }else if(is_callable($error)){
+                        echo call_user_func_array($error, [$e]);
+                    }
+                    exit;
                 }
             }
-            $store = (array)$wp->store('ajax.proxy', null, []);
-            $store[sprintf("%s", (new \ReflectionClass($self))->getName())] = $self;
-            $wp->store('ajax.proxy', $store);
-        }else{
-            if(!$this->wp()->stored('ajax.proxy.hook'))
+        };
+
+        $hook = $this->wp()->store('ajax.proxy.hook');
+        $action = sprintf("wp_ajax_%s", $hook);
+        if(!has_action($action))
+        {
+            add_action($action, $closure);
+        }
+        $action = sprintf("wp_ajax_nopriv_%s", $hook);
+        if(!has_action($action))
+        {
+            add_action($action, $closure);
+        }
+    }
+
+
+    /**
+     * resolve proxy action with ajax controllers registered. if more then one ajax controller is registered and the ajax
+     * request does not target a specific controller (via class::name syntax) we iterate through all controllers and try
+     * to find the first matching controller
+     *
+     * @since 1.3
+     * @param string $action expects the action name
+     * @param array|Ajax $controller expects a single controller instance of array of controllers
+     * @throws Exception
+     */
+    protected function resolveProxy($action, $controller)
+    {
+        if($controller instanceof Ajax || is_array($controller) && sizeof($controller) === 1)
+        {
+            if(is_array($controller))
             {
-                $this->wp()->store('ajax.proxy.hook', trim(setcooki_get_option(self::PROXY_HOOK_NAME, $this, substr(md5(uniqid() . time()), 0, 10)), ' _'));
+                $controller = reset($controller);
+            }
+            $this->verify($action, $controller);
+            $this->authenticate($action, $controller);
+            $this->resolve($action, $controller);
+        }else if(is_array($controller) && sizeof($controller) > 1){
+            foreach($controller as $name => $class)
+            {
+                if(method_exists($class, $action))
+                {
+                    $this->verify($action, $class);
+                    $this->authenticate($action, $class);
+                    $this->resolve($action, $class);
+                }
+            }
+            throw new Exception(setcooki_sprintf(__("Unable to resolve action: %s since no controller found for this action", SETCOOKI_WP_DOMAIN), $action));
+        }
+    }
+
+
+    /**
+     * resolve ajax action which represents public or protected ajax controller method.
+     *
+     * @since 1.2
+     * @param string $action expects the action name
+     * @param Ajax|null $controller expects optional controller if not $this
+     * @throws \Exception
+     */
+    protected function resolve($action, Ajax $controller = null)
+    {
+        $self       = __CLASS__;
+        $request    = new Request();
+        $params     = new Params(((!empty($_REQUEST)) ? $_REQUEST : array_merge($_POST, $_GET)));
+
+        $response = $this->createResponseFrom($request);
+
+        try
+        {
+            if(!is_null($controller))
+            {
+                $action = $this->forward([$controller, $action], $params, $request, $response);
+            }else{
+                if(stripos($action, '::') === false)
+                {
+                    $resolver = $this->wp()->store('resolver');
+                    if($resolver)
+                    {
+                        foreach((array)$resolver->getController() as $class)
+                        {
+                            if(is_subclass_of($class, $self))
+                            {
+                                try
+                                {
+                                    $action = $resolver->handle(sprintf("%s::%s", get_class($class), $action), $params, $request, $response);
+                                }
+                                catch(Exception $e)
+                                {
+                                    if((int)$e->getCode() !== -1) { throw $e; }
+                                }
+                            }
+                        }
+                    }else{
+                        throw new Exception(setcooki_sprintf(__("Unable to resolve action: %s since no controller specified or no resolver found", SETCOOKI_WP_DOMAIN), $action));
+                    }
+                }
+                $action = $this->forward($action, $params, $request, $response);
+            }
+            if($action instanceof Response)
+            {
+                $action->send();
+            }else{
+                $response->send($action);
             }
         }
+        catch(\Exception $e)
+        {
+            $error = setcooki_get_option(self::ECHO_ERROR, $this);
+            if($error === true)
+            {
+                echo $response->handleError($e);
+            }else if(is_callable($error)){
+                echo call_user_func_array($error, [$e]);
+            }else{
+                setcooki_die($e->getMessage(), false);
+            }
+        }
+        exit;
+    }
+
+
+    /**
+     * Verify nonce if action is not in the bypass nonce class options
+     *
+     * @since 1.3
+     * @param string $action the controller method
+     * @param Ajax $controller the ajax controller
+     * @return bool
+     */
+    protected function verify($action, Ajax $controller)
+    {
+        if(!in_array($action, (array)setcooki_get_option(self::BYPASS_NONCES, $controller, [])))
+        {
+            if(!Nonce::verify($action, (int)setcooki_get_option(self::PROXY_NONCE_LIFETIME, $controller, 1800)))
+            {
+                throw new Exception(__("Verify nonce failed", SETCOOKI_WP_DOMAIN));
+            }
+        }
+        return true;
     }
 
 
     /**
      * we test if action does exist and if user is logged in in case a controller action is protected
      *
-     * @param Ajax $controller the ajax controller
      * @param string $action the controller method
+     * @param Ajax $controller the ajax controller
      */
-    protected function authenticateProxy(Ajax $controller, $action)
+    protected function authenticate($action, Ajax $controller)
     {
         try
         {
