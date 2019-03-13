@@ -173,9 +173,8 @@ class Router
                 if(isset($wp_query) && $wp_query->is_404 && $this->fallback)
                 {
                     echo static::fail($this->fallback);
-                    exit;
                 }
-            });
+            }, 1);
         }
     }
 
