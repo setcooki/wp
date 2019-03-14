@@ -769,21 +769,32 @@ class Router
 
 
     /**
-     * match a route string and redirect to an url
+     * match a route string and redirect to an url. if the first argument is an array and url is NULL expects an
+     * array of route => url key => value pairs
      *
      * @param string $route expects a route string
-     * @param string $url expects a url string
+     * @param string|null optional $url expects a url string
      * @throws \Throwable
+     * @return Router
      */
-	public function matchAndRedirect($route, $url)
+	public function matchAndRedirect($route, $url = null)
     {
-        $route = new Route($route);
-        foreach($route->route as $r)
+        if(is_array($route) && $url === null)
         {
-            if($this->match($r))
+            foreach($route as $key => $val)
             {
-                self::redirect($url);
+                $this->matchAndRedirect($key, $val);
             }
+        }else{
+            $route = new Route($route);
+            foreach($route->route as $r)
+            {
+                if($this->match($r))
+                {
+                    self::redirect($url);
+                }
+            }
+            return $this;
         }
     }
 
