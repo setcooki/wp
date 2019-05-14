@@ -482,13 +482,21 @@ class Logger implements Logable
 
 
     /**
-     * flush log messages to screen
+     * flush log messages to screen if can display errors
      *
      * @since 1.1.3
-     * @return void
+     * @return bool
      */
     public function flush()
     {
+        if(!(bool)ini_get('display_errors'))
+        {
+            return false;
+        }
+        if(defined('WP_DEBUG_DISPLAY') && !(bool)WP_DEBUG_DISPLAY)
+        {
+            return false;
+        }
         if(!empty($this->_logs))
         {
             if(strtolower(php_sapi_name()) === 'cli')
@@ -498,6 +506,7 @@ class Logger implements Logable
                 echo '<pre>' . implode('', array_values($this->_logs)) . '</pre>';
             }
         }
+        return true;
     }
 
 
