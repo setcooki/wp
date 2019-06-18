@@ -1037,33 +1037,35 @@ if(!function_exists('setcooki_filter'))
 
         if(!in_array($filter, [-1, 1, false, true], true))
         {
-            $callback = function($arguments) use($wp, $tag, $filter, $params, $args)
+            $callback = function(...$arguments) use($wp, $tag, $filter, $params, $args)
             {
-                if(is_array($params) || is_object($params))
+                if(is_object($params))
                 {
                     $params = [$params];
+                }else{
+                    $params = (array)$params;
                 }
                 //filter hook instance in $tag
                 if($tag instanceof \Setcooki\Wp\Filter\Filter) {
-                    return call_user_func_array([$tag, 'execute'], array_merge((array)$arguments, (array)$params));
+                    return call_user_func_array([$tag, 'execute'], array_merge($arguments, $params));
                 //filter hook instance in $filter
                 }else if($filter instanceof \Setcooki\Wp\Filter\Filter) {
-                    return call_user_func_array([$filter, 'execute'], array_merge((array)$arguments, (array)$params));
+                    return call_user_func_array([$filter, 'execute'], array_merge($arguments, $params));
                 //filter is filter chain
                 }else if($filter instanceof \Setcooki\Wp\Filter\Chain) {
-                    return $filter->execute(func_get_args(), (array)$params);
+                    return $filter->execute(array_merge($arguments, $params));
                 //filter is controller action
                 }else if(!empty($wp) && $wp->stored('resolver') && $wp->store('resolver')->handleable($filter, true)){
-                    return $wp->store('resolver')->handle($filter, array_merge((array)$arguments, (array)$params));
+                    return $wp->store('resolver')->handle($filter, array_merge($arguments, $params));
                 //filter is a callable
                 }else if(is_callable($filter)){
-                    return call_user_func_array($filter, array_merge(func_get_args(), (array)$params));
+                    return call_user_func_array($filter, array_merge($arguments, $params));
                 //else try filter chain by name
                 }else if(is_string($filter) || is_numeric($filter)){
-                    return \Setcooki\Wp\Filter\Chain::e($filter, func_get_args(), (array)$params);
+                    return \Setcooki\Wp\Filter\Chain::e($filter, array_merge($arguments, $params));
                 //else return value unaltered
                 }else{
-                    return func_get_args();
+                    return $arguments;
                 }
             };
 
@@ -1135,27 +1137,29 @@ if(!function_exists('setcooki_action'))
 
         if(!in_array($action, [-1, 1, false, true], true))
         {
-            $callback = function($arguments) use($wp, $tag, $action, $params, $args)
+            $callback = function(...$arguments) use($wp, $tag, $action, $params, $args)
             {
-                if(is_array($params) || is_object($params))
+                if(is_object($params))
                 {
                     $params = [$params];
+                }else{
+                    $params = (array)$params;
                 }
                 //action hook instance in $tag
                 if($tag instanceof \Setcooki\Wp\Action\Action) {
-                    return call_user_func_array([$tag, 'execute'], array_merge((array)$arguments, (array)$params));
+                    return call_user_func_array([$tag, 'execute'], array_merge($arguments, $params));
                 //action hook instance in $action
                 }else if($action instanceof \Setcooki\Wp\Action\Action) {
-                    return call_user_func_array([$action, 'execute'], array_merge((array)$arguments, (array)$params));
+                    return call_user_func_array([$action, 'execute'], array_merge($arguments, $params));
                 //action is controller action
                 }else if(!empty($wp) && $wp->stored('resolver') && $wp->store('resolver')->handleable($action, true)){
-                    return $wp->store('resolver')->handle($action, array_merge((array)$arguments, (array)$params));
+                    return $wp->store('resolver')->handle($action, array_merge($arguments, $params));
                 //action is callable
                 }else if(is_callable($action)){
-                    return call_user_func_array($action, array_merge(func_get_args(), (array)$params));
+                    return call_user_func_array($action, array_merge($arguments, $params));
                 //else return unaltered
                 }else{
-                    return func_get_args();
+                    return $arguments;
                 }
             };
 
