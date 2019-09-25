@@ -17,7 +17,7 @@ trait Singleton
     /**
      * @var
      */
-    private static $_instance = null;
+    protected static $_instance = null;
 
 
     /**
