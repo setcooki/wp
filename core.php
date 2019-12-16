@@ -299,6 +299,7 @@ if(!function_exists('setcooki_boot'))
             {
                 \Setcooki\Wp\Error::handler($no, $str, $file, $line, $context, $wp[SETCOOKI_WP_LOGGER]);
             });
+            restore_error_handler();
         }
         if(!empty($GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_EXCEPTION_HANDLER]) && (bool)$GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_EXCEPTION_HANDLER])
         {
@@ -306,6 +307,7 @@ if(!function_exists('setcooki_boot'))
             {
                 \Setcooki\Wp\Exception::handler($e, $wp[SETCOOKI_WP_LOGGER]);
             });
+            restore_exception_handler();
         }
         if(!empty($GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_DEBUG]) && (bool)$GLOBALS[SETCOOKI_NS][$ns][SETCOOKI_WP_DEBUG])
         {
