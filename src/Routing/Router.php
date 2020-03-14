@@ -727,6 +727,10 @@ class Router
      */
 	public static function redirect($url, $code = 302, $fallback = null)
 	{
+	    if(preg_match("!{$url}!i", sprintf('%s://%s%s', (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http'), $_SERVER['HTTP_HOST'], $_SERVER['REQUEST_URI'])))
+        {
+            return false;
+        }
 		if(filter_var($url, FILTER_VALIDATE_URL) !== false || parse_url($url) !== false)
 		{
 			header('Location: ' . trim((string)$url), true, (int)$code);
