@@ -41,6 +41,13 @@ class Router
 	protected $_routes = [];
 
     /**
+     * contains before run callables or closures
+     *
+     * @var array
+     */
+	protected $_before = [];
+
+    /**
      * contains the found/match route from router::run
      *
      * @var null|Route
@@ -507,6 +514,22 @@ class Router
 
 
     /**
+     * attach a before function to run before router executes
+     *
+     * @param callable | \Closure $function
+     * @return $this
+     */
+	public function before($function)
+    {
+        if(is_callable($function) || $function instanceof \Closure)
+        {
+            $this->_before[] = $function;
+        }
+        return $this;
+    }
+
+
+    /**
      * run the router by trying to find a route that matches and execute the found route or executing optional fallback
      * if no route was found. the rule on how the router class finds a match is straight forward - the first route of added
      * routes that matches is executed so the priority is defined by the order on how routes are added. if more then one
@@ -542,6 +565,18 @@ class Router
 		{
 			$request = ($this->request() !== null) ? $this->request() : new Request();
 		}
+		if(!empty($this->_before))
+        {
+            foreach($this->_before as $before)
+            {
+                if(is_callable($before))
+                {
+                    call_user_func_array($before, [$this]);
+                } else if($before instanceof \Closure){
+                    $before($this);
+                }
+            }
+        }
 		foreach($this->_routes as $route)
 		{
 			$i = 0;
