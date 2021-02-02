@@ -178,7 +178,7 @@ if(version_compare(PHP_VERSION, SETCOOKI_WP_PHP_VERSION, '<'))
 /**
  * stripslashes on input variables
  */
-if(version_compare(PHP_VERSION, '7.4.0', '<') && function_exists('get_magic_quotes_gpc') && call_user_func('get_magic_quotes_gpc') === 1)
+if(version_compare(PHP_VERSION, '7.4.0', '<'))
 {
     $_GET = stripslashes_deep($_GET);
     $_POST = stripslashes_deep($_POST);
