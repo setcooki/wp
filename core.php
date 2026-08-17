@@ -406,7 +406,7 @@ if(!function_exists('setcooki_base'))
     {
         if(is_null($stack))
         {
-            $stack = debug_backtrace(null, 15);
+            $stack = debug_backtrace(0, 15);
         }
         $base = static function($b) use(&$base)
         {
@@ -539,7 +539,7 @@ if(!function_exists('setcooki_path'))
             case 'plugins':
                 $path = (defined('WP_PLUGIN_DIR')) ? WP_PLUGIN_DIR : ABSPATH . 'wp-content' . DIRECTORY_SEPARATOR . 'plugins';
                 break;
-            default;
+            default:
                 return '';
         }
         if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' || preg_match('=^[a-z]{1,}\:\\\=i', $path))
@@ -644,7 +644,7 @@ if(!function_exists('setcooki_ns'))
      */
     function setcooki_ns()
     {
-        if(($base = setcooki_base(debug_backtrace(null, 15), true)) !== false)
+        if(($base = setcooki_base(debug_backtrace(0, 15), true)) !== false)
         {
             return strtolower(trim((string)$base));
         }else{
